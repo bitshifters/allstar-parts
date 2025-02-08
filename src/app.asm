@@ -137,6 +137,14 @@ music_sample_speed:
 
 ; R12=top of RAM used.
 app_init_audio:
+    .if AppConfig_UseRasterMan
+   	; Required to make QTM play nicely with RasterMan.
+	mov r0, #4
+	mov r1, #-1
+	mov r2, #-1
+	swi QTM_SoundControl
+    .endif
+
 .if AppConfig_DynamicSampleSpeed
 	; Count how long the init takes as a very rough estimate of CPU speed.
 	ldr r1, vsync_count
@@ -201,6 +209,11 @@ app_init_audio:
 ; R12=screen addr.
 app_late_init:
     str lr, [sp, #-4]!
+
+.if AppConfig_UseRasterMan
+    bl rasters_init
+.endif
+
     ldr r10, init_screen_addr
     bl text_pool_init
     ldr pc, [sp], #4
@@ -340,6 +353,7 @@ vsync_bodge:
 ; Code run at vsync.
 ; ============================================================================
 
+.if !AppConfig_UseRasterMan
 app_vsync_code:
 	; Update the vsync counter.
 	ldr r0, vsync_count
@@ -374,6 +388,7 @@ app_vsync_code:
 	mov r0, #0
 	str r0, pending_bank
     b exitVs
+.endif
 
 ; ============================================================================
 ; FX code modules.
@@ -393,6 +408,10 @@ app_vsync_code:
 .include "lib/screen.asm"
 .include "lib/outline-font.asm"
 .include "lib/text-pool.asm"
+
+.if AppConfig_UseRasterMan
+.include "src/rasters.asm"
+.endif
 
 ; ============================================================================
 ; ArchieKlang generated code.

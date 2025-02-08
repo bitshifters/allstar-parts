@@ -13,7 +13,7 @@ Framework TODOs as of 15/5/24:
     - Tick just means 'call this function every frame without fail'
       Could be implemented using script_fork!!
 - Improve build using Tom's Python scripts and makefile-foo.
-- Does ErrorV actually do anything?
+- Does ErrorV actually do anything? => Handles OS_GenerateError calls.
 - Move png2arc to Python 3.
 - MOD file analyser to configure code / script.
 - Move scripting to use seconds throughout?
@@ -139,3 +139,13 @@ x+=1:y+=1 => strb r4, [r11], #-ScreenStride+1
 x+=1:y-=1 => strb r4, [r11], #ScreenStride+1
 x+=0:y+=1 => strb r4, [r11], #-ScreenStride
 x+=0:y-=1 => strb r4, [r11], #ScreenStride
+
+Fantasy Cracktro Compo
+~~~
+Target 16th March ~five weeks!
+Use RasterMan
+Get a chip tune
+Sine scroller + rasters
+Some ASCII text effect
+Something in the background (maybe particlezzzz?)
+

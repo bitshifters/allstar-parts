@@ -46,6 +46,8 @@ $(FOLDER): build ./build/archie-verse.bin ./build/!run.txt ./build/icon.bin
 	$(MKDIR_P) $(FOLDER)
 	$(COPY) .\build\!run.txt "$(FOLDER)\!Run,feb"
 	$(COPY) .\build\icon.bin "$(FOLDER)\!Sprites,ff9"
+	$(COPY) ".\data\riscos\RMv030,ffa" "$(FOLDER)"
+	$(COPY) ".\data\riscos\QTM146c_24,ffa" "$(FOLDER)"
 	$(COPY) .\build\archie-verse.bin "$(FOLDER)\!RunImage,ff8"
 
 .PHONY:seq
@@ -69,7 +71,7 @@ shrink: build ./build/!run.txt ./build/loader.bin ./build/icon.bin
 build:
 	$(MKDIR_P) "./build"
 
-./build/assets.txt: build ./build/music.mod.trk
+./build/assets.txt: build ./build/music.mod
 	echo done > $@
 
 ./build/archie-verse.shri: build ./build/archie-verse.bin
@@ -94,7 +96,7 @@ build:
 	$(VASM) -L build/dot_b.txt -m250 -Fbin -opt-adr -o $@ $<
 
 .PHONY:./build/archie-verse.o
-./build/archie-verse.o: build archie-verse.asm ./src/gen/arcmusic.asm ./build/assets.txt
+./build/archie-verse.o: build archie-verse.asm ./build/assets.txt
 	$(VASM) -L build/compile.txt -m250 -Fvobj -opt-adr -o build/archie-verse.o archie-verse.asm
 
 ##########################################################################
@@ -148,7 +150,7 @@ clean:
 ./build/music.mod.trk: ./build/music.mod
 	$(SPLITMOD) $(subst /,\\,$+)
 
-./build/music.mod: ./data/music/aklang/archieklang_smp_rhino9.mod
+./build/music.mod: ./data/music/django/maze-funky-delicious.mod
 	$(COPY) $(subst /,\\,$+) $(subst /,\\,$@)
 
 ##########################################################################

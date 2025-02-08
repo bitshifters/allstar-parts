@@ -8,9 +8,9 @@
 
 .equ _DEBUG,                    1
 .equ _SMALL_EXE,                0       ; TODO: Configure from Makefile?
-.equ _SLOW_CPU,                 0       ; ARM2 @ 8MHz. TODO: Set dynamically.
+.equ _SLOW_CPU,                 1       ; ARM2 @ 8MHz. TODO: Set dynamically.
 
-.equ _LOG_SAMPLES,              (_SMALL_EXE && 1)
+.equ _LOG_SAMPLES,              (_SMALL_EXE && 0)
 
 .equ _DEBUG_RASTERS,            (_DEBUG && 1)
 .equ _DEBUG_SHOW,               (_DEBUG && 1)
@@ -46,18 +46,20 @@ Start:
 main:
     ldr sp, stack_p
 
+	; Claim the Error vector.
+    .if _DEBUG
+	MOV r0, #ErrorV
+	ADR r1, error_handler
+	MOV r2, #0
+	SWI OS_Claim
+    .endif
+
+    .if !AppConfig_UseRasterMan
 	; Claim the Event vector.
 	MOV r0, #EventV
 	ADR r1, event_handler
 	MOV r2, #0
 	SWI OS_Claim
-
-	; Claim the Error vector.
-	MOV r0, #ErrorV
-	ADR r1, error_handler
-	MOV r2, #0
-	SWI OS_Claim
-    ; TODO: Do we need this outside of _DEBUG?
 
 	; Install our own IRQ handler - thanks Steve! :)
     .if AppConfig_InstallIrqHandler
@@ -66,6 +68,7 @@ main:
 	mov r0, #OSByte_EventEnable
 	mov r1, #Event_VSync
 	SWI OS_Byte
+    .endif
     .endif
 
     ; Generate sample data first?
@@ -97,10 +100,12 @@ main:
     ldr r12, screen_addr
     bl app_late_init
 
+    .if !AppConfig_UseRasterMan
 	; Enable key pressed event.
 	mov r0, #OSByte_EventEnable
 	mov r1, #Event_KeyPressed
 	SWI OS_Byte
+    .endif
 
 	; Play music!
 	QTMSWI QTM_Start
@@ -111,6 +116,11 @@ main:
     ; Reset vsync count.
     ldr r0, vsync_count
     str r0, last_vsync
+
+    .if AppConfig_UseRasterMan
+	; Fire up the RasterMan!
+	swi RasterMan_Install
+    .endif
 
 main_loop:
 
@@ -238,14 +248,22 @@ main_loop_skip_tick:
 	bl mark_write_bank_as_pending_display
 
 	; repeat!
+    .if AppConfig_UseRasterMan
+	swi RasterMan_ScanKeyboard
+	mov r1, #0xc0c0
+	cmp r0, r1
+    bne main_loop
+    .else
 	swi OS_ReadEscapeState
 	bcc main_loop                   ; exit if Escape is pressed
+    .endif
 
 exit:
 	; Disable music
 	mov r0, #0
 	QTMSWI QTM_Clear
 
+    .if !AppConfig_UseRasterMan
 	; Remove our IRQ handler
     .if AppConfig_InstallIrqHandler
 	bl uninstall_irq_handler
@@ -266,12 +284,18 @@ exit:
 	adr r1, event_handler
 	mov r2, #0
 	swi OS_Release
+    .else
+  	swi RasterMan_Release
+	swi RasterMan_Wait
+    .endif
 
+    .if _DEBUG
 	; Release our error handler
 	mov r0, #ErrorV
 	adr r1, error_handler
 	mov r2, #0
 	swi OS_Release
+    .endif
 
 	; Display whichever bank we've just written to
 	mov r0, #OSByte_WriteDisplayBank
@@ -392,6 +416,7 @@ music_pos:
     .long 0
 .endif
 
+.if !AppConfig_UseRasterMan
 ; R0=event number
 event_handler:
     .if _DEBUG
@@ -419,7 +444,7 @@ event_handler_return:
     .else
     mov pc, lr
     .endif
-
+.endif
 
 
 mark_write_bank_as_pending_display:
@@ -482,12 +507,27 @@ get_next_bank_for_writing:
 	cmp r1, #VideoConfig_ScreenBanks
 	movgt r1, #1
 
+.if AppConfig_UseRasterMan
+    ; VSYNC bodge for now - assume 50Hz.
+	swi RasterMan_Wait
+
+    ldr r0, pending_bank
+    str r0, displayed_bank
+
+    mov r0, #0
+    str r0, pending_bank
+
+    ldr r0, vsync_count
+    add r0, r0, #1
+    str r0, vsync_count
+.else
 	; Block here if trying to write to displayed bank.
 .if VideoConfig_ScreenBanks > 1
 	.1:
 	ldr r0, displayed_bank
 	cmp r1, r0
 	beq .1
+.endif
 .endif
 
 	str r1, write_bank
@@ -503,9 +543,11 @@ get_screen_addr:
 	swi OS_ReadVduVariables
     mov pc, lr
 
+.if _DEBUG
 error_handler:
 	STMDB sp!, {r0-r2, lr}
 
+    .if !AppConfig_UseRasterMan
     .if AppConfig_InstallIrqHandler
 	bl uninstall_irq_handler
     .else
@@ -523,6 +565,7 @@ error_handler:
 	ADR r1, event_handler
 	mov r2, #0
 	SWI OS_Release
+    .endif
 
 	; Release error handler.
 	MOV r0, #ErrorV
@@ -538,8 +581,13 @@ error_handler:
 	; Do these help?
 ;	QTMSWI QTM_Stop
 
+    .if AppConfig_UseRasterMan
+    swi RasterMan_Release
+    .endif
+
 	LDMIA sp!, {r0-r2, lr}
 	MOVS pc, lr
+.endif
 
 ; ============================================================================
 ; Core code modules
