@@ -579,3 +579,18 @@ scroller_scroll_line:
 	mov r8, r8, lsr r12	    ; rotate new data word
 	str r8, [r11], #4      ; scroller_glyph_column_buffer[r11]=r10
 	ldr pc, [sp], #4
+
+; ============================================================================
+
+.include "src/data/aklang/scroll-text-klang.asm"
+
+; ============================================================================
+
+scroll_text_hash_values_no_adr:
+    .skip 4*ScrollText_MaxSprites
+
+scroll_text_as_sprites_no_adr:
+    .skip ScrollText_MaxLength
+
+scroller_glyph_column_buffer_1_no_adr:
+	.skip Scroller_Glyph_Height * 4

@@ -20,7 +20,7 @@
 .equ LibConfig_IncludeSine,             (LibConfig_IncludeMatrix || 1)
 .equ LibConfig_IncludeSpanGen,          (LibConfig_IncludeTriangle || LibConfig_IncludePolygon || LibConfig_IncludeCircles || 0)       ; Required for polygon & triangle & cirlces.
 
-.equ LibConfig_IncludeLineSegments,     1
+.equ LibConfig_IncludeLineSegments,     0
 
 ; ============================================================================
 

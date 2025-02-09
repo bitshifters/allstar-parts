@@ -203,7 +203,7 @@ app_init_audio:
 
 
 ; ============================================================================
-; App late initialisation.
+; App late initialisation for things that require access to the screen.
 ; ============================================================================
 
 ; R12=screen addr.
@@ -214,8 +214,9 @@ app_late_init:
     bl rasters_init
 .endif
 
-    ldr r10, init_screen_addr
-    bl text_pool_init
+    ;ldr r10, init_screen_addr
+    ;bl text_pool_init
+
     ldr pc, [sp], #4
 ; TODO: Make this more generic or include in sequence?
 
@@ -394,9 +395,7 @@ app_vsync_code:
 ; FX code modules.
 ; ============================================================================
 
-.include "src/fx/scope.asm"
-.include "src/fx/bits.asm"
-.include "src/fx/outline-scroller.asm"
+.include "src/fx/sine-scroller.asm"
 
 ; ============================================================================
 ; Support library code modules used by the FX sequence.
@@ -406,8 +405,6 @@ app_vsync_code:
 .include "lib/palette.asm"
 .endif
 .include "lib/screen.asm"
-.include "lib/outline-font.asm"
-.include "lib/text-pool.asm"
 
 .if AppConfig_UseRasterMan
 .include "src/rasters.asm"

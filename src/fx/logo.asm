@@ -245,3 +245,13 @@ logo_init:
     bne .2
 
     ldr pc, [sp], #4
+
+; ============================================================================
+
+.if 0   ; fx/logo.asm
+logo_data_shifted_no_adr:
+	.skip Logo_Bytes * 7
+
+logo_mask_shifted_no_adr:
+	.skip Logo_Bytes * 7
+.endif

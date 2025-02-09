@@ -1164,3 +1164,43 @@ particles_gravity:
     FLOAT_TO_FP (Particles_DefaultG / 50.0)       ; f.y (pixels/frame not pixels/sec) 
 
 ; ============================================================================
+
+; ============================================================================
+; Sprite data.
+; ============================================================================
+
+.if 0
+; src/particles.asm
+; TODO: Fully masked sprites not tinted masks. Interleave data?
+additive_block_sprite:
+    .long 0x01111110
+    .long 0x11111111
+    .long 0x11111111
+    .long 0x11111111
+    .long 0x11111111
+    .long 0x11111111
+    .long 0x11111111
+    .long 0x01111110
+
+block_sprites_no_adr:
+    .incbin "build/block-sprites.bin"
+.endif
+
+; ============================================================================
+
+.if 0
+; src/particles.asm
+additive_block_sprite_buffer_no_adr:
+    .skip 8*8*8 ; width_in_bytes * rows * 8 pixel shifts
+
+temp_sprite_ptrs_no_adr:
+    .skip 4*8   ; sizeof(ptr) * 8 pixel shifts
+.endif
+
+; ============================================================================
+
+.if 0
+; src/particles.asm
+particles_array_no_adr:
+    .skip Particle_SIZE * Particles_Max
+.endif

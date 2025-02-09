@@ -471,3 +471,26 @@ scroller_update_new:
 	blmi update_scrolltext_ptr
 
 	ldr pc, [sp], #4
+
+; ============================================================================
+
+.if 0   ; fx/scroller.asm
+.p2align 2
+scroller_font_data_no_adr:
+.incbin "build/big-font.bin"
+
+.p2align 2
+scroller_text_string_no_adr:
+; Add 20 blank chars so that scroller begins on RHS of the screen, as per Amiga.
+.byte "                    "
+.include "src/scrolltxt-final.asm"
+scroller_text_string_end_no_adr:
+.p2align 2
+.endif
+
+; ============================================================================
+
+.if 0   ; fx/scroller.asm
+scroller_font_data_shifted_no_adr:
+	.skip Scroller_Max_Glyphs * Scroller_Glyph_Height * 12 * 8
+.endif

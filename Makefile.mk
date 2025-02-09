@@ -71,7 +71,7 @@ shrink: build ./build/!run.txt ./build/loader.bin ./build/icon.bin
 build:
 	$(MKDIR_P) "./build"
 
-./build/assets.txt: build ./build/music.mod
+./build/assets.txt: build ./build/music.mod ./build/razor-font.bin
 	echo done > $@
 
 ./build/archie-verse.shri: build ./build/archie-verse.bin
@@ -140,6 +140,10 @@ clean:
 
 ./build/greetz2.bin: ./data/gfx/greetz_2_alt.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ $< 4
+
+./build/razor-font.bin: ./data/font/Charset_1Bitplan.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC_FONT) -o $@ --glyph-dim 16 15 --max-glyphs 60 --store-as-byte-cols --map-to-ascii ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-./!\"$%&:;'()=*+?,^@ $< 9
+
 
 ##########################################################################
 ##########################################################################

@@ -683,3 +683,15 @@ particle_dave_draw_origin_as_points:
 .endif
 
 ; ============================================================================
+
+.if 0 ; Push
+; src/particle-grid.asm
+particle_grid_array_no_adr:
+    .skip ParticleGrid_SIZE * ParticleGrid_Max
+
+; ============================================================================
+
+; src/particle-dave.asm
+particle_dave_array_no_adr:
+    .skip ParticleDave_SIZE * ParticleDave_Max
+.endif

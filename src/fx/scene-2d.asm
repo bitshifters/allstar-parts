@@ -476,3 +476,12 @@ model_circle_verts:             ; Technically an octagon. Used as a 3D object.
     .skip VECTOR3_SIZE*Model_Circle_Num_Verts
 
 ; ============================================================================
+
+.if 0   ; fx/scene-2d.asm
+; All objects transformed to world space.
+scene2d_object_buffer_no_adr:
+    .skip Scene2D_ObjectBuffer_Size
+
+scene2d_verts_buffer_no_adr:
+    .skip Scene2D_MaxVerts * VECTOR2_SIZE
+.endif

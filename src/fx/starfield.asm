@@ -190,3 +190,11 @@ starfield_recip_z:
 starfield_recip_z_end:
 
 ; ============================================================================
+
+.if 0   ; fx/starfield.asm
+starfield_x_no_adr:
+    .skip Starfield_Total * 4
+
+starfield_y_no_adr:
+    .skip Starfield_Total * 4
+.endif

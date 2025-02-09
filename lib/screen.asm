@@ -4,10 +4,11 @@
 
 ; TODO: Best way to configure this outside lib code.
 ;       Possibly jump into the unrolled code dynamically?
-.equ Cls_FirstLine,     4+Scroller_Glyph_Height
+.equ Cls_FirstLine,     0
 .equ Cls_LastLine,      255
 .equ Cls_Bytes,         (Cls_LastLine+1-Cls_FirstLine)*Screen_Stride
 
+.if 0
 screen_cls_from_line:
     mov r0, #Cls_FirstLine
     add r12, r12, r0, lsl #8
@@ -15,6 +16,7 @@ screen_cls_from_line:
     .if Screen_Mode != 12
     .err "Expected Screen_Mode to be 12!"
     .endif
+.endif
 
 ; R12 = screen address
 ; trashes r0-r9

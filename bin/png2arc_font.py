@@ -139,6 +139,7 @@ def main(options):
 
     pixel_data=[]
     num_glyphs=0
+    padding=0
 
     # Assume this is a standard block of glyphs.
     for glyph_top in range(0,src_height,options.glyph_dim[1]):
@@ -148,21 +149,56 @@ def main(options):
                 break
 
             # One glyph.
-            for y in range(0,options.glyph_dim[1]):
-                row=pixels[glyph_top+y]
-                assert(len(row)==src_width)
+            if options.store_as_byte_cols:
                 for x in range(0,options.glyph_dim[0],pixels_per_byte):
-                    xs=[]
-                    for p in range(0,pixels_per_byte):
-                        xs.append(row[glyph_left+x+p])
-                    assert len(xs)==pixels_per_byte
-                    pixel_data.append(pack(xs))
+                    for y in range(0,options.glyph_dim[1]):
+                        row=pixels[glyph_top+y]
+                        assert(len(row)==src_width)
+                        xs=[]
+                        for p in range(0,pixels_per_byte):
+                            xs.append(row[glyph_left+x+p])
+                        assert len(xs)==pixels_per_byte
+                        pixel_data.append(pack(xs))
+                    # Pad byte columns to whole words.
+                    if (options.glyph_dim[1] & 0x3) != 0:
+                        for pad in range(0,4-(options.glyph_dim[1] & 0x3)):
+                            pixel_data.append(0)
+                            padding+=1
+            else:
+                for y in range(0,options.glyph_dim[1]):
+                    row=pixels[glyph_top+y]
+                    assert(len(row)==src_width)
+                    for x in range(0,options.glyph_dim[0],pixels_per_byte):
+                        xs=[]
+                        for p in range(0,pixels_per_byte):
+                            xs.append(row[glyph_left+x+p])
+                        assert len(xs)==pixels_per_byte
+                        pixel_data.append(pack(xs))
             
             num_glyphs+=1
-            
-    assert(len(pixel_data)==num_glyphs*glyph_size)
-    save_file(pixel_data,options.output_path)
-    print 'Wrote {0} glyphs at {1} bytes per glyph for a total of {2} bytes of Arc data.'.format(num_glyphs, glyph_size, len(pixel_data))
+
+    glyph_size+=padding/num_glyphs
+
+    if options.map_to_ascii is not None:
+        max_ascii=max([ord(x) for x in list(options.map_to_ascii)])
+        print 'Remapping glyphs to ASCII order with max code {0}.'.format(max_ascii)
+        with open(options.output_path,'wb') as f:
+            for ascii in range(32,max_ascii+1):
+                if chr(ascii) in options.map_to_ascii:
+                    if options.loud:
+                        print 'ASCII char {0} found in "{1}"'.format(ascii, options.map_to_ascii)
+                    pos=options.map_to_ascii.index(chr(ascii))
+                    f.write(''.join([chr(x) for x in pixel_data[pos*glyph_size:(pos+1)*glyph_size]]))
+                else:
+                    if options.loud:
+                        print 'ASCII char {0} not found.'.format(ascii)
+                    f.write(chr(0x00)*glyph_size)
+            print 'Wrote {0} glyphs at {1} bytes per glyph for a total of {2} bytes of Arc data includes {3} bytes padding per glyph.'.format(max_ascii-31, glyph_size, f.tell(), padding/num_glyphs)
+
+    else:
+        assert(len(pixel_data)==num_glyphs*glyph_size)
+        save_file(pixel_data,options.output_path)
+        print 'Wrote {0} glyphs at {1} bytes per glyph for a total of {2} bytes of Arc data includes {3} bytes padding.'.format(num_glyphs, glyph_size, len(pixel_data), padding)
 
     if options.palette_path is not None:
         pal_data=[]
@@ -179,6 +215,7 @@ def main(options):
         save_file(pal_data,options.palette_path)
         print 'Wrote {0} bytes palette data.'.format(len(pal_data))
 
+            
 
 ##########################################################################
 ##########################################################################
@@ -189,6 +226,8 @@ if __name__=='__main__':
     parser.add_argument('-o',dest='output_path',metavar='FILE',help='output ARC data to %(metavar)s')
     parser.add_argument('-p',dest='palette_path',metavar='FILE',help='output palette data to %(metavar)s')
     parser.add_argument('--loud',action='store_true',help='display warnings')
+    parser.add_argument('--store-as-byte-cols',action='store_true',help='store in columns one byte wide')
+    parser.add_argument('--map-to-ascii',metavar='STRING',help='map glyphs from %(metavar)s to ASCII order')
     parser.add_argument('--glyph-dim',
                         default=None,
                         type=int,

@@ -376,3 +376,42 @@ dot_tunnel_x_octant:
 dot_tunnel_y_octant:
     .incbin "data/dot_tunnel_y_octant.bin"
 .endif
+
+; ============================================================================
+
+.if 0   ; fx/dot-tunnel.asm
+.p2align 6
+dots_y_table_1_no_adr:
+.incbin "data/dots_y_table_1.bin"
+dots_y_table_1_end_no_adr:
+.incbin "data/dots_y_table_1.bin"
+
+dots_y_table_2_no_adr:
+.incbin "data/dots_y_table_2.bin"
+dots_y_table_2_end_no_adr:
+.incbin "data/dots_y_table_2.bin"
+
+.p2align 6
+dots_y_table_1_b_no_adr:
+.incbin "data/dots_y_table_1_b.bin"
+dots_y_table_1_b_end_no_adr:
+.incbin "data/dots_y_table_1_b.bin"
+
+dots_y_table_2_b_no_adr:
+.incbin "data/dots_y_table_2_b.bin"
+dots_y_table_2_b_end_no_adr:
+.incbin "data/dots_y_table_2_b.bin"
+.endif
+
+; ============================================================================
+
+.if 0   ; fx/dot-tunnel.asm
+.p2align 6
+dot_tunnel_offset_xy_no_adr:
+    .incbin "data\dot_tunnel_xy_offset.bin"
+
+; NB. !!! Must be consecutive !!!
+
+dot_tunnel_xy_no_adr:
+    .incbin "data\dot_tunnel_xy.bin"
+.endif

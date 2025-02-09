@@ -38,19 +38,19 @@
 ; ============================================================================
 
     ; Init FX modules.
-    call_0 scope_init
+    call_0 sine_scroller_init
 
     ; Screen setup.
     write_addr palette_array_p, seq_palette_red_additive
 
 	; Setup layers of FX.
-    call_3 fx_set_layer_fns, 0, 0,                          screen_cls_from_line
-    call_3 fx_set_layer_fns, 2, scope_tick_with_history,    scope_draw_with_history
+    call_3 fx_set_layer_fns, 0, 0,                          screen_cls
+    call_3 fx_set_layer_fns, 2, sine_scroller_tick,         sine_scroller_draw
 
     ; FX params.
-    write_fp scroll_text_y_pos, 4.0 ; NB. Must match mode9-screen.asm defines. :\
-    write_addr scroller_speed, 2
-    write_fp scope_yscale 0.5
+;    write_fp scroll_text_y_pos, 4.0 ; NB. Must match mode9-screen.asm defines. :\
+;    write_addr scroller_speed, 2
+;    write_fp scope_yscale 0.5
     end_script
 
 ; ============================================================================

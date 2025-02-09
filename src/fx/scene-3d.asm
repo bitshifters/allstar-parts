@@ -539,3 +539,26 @@ project_to_screen:
 	.align 4
 	.long 0
 .endif
+
+; ============================================================================
+
+.if 0   ; fx/scene-3d.asm
+.include "src/data/3d-meshes.asm"
+.endif
+
+; ============================================================================
+
+.if 0   ; fx/scene-3d.asm
+transformed_verts_no_adr:
+    .skip OBJ_MAX_VERTS * VECTOR3_SIZE
+
+; !VERTEX AND NORMAL ARRAYS MUST BE CONSECUTIVE!
+
+;transformed_normals:       ; this is dynamic depending on num_verts.
+    .skip OBJ_MAX_FACES * VECTOR3_SIZE
+
+; !VERTEX AND NORMAL ARRAYS MUST BE CONSECUTIVE!
+
+projected_verts_no_adr:
+    .skip OBJ_MAX_VERTS * VECTOR2_SIZE
+.endif

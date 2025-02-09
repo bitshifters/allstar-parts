@@ -526,3 +526,15 @@ scope_draw_one_history:
     and r4, r4, #0xf
 
     ldr pc, [sp], #4
+
+; ============================================================================
+
+scope_log_to_lin_no_adr:
+    .skip 256
+
+scope_dma_buffer_copy_no_adr:
+    .skip Scope_MaxSamples*4
+
+scope_dma_buffer_histories_no_adr:
+    .skip Scope_TotalSamples*Scope_NumHistories
+scope_dma_buffer_histories_top_no_adr:

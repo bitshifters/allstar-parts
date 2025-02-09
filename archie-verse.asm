@@ -582,7 +582,7 @@ error_handler:
 ;	QTMSWI QTM_Stop
 
     .if AppConfig_UseRasterMan
-    swi RasterMan_Release
+    ;swi RasterMan_Release
     .endif
 
 	LDMIA sp!, {r0-r2, lr}

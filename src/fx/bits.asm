@@ -1038,3 +1038,73 @@ bits_text:
 .p2align 2
 .endif
 .endif
+
+; ============================================================================
+
+.if 0
+bs_logo_screen_no_adr:
+    .incbin "build/bs-logo.bin"
+
+bs_logo_pal_no_adr:
+    .incbin "build/bs-logo.bin.pal"
+
+tmt_logo_screen_no_adr:
+    .incbin "build/tmt-logo.bin"
+
+tmt_logo_pal_no_adr:
+    .incbin "build/tmt-logo.bin.pal"
+
+credits_screen_no_adr:
+    .incbin "build/credits.bin"
+
+credits_pal_no_adr:
+    .incbin "build/credits.bin.pal"
+.endif
+
+; ============================================================================
+
+.if 0
+bits_draw_file_no_adr:
+    .incbin "data/sys-req-amiga,aff"
+bits_draw_file_end_no_adr:
+.endif
+
+.if 0 ; Push
+bits_owl_no_adr:
+    .incbin "build/bbc_owl.bin"
+
+greetz1_mode4_no_adr:
+    .incbin "build/greetz1.bin"
+
+greetz2_mode4_no_adr:
+    .incbin "build/greetz2.bin"
+.endif
+
+; ============================================================================
+
+.if 0 ; Push
+bits_owl_mode9_no_adr:
+    .skip Bits_Owl_Mode9_Bytes
+
+bits_owl_vert_array_no_adr:
+    .skip VECTOR2_SIZE*520
+
+greetz1_mode9_no_adr:
+    .skip Screen_Bytes
+
+greetz2_mode9_no_adr:
+    .skip Screen_Bytes
+.endif
+
+; ============================================================================
+
+.if 0 ; Push
+bits_logo_vert_array_no_adr:
+    .skip VECTOR2_SIZE*520
+
+tmt_logo_vert_array_no_adr:
+    .skip VECTOR2_SIZE*520
+
+prod_logo_vert_array_no_adr:
+    .skip VECTOR2_SIZE*520
+.endif

@@ -585,3 +585,9 @@ balls_debug_drop:
 .endif
 
 ; ============================================================================
+
+.if 0
+; src/balls.asm
+balls_array_no_adr:
+    .skip Ball_SIZE * Balls_Max
+.endif

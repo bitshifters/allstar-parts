@@ -239,3 +239,9 @@ text_pool_get_sprite:
     adr r9, text_pool_heights
     ldr r9, [r9, r0, lsl #2]
     mov pc, lr
+
+; ============================================================================
+
+text_pool_base_no_adr:
+    .skip TextPool_PoolSize
+text_pool_top_no_adr:

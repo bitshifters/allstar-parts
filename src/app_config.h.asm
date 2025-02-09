@@ -56,8 +56,8 @@
 .equ VideoConfig_Widescreen,    0
 .equ VideoConfig_ScreenBanks,   2
 
-.equ Screen_Mode,               12
-.equ Screen_Width,              640
+.equ Screen_Mode,               9
+.equ Screen_Width,              320
 .equ Screen_PixelsPerByte,      2
 
 .if VideoConfig_Widescreen
