@@ -145,7 +145,8 @@ Fantasy Cracktro Compo
 Target 16th March ~five weeks!
 Use RasterMan => music bug?
 Get a chip tune => get something running first
-Sine scroller + rasters
+Sine scroller => started
+Add rasters
 Some ASCII text effect
 Something in the background (maybe particlezzzz?)
 
@@ -160,3 +161,8 @@ mov r0, r0, lsr #8
 strb r0, [r12], #160
 ...
 ; repeat x16
+
+Rasters
+Classic hue table
+R > Y > G > C > B > M > R
+0x00f > 0x0ff > 0x0f0 > 0xff0 > 0xf00 > 0xf0f > 0x00f

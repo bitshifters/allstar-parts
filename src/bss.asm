@@ -41,7 +41,7 @@ vidc_buffers_no_adr:
 .if AppConfig_UseRasterMan
 .p2align 2
 vidc_table_1_no_adr:
-	.skip 256*4*4
+	.skip 256*4*4 * 2
 
 ; TODO: Can we get rid of these?
 vidc_table_2_no_adr:
