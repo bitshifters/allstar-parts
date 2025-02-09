@@ -105,6 +105,9 @@ main:
 	mov r0, #OSByte_EventEnable
 	mov r1, #Event_KeyPressed
 	SWI OS_Byte
+    .else
+	; Fire up the RasterMan!
+	swi RasterMan_Install
     .endif
 
 	; Play music!
@@ -116,11 +119,6 @@ main:
     ; Reset vsync count.
     ldr r0, vsync_count
     str r0, last_vsync
-
-    .if AppConfig_UseRasterMan
-	; Fire up the RasterMan!
-	swi RasterMan_Install
-    .endif
 
 main_loop:
 

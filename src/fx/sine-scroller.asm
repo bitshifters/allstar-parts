@@ -199,8 +199,8 @@ get_next_glyph:
 
 
 scroll_text_text_no_adr:
-    .byte "HELLO WORLD! THIS IS A SINE WAVE SCROLLER FOR AN ARCHIMEDES CRACKTRO DESTINED FOR THE BUXTON BYTES CRACKTRO SHOWCASE."
-    .byte "                    "
+    .byte "          HELLO WORLD! THIS IS A SINE WAVE SCROLLER FOR AN ARCHIMEDES CRACKTRO DESTINED FOR THE BUXTON BYTES CRACKTRO SHOWCASE."
+    .byte "          "
     .byte 0 ; end.
 .p2align 2
 

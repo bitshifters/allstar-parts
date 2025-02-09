@@ -146,7 +146,7 @@ Target 16th March ~five weeks!
 Use RasterMan => music bug?
 Get a chip tune => get something running first
 Sine scroller => started
-Add rasters
+Add rasters => started
 Some ASCII text effect
 Something in the background (maybe particlezzzz?)
 
