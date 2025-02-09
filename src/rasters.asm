@@ -36,8 +36,6 @@ rasters_init:
 	swi RasterMan_SetTables
 	ldmfd sp!, {r0-r3}
 
-    mov pc, lr
-
     ; Make a raster table.
     ldr r1, raster_table_top_p  ; dupe
     mov r3, #0

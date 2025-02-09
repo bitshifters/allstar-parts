@@ -44,7 +44,7 @@
 ;    write_addr palette_array_p, seq_palette_red_additive
 
 	; Setup layers of FX.
-    call_3 fx_set_layer_fns, 0, 0,               screen_cls
+    call_3 fx_set_layer_fns, 0, rasters_tick,               screen_cls
     call_3 fx_set_layer_fns, 2, sine_scroller_tick,         sine_scroller_draw
 
     ; FX params.

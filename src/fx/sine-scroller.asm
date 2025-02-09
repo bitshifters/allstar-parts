@@ -86,9 +86,12 @@ sine_scroller_tick:
 
     ldr r5, sine_scroller_wave_p
     ldr r6, sine_scroller_wave_top_p
-    add r5, r5, #16
+    ldr r7, sine_scroller_wave_base_p
+    sub r5, r5, #16  ; four back!
     cmp r5, r6
-    ldrge r5, sine_scroller_wave_base_p
+    subge r5, r5, #SineScroller_TableSize*4
+    cmp r5, r7
+    addlt r5, r5, #SineScroller_TableSize*4
     str r5, sine_scroller_wave_p
 
     mov pc, lr
@@ -111,7 +114,7 @@ sine_scroller_draw:
     add r9, r9, r7, lsl #4      ; 16 bytes per column
 
     ldr r5, sine_scroller_wave_p
-    ldr r14, sine_scroller_wave_top_p
+    ldr r4, sine_scroller_wave_top_p
 
     ; R6=y pos to plot column at
     ldr r6, sine_scroller_y_pos
@@ -119,17 +122,17 @@ sine_scroller_draw:
     ; R10=byte column count
     mov r10, #Screen_Stride
 .1:
-    ; Load wave offset
-    ldr r4, [r5], #4
-    cmp r5, r14
-    ldrge r5, sine_scroller_wave_base_p
+    ; Load wave offset in y
+    ldr r14, [r5], #4                   ; one forward!
+    cmp r5, r4
+    subge r5, r5, #SineScroller_TableSize*4
 
     ; Y pos for column.
-    add r4, r4, r6                      ; base pos + offset
+    add r14, r14, r6                    ; base pos + offset
 
     ; R11=plot addr=screen base + y * 160
-    add r11, r12, r4, lsl #7
-    add r11, r11, r4, lsl #5
+    add r11, r12, r14, lsl #7
+    add r11, r11, r14, lsl #5
 
     ; Plot a column unrolled.
     ldmia r9!, {r0-r3}
