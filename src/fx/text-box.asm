@@ -9,6 +9,8 @@
 .equ TextBox_BaseASCII,     32
 .equ TextBox_Colour,        0xf
 
+.equ TextBox_PixelPlot,     1   ; SLOW!
+
 text_box_chars_to_display:
     .long 0                 ; up to TextBox_MaxChars
 
@@ -16,10 +18,12 @@ text_box_text_p:
     .long text_box_test_text_no_adr                 ; ptr to text to display
 
 text_box_pos_x:
-    .long 8                 ; top-left corner (char for now)
+    FLOAT_TO_FP 64.0         ; top-left corner (char for now)
+;    .long 64        
 
 text_box_pos_y:
-    .long 80                 ; top-left corner (line)
+    FLOAT_TO_FP 80.0         ; top-left corner (char for now)
+;    .long 80                 ; top-left corner (line)
 
 text_box_font_p:
     .long text_box_font_no_adr+32*8         ; skip top row of Atari glyphs.
@@ -86,14 +90,24 @@ text_box_draw:
     beq .9      ; nothing to do.
 
     ; Calc screen ptr.
-    ldrb r1, text_box_pos_x
-    ldrb r2, text_box_pos_y
+    ldr r1, text_box_pos_x
+    mov r1, r1, asr #16
+    ldr r2, text_box_pos_y
+    mov r2, r2, asr #16
     add r11, r12, r2, lsl #7
     add r11, r11, r2, lsl #5        ; y*160
+    and r7, r1, #7                  ; pixel offset
+    mov r1, r1, lsr #3              ; word
     add r11, r11, r1, lsl #2        ; x*4
 
     ; R9=ptr to font
     ldr r9, text_box_font_mode9_p
+
+    ; TEMP
+    .if TextBox_PixelPlot
+    mov r7, r7, lsl #2      ; P*4 = left word shift
+    rsb r6, r7, #32         ; 32-P*4 = right word shift
+    .endif
 
     ; R10=column count.
     mov r10, #0
@@ -107,6 +121,57 @@ text_box_draw:
     cmp r0, #TextBox_MaxGlyphs
     bge .10
 
+    .if TextBox_PixelPlot
+    add r12, r9, r0, lsl #5    ; 32 bytes per glyph.
+
+    ; Per row.
+    .rept 2
+    ; Load word.
+    ldmia r12!, {r0-r3}
+    ; Shift word into two words to position at pixel.
+    ;   Left word mask 0xffffffff << P*4
+    mov r4, r0, lsl r7      ; left word
+    ;   Right word mask 0xffffffff >> 32-P*4
+    mov r5, r0, lsr r6      ; right word
+
+    ; Load two screen words.
+    ; Mask in two screen words.
+    ; Write two screen words.
+    ldr r0, [r11]
+    orr r0, r0, r4
+    str r0, [r11], #4
+    ldr r0, [r11]
+    orr r0, r0, r5
+    str r0, [r11], #Screen_Stride-4
+
+    mov r4, r1, lsl r7      ; left word
+    mov r5, r1, lsr r6      ; right word
+    ldr r1, [r11]
+    orr r1, r1, r4
+    str r1, [r11], #4
+    ldr r1, [r11]
+    orr r1, r1, r5
+    str r1, [r11], #Screen_Stride-4
+
+    mov r4, r2, lsl r7      ; left word
+    mov r5, r2, lsr r6      ; right word
+    ldr r2, [r11]
+    orr r2, r2, r4
+    str r2, [r11], #4
+    ldr r2, [r11]
+    orr r2, r2, r5
+    str r2, [r11], #Screen_Stride-4
+
+    mov r4, r3, lsl r7      ; left word
+    mov r5, r3, lsr r6      ; right word
+    ldr r3, [r11]
+    orr r3, r3, r4
+    str r3, [r11], #4
+    ldr r3, [r11]
+    orr r3, r3, r5
+    str r3, [r11], #Screen_Stride-4
+    .endr
+    .else
     ; Blit glyph.
     add r0, r9, r0, lsl #5    ; 32 bytes per glyph.
 
@@ -119,6 +184,7 @@ text_box_draw:
     str r5, [r11], #Screen_Stride
     str r6, [r11], #Screen_Stride
     str r7, [r11], #Screen_Stride
+    .endif
 
 .10:
     add r10, r10, #1
