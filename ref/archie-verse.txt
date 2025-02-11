@@ -147,8 +147,15 @@ Use RasterMan => music bug?
 Get a chip tune => get something running first
 Sine scroller => started
 Add rasters => started
+    - Raster bars?
 Some ASCII text effect
-Something in the background (maybe particlezzzz?)
+Something in the background?
+    - Starfield?
+    - 3D starfield?
+    - Particle system of some sort?
+    - Line effect of some sort?
+Logo! => Ask on the Atari forum if Jade will make one?
+
 
 Scroller
 - MODE 9 for raster colours.
@@ -166,3 +173,11 @@ Rasters
 Classic hue table
 R > Y > G > C > B > M > R
 0x00f > 0x0ff > 0x0f0 > 0xff0 > 0xf00 > 0xf0f > 0x00f
+
+ASCII text
+- 8x8 font plotting say 20x16 max to the screen for messages.
+- Text types out one character at a time.
+- Start by plotting in fixed location
+- Add movement
+     - Per character?
+     - Or somehow per pixel?

@@ -110,6 +110,10 @@ main:
 	swi RasterMan_Install
     .endif
 
+    ; TODO: Sort out the screen mode / QTM / RasterMan init timing.
+    ; From Steve: QTM's DMA routine needs to be enabled for a few VSyncs after the final mode 
+    ;             change before RM starts - hence need for QTM_SoundControl.
+
 	; Play music!
 	QTMSWI QTM_Start
 

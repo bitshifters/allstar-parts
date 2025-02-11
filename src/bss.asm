@@ -9,6 +9,9 @@
 sine_wave_table_no_adr:
     .skip SineScroller_TableSize*4
 
+text_box_font_mode9_no_adr:
+    .skip TextBox_MaxGlyphs * 4*8
+
 ; ============================================================================
 
 .if AppConfig_UseArchieKlang

@@ -2,6 +2,8 @@
 ; Sine scroller, one byte per column plotted
 ; ============================================================================
 
+.equ SineScroller_NoPlotZeros,      1   ; don't plot 0 bytes.
+
 .equ SineScroller_GlyphWidthBytes,  8
 .equ SineScroller_GlyphHeight,      15
 .equ SineScroller_TableSize,        1024
@@ -137,6 +139,68 @@ sine_scroller_draw:
     ; Plot a column unrolled.
     ldmia r9!, {r0-r3}
 
+    .if SineScroller_NoPlotZeros
+    ands r14, r0, #0xff
+    strneb r0, [r11], #Screen_Stride      ; row 0
+    addeq r11, r11, #Screen_Stride
+    mov r0, r0, lsr #8
+    ands r14, r0, #0xff
+    strneb r0, [r11], #Screen_Stride      ; row 1
+    addeq r11, r11, #Screen_Stride
+    mov r0, r0, lsr #8
+    ands r14, r0, #0xff
+    strneb r0, [r11], #Screen_Stride      ; row 2
+    addeq r11, r11, #Screen_Stride
+    mov r0, r0, lsr #8
+    ands r14, r0, #0xff
+    strneb r0, [r11], #Screen_Stride      ; row 3
+    addeq r11, r11, #Screen_Stride
+
+    ands r14, r1, #0xff
+    strneb r1, [r11], #Screen_Stride      ; row 4
+    addeq r11, r11, #Screen_Stride
+    mov r1, r1, lsr #8
+    ands r14, r1, #0xff
+    strneb r1, [r11], #Screen_Stride      ; row 5
+    addeq r11, r11, #Screen_Stride
+    mov r1, r1, lsr #8
+    ands r14, r1, #0xff
+    strneb r1, [r11], #Screen_Stride      ; row 6
+    addeq r11, r11, #Screen_Stride
+    mov r1, r1, lsr #8
+    ands r14, r1, #0xff
+    strneb r1, [r11], #Screen_Stride      ; row 7
+    addeq r11, r11, #Screen_Stride
+
+    ands r14, r2, #0xff
+    strneb r2, [r11], #Screen_Stride      ; row 8
+    addeq r11, r11, #Screen_Stride
+    mov r2, r2, lsr #8
+    ands r14, r2, #0xff
+    strneb r2, [r11], #Screen_Stride      ; row 9
+    addeq r11, r11, #Screen_Stride
+    mov r2, r2, lsr #8
+    ands r14, r2, #0xff
+    strneb r2, [r11], #Screen_Stride      ; row 10
+    addeq r11, r11, #Screen_Stride
+    mov r2, r2, lsr #8
+    ands r14, r2, #0xff
+    strneb r2, [r11], #Screen_Stride      ; row 11
+    addeq r11, r11, #Screen_Stride
+
+    ands r14, r3, #0xff
+    strneb r3, [r11], #Screen_Stride      ; row 12
+    addeq r11, r11, #Screen_Stride
+    mov r3, r3, lsr #8
+    ands r14, r3, #0xff
+    strneb r3, [r11], #Screen_Stride      ; row 13
+    addeq r11, r11, #Screen_Stride
+    mov r3, r3, lsr #8
+    ands r14, r3, #0xff
+    strneb r3, [r11], #Screen_Stride      ; row 14
+    addeq r11, r11, #Screen_Stride
+
+    .else
     strb r0, [r11], #Screen_Stride      ; row 0
     mov r0, r0, lsr #8
     strb r0, [r11], #Screen_Stride      ; row 1
@@ -166,7 +230,8 @@ sine_scroller_draw:
     strb r3, [r11], #Screen_Stride      ; row 13
     mov r3, r3, lsr #8
     strb r3, [r11], #Screen_Stride      ; row 14
-    
+    .endif
+
     .if SineScroller_GlyphHeight != 15
     .err "Expected SineScroller_GlyphHeight to be 15!"
     .endif

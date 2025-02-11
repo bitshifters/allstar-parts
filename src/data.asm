@@ -8,6 +8,9 @@
 razor_font_no_adr:
 .incbin "build/razor-font.bin"
 
+text_box_font_no_adr:
+.incbin "data/font/AtariST-sysfont.bin"
+
 ; ============================================================================
 ; Library data.
 ; ============================================================================
