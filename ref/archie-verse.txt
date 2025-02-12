@@ -181,3 +181,24 @@ ASCII text
 - Add movement
      - Per character? => SLOW as has to be masked (4x RAM access)
      - Or somehow per pixel?
+
+What do we want the effect to be?
+If not separate characters could blit to a texture buffer.
+Then how to get the texture to the screen.
+Moving as a single fixed block isn't interesting.
+    - Trivial on Amiga as this will be on a separate bitplane.
+Ideally would want it mapped to a nice 'flag'
+    - Alternatively make text out of particles cf. Push
+    - Some sort of 5x7 font made out of independent dots.
+    - Max 35 points, but average say 16 points?
+    - Push uses 500 particles per frame = ~30 letters.
+    - Hmm, not really enough. TextBox current 24x12=288 chars.
+
+Or do something more like Hoffman's Cracktro text effect?
+So use the whole high-res screen (80 column) but fixed.
+That'd be in MODE 12? => Double pixels for the scroller (twice the cost...)
+Would need to plot these to a third buffer and blit it instead of CLS.
+Don't want to be plotting 80x32 chars individually each frame.
+=> Ask ne7 for some ASCII screens!
+
+Maybe have enough time to blit some sprites on top (vector balls ish?)
