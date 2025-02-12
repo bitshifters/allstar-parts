@@ -175,9 +175,9 @@ R > Y > G > C > B > M > R
 0x00f > 0x0ff > 0x0f0 > 0xff0 > 0xf00 > 0xf0f > 0x00f
 
 ASCII text
-- 8x8 font plotting say 20x16 max to the screen for messages.
+- 8x8 font plotting say 20x16 ish to the screen for messages.
 - Text types out one character at a time.
 - Start by plotting in fixed location
 - Add movement
-     - Per character?
+     - Per character? => SLOW as has to be masked (4x RAM access)
      - Or somehow per pixel?

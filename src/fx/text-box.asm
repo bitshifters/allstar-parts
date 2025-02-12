@@ -103,14 +103,12 @@ text_box_draw:
     ; R9=ptr to font
     ldr r9, text_box_font_mode9_p
 
-    ; TEMP
     .if TextBox_PixelPlot
     mov r7, r7, lsl #2      ; P*4 = left word shift
     rsb r6, r7, #32         ; 32-P*4 = right word shift
     .endif
 
-    ; R10=column count.
-    mov r10, #0
+    sub r14, r14, #1        ; col count << 16 | char count
 .1:
     ldrb r0, [r8], #1
 
@@ -129,47 +127,47 @@ text_box_draw:
     ; Load word.
     ldmia r12!, {r0-r3}
     ; Shift word into two words to position at pixel.
-    ;   Left word mask 0xffffffff << P*4
-    mov r4, r0, lsl r7      ; left word
-    ;   Right word mask 0xffffffff >> 32-P*4
-    mov r5, r0, lsr r6      ; right word
+    ;   Left word mask 0xffffffff << P*4 = R7
+    ;   Right word mask 0xffffffff >> 32-P*4 = R6
 
     ; Load two screen words.
     ; Mask in two screen words.
     ; Write two screen words.
-    ldr r0, [r11]
+    mov r4, r0, lsl r7      ; left word
+    mov r5, r0, lsr r6      ; right word
+    ldmia r11, {r0,r10}
     orr r0, r0, r4
-    str r0, [r11], #4
-    ldr r0, [r11]
-    orr r0, r0, r5
-    str r0, [r11], #Screen_Stride-4
+    orr r10, r10, r5
+    stmia r11, {r0,r10}
+    add r11, r11, #Screen_Stride
+    ; 1+1+5.5+1+1+5.5+1=16 per row * 8 = 128 per glyph.
+    ; 4x slower. :(
+    ; Preshifting only saves us 2c per row=16c per glyph.
+    ; Although could probably load more registers at once.
 
     mov r4, r1, lsl r7      ; left word
     mov r5, r1, lsr r6      ; right word
-    ldr r1, [r11]
+    ldmia r11, {r1,r10}
     orr r1, r1, r4
-    str r1, [r11], #4
-    ldr r1, [r11]
-    orr r1, r1, r5
-    str r1, [r11], #Screen_Stride-4
+    orr r10, r10, r5
+    stmia r11, {r1,r10}
+    add r11, r11, #Screen_Stride
 
     mov r4, r2, lsl r7      ; left word
     mov r5, r2, lsr r6      ; right word
-    ldr r2, [r11]
+    ldmia r11, {r2,r10}
     orr r2, r2, r4
-    str r2, [r11], #4
-    ldr r2, [r11]
-    orr r2, r2, r5
-    str r2, [r11], #Screen_Stride-4
+    orr r10, r10, r5
+    stmia r11, {r2,r10}
+    add r11, r11, #Screen_Stride
 
     mov r4, r3, lsl r7      ; left word
     mov r5, r3, lsr r6      ; right word
-    ldr r3, [r11]
+    ldmia r11, {r3,r10}
     orr r3, r3, r4
-    str r3, [r11], #4
-    ldr r3, [r11]
-    orr r3, r3, r5
-    str r3, [r11], #Screen_Stride-4
+    orr r10, r10, r5
+    stmia r11, {r3,r10}
+    add r11, r11, #Screen_Stride
     .endr
     .else
     ; Blit glyph.
@@ -184,11 +182,12 @@ text_box_draw:
     str r5, [r11], #Screen_Stride
     str r6, [r11], #Screen_Stride
     str r7, [r11], #Screen_Stride
+    ; 4c per row=32c per glyph.
     .endif
 
 .10:
-    add r10, r10, #1
-    cmp r10, #TextBox_WidthChars
+    add r14, r14, #1<<16    ; column count in top half word.
+    cmp r14, #TextBox_WidthChars<<16
 
     ; Adjust plot address to next glyph.
     sublt r11, r11, #Screen_Stride*8
@@ -196,10 +195,12 @@ text_box_draw:
 
     ; Or the next line.
     subge r11, r11, #4*(TextBox_WidthChars-1)
-    movge r10, #0
+    bicge r14, r14, #0x00ff0000 ; clear column count.
 
-    subs r14, r14, #1
-    bne .1
+    ; Decrement char count and test if negative.
+    sub r14, r14, #1
+    movs r0, r14, asl #16
+    bpl .1
 
 .9:
     ldr pc, [sp], #4
