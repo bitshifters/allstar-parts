@@ -49,6 +49,7 @@ mesh_cube_face_normals:
 ; !VERTEX AND NORMAL ARRAYS MUST BE CONSECUTIVE!
 
 ; Winding order is clockwise (from outside)
+; NB. Currently only vertex0 is used (for backface culling dot product).
 mesh_cube_face_indices:
     .byte 0, 1, 2, 3
     .byte 1, 5, 6, 2
@@ -60,6 +61,8 @@ mesh_cube_face_indices:
 mesh_cube_colour_per_face:
     .byte 4,5,6,7,8,9,10,11
 
+; NB. Currently only used by draw_3d_scene_wire.plot_face_edge_list to
+;     avoid plotting the same edge multipe times.
 ; TODO: Determine this from mesh_cube_face_indices.
 ; TODO: Could also calculate face normals from these...
 ; TODO: Handle more than 32 total edges.
@@ -73,6 +76,7 @@ mesh_cube_edges_per_face:
     .long 0b00000000000000000000100110001000
     .long 0b00000000000000000000110001000100
 
+; NB. Currently only used by draw_3d_scene_wire or draw_3d_scene_outline.
 ; TODO: Determine this from mesh_cube_face_indices.
 mesh_cube_edge_indices:
     .byte 0, 1              ; 0
@@ -220,6 +224,7 @@ mesh_cobra_edge_indices:
 
 ; ============================================================================
 
+; Wireframe outlines for group names used in Mikroreise! Exported OBJs.
 .if 0
 .macro LINE a, b
     .byte \a, \b

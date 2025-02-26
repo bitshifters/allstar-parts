@@ -39,18 +39,19 @@
 
     ; Init FX modules.
     call_0 sine_scroller_init
-    call_0 text_box_init
+    call_0 scene3d_init
 
     ; Screen setup.
 ;    write_addr palette_array_p, seq_palette_red_additive
 
 	; Setup layers of FX.
+    .if AppConfig_UseRasterMan
     call_3 fx_set_layer_fns, 0, rasters_tick,               screen_cls
-    call_3 fx_set_layer_fns, 1, text_box_tick,              text_box_draw
+    .else
+    call_3 fx_set_layer_fns, 0, 0,                          screen_cls
+    .endif
+    call_3 fx_set_layer_fns, 1, scene3d_rotate_entity,      scene3d_draw_entity_as_solid_quads
     call_3 fx_set_layer_fns, 2, sine_scroller_tick,         sine_scroller_draw
-
-    math_make_var text_box_pos_x, 64, 32, math_cos, 0.0, 1.0/(SeqConfig_PatternLength_Frames*0.5)
-    math_make_var text_box_pos_y, 80, 40, math_sin, 0.0, 1.0/(SeqConfig_PatternLength_Frames*1.5)
 
     ; FX params.
 ;    write_fp scroll_text_y_pos, 4.0 ; NB. Must match mode9-screen.asm defines. :\

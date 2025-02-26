@@ -143,7 +143,7 @@ x+=0:y-=1 => strb r4, [r11], #ScreenStride
 Fantasy Cracktro Compo
 ~~~
 Target 16th March ~five weeks!
-Use RasterMan => music bug?
+Use RasterMan => music bug? (See Steve's email)
 Get a chip tune => get something running first
 Sine scroller => started
 Add rasters => started
@@ -200,5 +200,46 @@ That'd be in MODE 12? => Double pixels for the scroller (twice the cost...)
 Would need to plot these to a third buffer and blit it instead of CLS.
 Don't want to be plotting 80x32 chars individually each frame.
 => Ask ne7 for some ASCII screens!
-
 Maybe have enough time to blit some sprites on top (vector balls ish?)
+==> ALL TOO SLOW :(
+
+Regroup
+~~~
+Trying to ape bitplanes on Archie is a path to madness!!!
+E.g. just having a screen of static text behind everything else is
+trivial on Amiga (1 independent bit plane) but painful on Archie as
+everything has to be masked.
+
+Really need to focus on what Archie is good at - not bitplanes!!
+
+If using RasterMan then let's explore this more.
+Not tried the MEMC writes to change screen address per line.
+=> Wibbling logo 'for free' by selecting from preshifting 16 copies (one byte each)
+=> Wibbling reflection plane at bottom of the screen by selecting from main screen
+
+MEMC writes - can't set VInit other than on new frame.
+But can set VStart and VEnd!
+When Vptr > VEnd then wraps to VStart.
+Vptr+=1 => 16 bytes.
+All addresses are physical RAM.
+Thankfully VStart typically = 0x0000
+VEnd = 0x13ff = 2 * 0xA00 - 1 = 2x 40K screens - 16 bytes
+
+==> Separate ponder. I wonder if it's possible to VRup the VIDC?
+A: No! VSync always happens when Vcounter resets to 0.
+   (But you can reset a load of registers midframe anyway.)
+    https://stardot.org.uk/forums/viewtopic.php?p=425369 
+
+How about a large lit torus clipped with a header logo and a scroller text below?
+=> YES! :)
+
+Cross product.
+| i  j  k  |
+| x0 y0 z0 |
+| x1 y1 z1 |
+
+i (y0*z1) - (z0*y1)
+-j (x0*z1) - (z0*x1)
+k (x0*y1) - (y0*x1)
+
+Then have to get the length of this and normalise. Urgh.

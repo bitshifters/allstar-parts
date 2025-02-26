@@ -10,7 +10,7 @@
 .equ AppConfig_UseSyncTracks,           0       ; currently Luapod could also be Rocket.
 .equ AppConfig_UseQtmEmbedded,          0
 .equ AppConfig_UseArchieKlang,          (_SMALL_EXE && 0)
-.equ AppConfig_UseRasterMan,            1       ; removes event / IRQ handler.
+.equ AppConfig_UseRasterMan,            0       ; removes event / IRQ handler.
 
 ; ============================================================================
 ; Sequence config.

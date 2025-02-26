@@ -9,6 +9,8 @@
 
 .equ _SQRT_VERIFY,      (_DEBUG && 0)
 
+; TODO: These fns only work with the small sqrt and rsrt tables!!!
+
 ; Assumptions:
 ;  SQRT and RSQRT tables available for values [0-65535]
 ;  Number of entries is 1024. (10-bits)

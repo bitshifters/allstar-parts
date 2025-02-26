@@ -5,11 +5,14 @@
 .data
 .p2align 6
 
+; fx/sine-scroller.asm
 razor_font_no_adr:
 .incbin "build/razor-font.bin"
 
-text_box_font_no_adr:
-.incbin "data/font/AtariST-sysfont.bin"
+; ============================================================================
+
+; fx/scene-3d.asm
+.include "src/data/three-dee/3d-meshes.asm"
 
 ; ============================================================================
 ; Library data.

@@ -219,3 +219,6 @@ text_box_test_text_no_adr:
     .byte "|                      |"        ; 9
     .byte "|                      |"        ; 10
     .byte "+----------------------+"        ; 11
+
+text_box_font_mode9_no_adr:
+    .skip TextBox_MaxGlyphs * 4*8

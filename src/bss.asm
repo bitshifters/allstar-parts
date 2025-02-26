@@ -6,11 +6,39 @@
 
 ; ============================================================================
 
+; fx/sine-scroller.asm
 sine_wave_table_no_adr:
     .skip SineScroller_TableSize*4
 
-text_box_font_mode9_no_adr:
-    .skip TextBox_MaxGlyphs * 4*8
+; ============================================================================
+
+; fx/scene-3d.asm
+mesh_torus_verts_no_adr:
+    .skip MeshTorus_NumVerts * VECTOR3_SIZE
+
+; NB. Must follow verts!
+mesh_torus_normals_no_adr:
+    .skip MeshTorus_NumFaces * VECTOR3_SIZE
+
+mesh_torus_faces_no_adr:
+    .skip MeshTorus_NumFaces * 4
+
+mesh_torus_colours_no_adr:
+    .skip MeshTorus_NumFaces
+.p2align 2
+
+transformed_verts_no_adr:
+    .skip OBJ_MAX_VERTS * VECTOR3_SIZE
+
+; !VERTEX AND NORMAL ARRAYS MUST BE CONSECUTIVE!
+
+;transformed_normals:       ; this is dynamic depending on num_verts.
+    .skip OBJ_MAX_FACES * VECTOR3_SIZE
+
+; !VERTEX AND NORMAL ARRAYS MUST BE CONSECUTIVE!
+
+projected_verts_no_adr:
+    .skip OBJ_MAX_VERTS * VECTOR2_SIZE
 
 ; ============================================================================
 

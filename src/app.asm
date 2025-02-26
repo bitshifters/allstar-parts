@@ -396,7 +396,7 @@ app_vsync_code:
 ; ============================================================================
 
 .include "src/fx/sine-scroller.asm"
-.include "src/fx/text-box.asm"
+.include "src/fx/scene-3d.asm"
 
 ; ============================================================================
 ; Support library code modules used by the FX sequence.
