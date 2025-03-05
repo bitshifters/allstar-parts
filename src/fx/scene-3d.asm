@@ -649,7 +649,7 @@ scene3d_transform_entity:
         SUBS r14, r14, #1
     bne .1
 
-    ; TODO: Pop these off the stack but write to correct position in the array.
+    ; Pop these off the stack but write to correct position in the array.
     ldr r11, scene3d_entity_p
 
     ldr r12, [r11, #Entity_MeshPtr]
@@ -671,7 +671,13 @@ scene3d_transform_entity:
     ; Transform rotated verts to world coordinates.
     ldmia r11, {r6-r8}                  ; pos vector
 
-    ; NB. No longer transformed to camera relative.
+    ; Move everything relative to the camera.
+    adr r0, camera_pos
+    ldmia r0, {r0-r2}                   ; camera_pos
+
+    sub r6, r6, r0
+    sub r7, r7, r1
+    sub r8, r8, r2
 
     ; Apply object scale after rotation.
     ldr r0, [r11, #Entity_Scale]        ; object_scale
@@ -695,8 +701,6 @@ scene3d_transform_entity:
     mul r3, r0, r3      ; x_scaled=x*object_scale
     mul r4, r0, r4      ; y_scaled=y*object_scale
     mul r5, r0, r5      ; z_scaled=z*object_scale
-
-    ; TODO: Make camera relative again for speed?
 
     ; Move object vertices into world space.
     add r3, r3, r6      ; x_scaled + object_pos_x - camera_pos_x
@@ -851,10 +855,6 @@ scene3d_update_entity_from_vubars:
 ; ============================================================================
 
 scene3d_project_verts:
-    ; Load camera [x, y, z].
-    adr r0, camera_pos
-    ldmia r0, {r6-r8}
-
     ; Project vertices to screen.
     ldr r2, transformed_verts_p
     ldr r9, scene3d_reciprocal_table_p
@@ -867,13 +867,8 @@ scene3d_project_verts:
     ; R2=ptr to world pos vector
     ; bl project_to_screen
 
-    ; Load transformed verts [R3,R5,R5] = [x,y,z]
+    ; Load camera relative transformed verts [R3,R5,R5] = [x,y,z]
     ldmia r2!, {r3-r5}
-
-    ; Subtract camera_pos from world_pos.
-    sub r3, r3, r6
-    sub r4, r4, r7
-    sub r5, r5, r8
 
     ; Project to screen.
 
@@ -984,15 +979,7 @@ scene3d_draw_entity_as_solid_quads:
     ; vector A = (v0 - camera_pos)
     ; vector B = face_normal
 
-    ; TODO: MicroOpt- make transformed verts camera relative.
-
     ldmia r1!, {r3-r5}          ; [tx, ty, tz]
-    adr r0, camera_pos
-    ldmia r0, {r6-r8}           ; camera_pos
-
-    sub r3, r3, r6
-    sub r4, r4, r7
-    sub r5, r5, r8
 
     ; TODO: MicroOpt- inline dot product.
     ; TODO: MicroOpt- pre-shift all verts to be MUL ready
