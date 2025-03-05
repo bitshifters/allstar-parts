@@ -942,6 +942,8 @@ scene3d_draw_entity_as_solid_quads:
     ; Project world space verts to screen space.
     bl scene3d_project_verts
  
+    ; TODO: MicroOpt - cache mesh header at start of draw.
+
     ; Plot faces as polys.
     ldr r11, scene3d_entity_p
     ldr r11, [r11, #Entity_MeshPtr]     ; scene3d_mesh_p
@@ -979,14 +981,22 @@ scene3d_draw_entity_as_solid_quads:
     ; vector A = (v0 - camera_pos)
     ; vector B = face_normal
 
-    ldmia r1!, {r3-r5}          ; [tx, ty, tz]
+    ldmia r1!, {r3-r5}                  ; [tx, ty, tz]
+    ldmia r2, {r6-r8}                   ; [s15.16]
 
-    ; TODO: MicroOpt- inline dot product.
     ; TODO: MicroOpt- pre-shift all verts to be MUL ready
-    
-    bl vector_dot_product_load_B ; trashes r3-r8
-    cmp r0, #0
-    bpl .3                      ; normal facing away from the view direction.
+
+    mov r3, r3, asr #MULTIPLICATION_SHIFT    ; [s15.8]
+    mov r4, r4, asr #MULTIPLICATION_SHIFT    ; [s15.8]
+    mov r5, r5, asr #MULTIPLICATION_SHIFT    ; [s15.8]
+    mov r6, r6, asr #MULTIPLICATION_SHIFT    ; [s15.8]
+    mov r7, r7, asr #MULTIPLICATION_SHIFT    ; [s15.8]
+    mov r8, r8, asr #MULTIPLICATION_SHIFT    ; [s15.8]
+
+    mul r0, r3, r6                      ; r0 = a1 * b1  [s30.16] potential overflow
+    mla r0, r4, r7, r0                  ;   += a2 * b2  [s30.16] potential overflow
+    mlas r0, r5, r8, r0                 ;   += a3 * b3  [s30.16] potential overflow
+    bpl .3                              ; normal facing away from the view direction.
 
     ; TODO: MicroOpt- use winding order test rather than dot product if no lighting calc.
 
