@@ -850,25 +850,21 @@ scene3d_draw_entity_as_solid_quads:
  
     ; Plot faces as polys.
     ldr r11, scene3d_mesh_numfaces      ; from cache.
-    strb r11, .4                        ; SELF-MOD! ;sub r11, r11, #1
-    mov r11, #0                         ; now plot faces in forward order.
+
+    ; One normal per face.
+    ldr r9, scene3d_mesh_faceindices    ; from cache.
+    ldr r10, transformed_normals_p
+    ldr r12, scene3d_mesh_facecolours   ; from cache.
 
     .2:
+    ; Get next quad.
 
-    ; TODO: MicroOpt- faces now in order so can just increment r9 face v0.
+    ldr r3, [r9], #4                    ; quad indices.
+    and r5, r3, #0xff                   ; i0 of quad N.
 
-    ldr r9, scene3d_mesh_faceindices    ; from cache.
-    ldrb r5, [r9, r11, lsl #2]          ; vertex0 of polygon N.
-    
     ldr r1, transformed_verts_p
     add r1, r1, r5, lsl #3
-    add r1, r1, r5, lsl #2              ; transformed_verts + index*12
-
-    ; TODO: MicroOpt- faces now in order so can just increment r2 normal ptr.
-
-    ldr r2, transformed_normals_p
-    add r2, r2, r11, lsl #3             ; face_normal for polygon N.
-    add r2, r2, r11, lsl #2             ; face_normal for polygon N.
+    add r1, r1, r5, lsl #2              ; v0 = transformed_verts[i0]
 
     ; Backfacing culling test (vertex - camera_pos).face_normal
     ; Parameters:
@@ -880,50 +876,43 @@ scene3d_draw_entity_as_solid_quads:
     ; vector A = (v0 - camera_pos)
     ; vector B = face_normal
 
-    ldmia r1!, {r3-r5}                  ; [tx, ty, tz]
-    ldmia r2,  {r6-r8}                  ; [s15.16]
+    ldmia r1!,  {r1,r4,r5}              ; [tx, ty, tz]
+    ldmia r10!, {r6-r8}                 ; [s15.16]
 
     ; TODO: MicroOpt- pre-shift all verts to be MUL ready
 
-    mov r3, r3, asr #MULTIPLICATION_SHIFT    ; [s15.8]
+    mov r1, r1, asr #MULTIPLICATION_SHIFT    ; [s15.8]
     mov r4, r4, asr #MULTIPLICATION_SHIFT    ; [s15.8]
     mov r5, r5, asr #MULTIPLICATION_SHIFT    ; [s15.8]
     mov r6, r6, asr #MULTIPLICATION_SHIFT    ; [s15.8]
     mov r7, r7, asr #MULTIPLICATION_SHIFT    ; [s15.8]
     mov r8, r8, asr #MULTIPLICATION_SHIFT    ; [s15.8]
 
-    mul r0, r3, r6                      ; r0 = a1 * b1  [s30.16] potential overflow
+    ; Dot product A.B
+
+    mul r0, r1, r6                      ; r0 = a1 * b1  [s30.16] potential overflow
     mla r0, r4, r7, r0                  ;   += a2 * b2  [s30.16] potential overflow
+
+    ; Look up colour index per face (no lighting).
+    ldrb r4, [r12], #1                  ; must increment ptr!
+
     mlas r0, r5, r8, r0                 ;   += a3 * b3  [s30.16] potential overflow
     bpl .3                              ; normal facing away from the view direction.
 
-    ; TODO: MicroOpt- use winding order test rather than dot product if no lighting calc.
-
-    ; TODO: Screen space winding order test:
+    ; TODO: MicroOpt- use screen space winding order test rather than dot product if no lighting calc.
     ;       (y1 - y0) * (x2 - x1) - (x1 - x0) * (y2 - y1) > 0
 
-    ; TODO: MicroOpt- avoid reading quad indices again.
-
     ; SOLID
-    ldr r2, projected_verts_p   ; projected vertex array.
-    ldr r3, [r9, r11, lsl #2]   ; quad indices.
 
-    ; TODO: MicroOpt - avoid stashing registers?
+    stmfd sp!, {r9-r12}
 
-    stmfd sp!, {r11}
-
-    ; TODO: MicroOpt- faces now in order so can just increment r4 colour ptr.
-
-    ; Look up colour index per face (no lighting).
-    ldr r4, scene3d_mesh_facecolours    ; from cache.
-    ldrb r4, [r4, r11]
-
-    ;  R12=screen addr
+    ;  R12=screen addr (now cached)
     ;  R2=ptr to projected vertex array (x,y) in screen coords [16.0]
+    ldr r2, projected_verts_p   ; projected vertex array.
     ;  R3=4x vertex indices for quad
     ;  R4=colour index
     bl triangle_plot_quad_indexed   ; faster than polygon_plot_quad_indexed.
-    ; Trashes: R0-R11.
+    ; Trashes: R0-R12.
 
     .if _DEBUG
     ldr r11, scene3d_stats_quads_plotted
@@ -931,13 +920,11 @@ scene3d_draw_entity_as_solid_quads:
     str r11, scene3d_stats_quads_plotted
     .endif
 
-    ldmfd sp!, {r11}
+    ldmfd sp!, {r9-r12}
 
     .3:
-    add r11, r11, #1
-    .4:
-    cmp r11, #0
-    blt .2
+    subs r11, r11, #1
+    bne .2
 
     ldr pc, [sp], #4
 
