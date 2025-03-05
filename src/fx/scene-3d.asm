@@ -348,6 +348,10 @@ scene3d_make_torus:
     ; Store colour.
     strb r4, [r10], #1
 
+    add r4, r4, #1
+    cmp r4, #16
+    movge r4, #1
+
     ; Next segment of the ring.
     add r5, r5, r6
 
@@ -356,10 +360,6 @@ scene3d_make_torus:
     blt .4
 
     ; Next colour.
-
-    add r4, r4, #1
-    cmp r4, #16
-    movge r4, #1
 
     ; Next face in the circle.
 
@@ -395,22 +395,22 @@ scene3d_calc_mesh_normals:
     add r7, r7, r6, lsl #2
     ldmia r7, {r3-r5}                       ; v0
 
-    ldrb r6, [r11, #1]                      ; i1
-    add r9, r10, r6, lsl #3                 ; v1_ptr = vertex[i1]
+    ldrb r6, [r11, #3]                      ; i3
+    add r9, r10, r6, lsl #3                 ; v3_ptr = vertex[i3]
     add r9, r9, r6, lsl #2
-    ldmia r9, {r0-r2}                       ; v1
+    ldmia r9, {r0-r2}                       ; v3
 
-    ; Calculate A=v1-v0
+    ; Calculate A=v3-v0
     sub r0, r0, r3
     sub r1, r1, r4
     sub r2, r2, r5
 
-    ldrb r6, [r11, #3]                      ; i3
-    add r9, r10, r6, lsl #3                 ; v3_ptr = vertex[i3]
+    ldrb r6, [r11, #1]                      ; i1
+    add r9, r10, r6, lsl #3                 ; v1_ptr = vertex[i1]
     add r9, r9, r6, lsl #2
-    ldmia r9, {r6,r7,r9}                    ; v3
+    ldmia r9, {r6,r7,r9}                    ; v1
 
-    ; Calculate B=v3-v0
+    ; Calculate B=v1-v0
     sub r3, r6, r3
     sub r4, r7, r4
     sub r5, r9, r5
@@ -999,8 +999,7 @@ scene3d_draw_entity_as_solid_quads:
     
     bl vector_dot_product_load_B ; trashes r3-r8
     cmp r0, #0
-    ; TODO: This should be bpl - are torus normals inverted?
-    bmi .3                      ; normal facing away from the view direction.
+    bpl .3                      ; normal facing away from the view direction.
 
     ; TODO: MicroOpt- use winding order test rather than dot product if no lighting calc.
 

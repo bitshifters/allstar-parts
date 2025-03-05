@@ -257,11 +257,14 @@ Could rotate these 180 degrees: 0 7 1 6 2 5 3 4
 0 N-1
 i DIV 2 (N-1)-(i DIV 2)
 
-- Coordinates are upside down? (Y inverted?)
+- Coordinates are upside down? (Y inverted?) - FIXED
     => Check transformed verts on frame 0.
        Looks like Y is upside down? YES. FFS.
-- Face normals pointing the wrong way?!
-    => Check winding order.
+    => Move to Sarah's matrix transform for verts. - DONE
+
+- Face normals pointing the wrong way?! - FIXED
+    => Check winding order! - DONE
+
 - Performance
     => largest torus at 50Hz at 8MHz? ==> NOT MUCH!
     => cheaper scroller?
