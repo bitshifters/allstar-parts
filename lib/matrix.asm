@@ -404,3 +404,4 @@ transform_3d_scene:
     add r2, r2, #VECTOR3_SIZE
     subs r10, r10, #1
     bne .2
+.endif

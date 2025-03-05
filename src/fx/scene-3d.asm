@@ -111,6 +111,14 @@ scene3d_reciprocal_table_p:
 ; ============================================================================
 ; ============================================================================
 
+.if _DEBUG
+scene3d_stats_quads_plotted:
+    .long 0
+.endif
+
+; ============================================================================
+; ============================================================================
+
 ;    y
 ;    ^  z
 ;    |/
@@ -130,10 +138,12 @@ scene3d_reciprocal_table_p:
 ; Calculate face normal as cross product.
 ; Or potentially as rotated normal in the loop.
 
+.equ Torus_FlatInnerFace,   1
+
 .equ Torus_RingRadius,      32.0
 .equ Torus_CircleRadius,    8.0
 .equ Torus_RingSegments,    4
-.equ Torus_CircleSegments,  8
+.equ Torus_CircleSegments,  4
 
 torus_ringradius:
     FLOAT_TO_FP Torus_RingRadius        ; a
@@ -197,23 +207,30 @@ scene3d_make_torus:
     ;theta = (2*PI/d) * stack [0, d]
     mov r0, r10, asl #8                     ; theta in brads
     bl sin_cos
-    mov r4, r0, asr #8                      ; R4=sin(theta) [s1.8]
-    mov r5, r1, asr #8                      ; R5=cos(theta) [s1.8]
+    ; Keep precision as long as possible.
+    mov r4, r0                              ; R4=sin(theta) [s1.16]
+    mov r5, r1                              ; R5=cos(theta) [s1.16]
 
     ; Inner circle.
     
     mov r8, #0                              ; phi
 .2:
     ;phi = (2*PI/c) * slice [0, c]
-    mov r0, r8, asl #8                      ; phi in brads
+    sub r0, r8, #MATHS_CONST_HALF           ; start in the middle
+    .if Torus_FlatInnerFace
+    sub r0, r0, #MATHS_CONST_HALF/Torus_CircleSegments
+    .endif
+    mov r0, r0, asl #8                      ; phi in brads
     bl sin_cos
-    mov r0, r0, asr #8                      ; R0=sin(phi) [s1.8]
-    mov r1, r1, asr #8                      ; R1=cos(phi) [s1.8]
+    ; R0=sin(phi) [s1.16]
+    ; R1=cos(phi) [s1.16]
 
     ldr r14, torus_circleradius             ; b
-    mov r14, r14, asr #8
+    mov r14, r14, asr #8                    ; TODO: MicroOpt- preshift this.
     mul r2, r0, r14                         ; v.z = sin(phi) * b
+    mov r2, r2, asr #8
     mul r14, r1, r14                        ; cos(phi) * b [s15.16]
+    mov r14, r14, asr #8
 
     ldr r12, torus_ringradius               ; a
     add r14, r14, r12                       ; a + cos(phi) * b
@@ -223,6 +240,8 @@ scene3d_make_torus:
     mov r14, r14, asr #8
     mul r0, r14, r5                         ; v.x = cos(theta) * (a + cos(phi) * b)
     mul r1, r14, r4                         ; v.y = sin(theta) * (a + cos(phi) * b)
+    mov r0, r0, asr #8
+    mov r1, r1, asr #8
 
     stmia r11!, {r0-r2}                     ; write {x,y,z}
     
@@ -268,6 +287,10 @@ scene3d_make_torus:
     cmp r10, #MATHS_CONST_1
     blt .1
 
+    ; Pre-sort the face order to avoid sorting at render time!
+    ; NB. This isn't strictly possible with a fully symmetric torus.
+    ; TODO: Two sort orders for use when the torus is face up/down.
+
     ; Calculate vertices per face.
     ; 'd' verts per ring repeated 'c' times.
     ; Each face will be made of verts:
@@ -280,13 +303,18 @@ scene3d_make_torus:
     ldr r6, torus_circlesegments            ; d
     ldr r7, torus_ringsegments              ; c
 
-    mov r5, #0                              ; let's say this is ring base (vb)
     mov r4, #1                              ; colour.
-
-    mov r9, #0                              ; ring segment 
+    mov r12, #0                             ; circle index
 .3:
+    ; Alternate circle segments from inside to outside.
 
-    mov r8, #0                              ; circle segment (vi)
+    mov r8, r12, lsr #1                     ; i DIV 2
+    tst r12, #1 ; NE=bit set
+    subne r8, r6, r8
+    subne r8, r8, #1                        ; (N-1)-(i DIV 2)
+
+    mov r5, #0                              ; let's say this is ring base (vb)
+    mov r9, #0                              ; ring segment 
 .4:
     ; v0 = vb + vi
     ; v1 = vb + (vi + 1) MOD d
@@ -320,24 +348,27 @@ scene3d_make_torus:
     ; Store colour.
     strb r4, [r10], #1
 
-    ; Next face in the circle.
-
-    add r8, r8, #1
-    cmp r8, r6
-    blt .4
-
-    add r4, r4, #1
-    cmp r4, #16
-    movge r4, #1
-
     ; Next segment of the ring.
     add r5, r5, r6
 
     add r9, r9, #1
     cmp r9, r7
+    blt .4
+
+    ; Next colour.
+
+    add r4, r4, #1
+    cmp r4, #16
+    movge r4, #1
+
+    ; Next face in the circle.
+
+    add r12, r12, #1
+    cmp r12, r6
     blt .3
 
     ; Calculate normals.
+    adr r12, mesh_header_torus
     bl scene3d_calc_mesh_normals
 
     ldr pc, [sp], #4
@@ -413,6 +444,7 @@ scene3d_init:
 ; Transform the current object (not scene) into world space.
 ; ============================================================================
 
+.if 0
 scene3d_transform_entity:
     str lr, [sp, #-4]!
 
@@ -497,7 +529,7 @@ scene3d_transform_entity:
 
     ; Transform to world coordinates.
     ldr r11, scene3d_entity_p
-    ldmia r11, {r6-r8}
+    ldmia r11, {r6-r8}                  ; pos vector
 
     ; NB. No longer transformed to camera relative.
 
@@ -532,6 +564,153 @@ scene3d_transform_entity:
     bne .2
 
     ldr pc, [sp], #4
+.else
+scene3d_transform_entity:
+    str lr, [sp, #-4]!
+
+    ldr r2, scene3d_entity_p
+    ldr r12, [r2, #Entity_MeshPtr]
+    ldr r14, [r12, #MeshHeader_NumVerts]
+    ldr r3, [r12, #MeshHeader_NumFaces]
+    ldr r12, [r12, #MeshHeader_VertsPtr]
+
+    ; TODO: Update transformed_normals_p at init.
+    ldr r2, transformed_verts_p
+    add r4, r2, r14, lsl #3
+    add r4, r4, r14, lsl #2               ; transform_normals=&transformed_verts[object_num_verts]
+    str r4, transformed_normals_p
+
+    add r14, r14, r3                      ; object_num_verts + object_num_faces
+
+    ; Load matrix.
+
+    adr r0, normal_transform
+    ldmia r0, {r0-r8}
+
+    ; TODO: Pre-shift matrix elements.
+    mov r0, r0, asr #MULTIPLICATION_SHIFT
+    mov r1, r1, asr #MULTIPLICATION_SHIFT
+    mov r2, r2, asr #MULTIPLICATION_SHIFT
+    mov r3, r3, asr #MULTIPLICATION_SHIFT
+    mov r4, r4, asr #MULTIPLICATION_SHIFT
+    mov r5, r5, asr #MULTIPLICATION_SHIFT
+    mov r6, r6, asr #MULTIPLICATION_SHIFT
+    mov r7, r7, asr #MULTIPLICATION_SHIFT
+    mov r8, r8, asr #MULTIPLICATION_SHIFT
+
+    ; ASSUMES THAT VERTEX AND NORMAL ARRAYS ARE CONSECUTIVE!
+    .1:
+        LDMIA r12!, {r9, r10} ;x, y
+    
+        ; TODO: Pre-shift vector elements.
+        mov r9, r9, asr #MULTIPLICATION_SHIFT
+        mov r10, r10, asr #MULTIPLICATION_SHIFT
+
+        ORR r12, r14, r12, LSL #11  ; count | src_ptr << 11 (free up r14)
+
+        ;r0-r8 - matrix
+        ;r9, r10 - x, y
+        ;r11 - temp
+        ;r12 - source ptr
+        ;r14 - temp
+
+        MUL r11, r9, r6   ;z=x*m20 + y*m21
+        MLA r11, r10, r7, r11
+
+        MUL r14, r10, r1  ;x = y*m01
+
+        MUL r10, r4, r10     ;y = y*m11
+        MLA r10, r3, r9, r10 ;y = x*m00 + y*m11
+
+        MLA r9, r0, r9, r14 ;x = x*m00 + y*m01
+
+        MOV r14, r12, LSR #11   ; extract src_ptr
+        LDR r14, [r14]  ;z
+
+        ; TODO: Pre-shift vector elements.
+        mov r14, r14, asr #MULTIPLICATION_SHIFT
+
+        ADD r12, r12, #4<<11    ; increment embeded src_ptr
+
+        MLA r9, r2, r14, r9   ;x = x*m00 + y*m01 + z*m02
+        MLA r10, r5, r14, r10 ;y = x*m01 + y*m11 + z*m12
+        MLA r11, r8, r14, r11 ;z = x*m02 + y*m21 + z*m22        
+
+        MOV r14, r12, LSL #(32-11)
+        MOV r14, r14, LSR #(32-11)  ; extract count
+        MOV r12, r12, LSR #11       ; extract src_ptr
+
+        ; Sarah converts these to INTs but leave as s15.16 for now.
+        ;MOV r9, r9, ASR #12         ; s7.12 after MUL
+        ;MOV r10, r10, ASR #12
+        ;MOV r11, r11, ASR #12
+        STMFD sp!, {r9, r10, r11}   ; push on stack
+
+        SUBS r14, r14, #1
+    bne .1
+
+    ; TODO: Pop these off the stack but write to correct position in the array.
+    ldr r11, scene3d_entity_p
+
+    ldr r12, [r11, #Entity_MeshPtr]
+    ldr r10, [r12, #MeshHeader_NumFaces]
+
+    ; Pop off normals into transformed_normals_p.
+    ldr r9, transformed_normals_p
+    sub r10, r10, #1
+    add r9, r9, r10, lsl #3
+    add r9, r9, r10, lsl #2             ; top of normals array
+
+    .2:
+    ldmfd sp!, {r0-r2}
+    stmia r9, {r0-r2}
+    sub r9, r9, #12
+    subs r10, r10, #1
+    bpl .2
+
+    ; Transform rotated verts to world coordinates.
+    ldmia r11, {r6-r8}                  ; pos vector
+
+    ; NB. No longer transformed to camera relative.
+
+    ; Apply object scale after rotation.
+    ldr r0, [r11, #Entity_Scale]        ; object_scale
+    mov r0, r0, asr #MULTIPLICATION_SHIFT
+
+    ldr r2, transformed_verts_p
+    ldr r12, [r12, #MeshHeader_NumVerts]
+
+    sub r12, r12, #1
+    add r2, r2, r12, lsl #3
+    add r2, r2, r12, lsl #2         ; top of verts array
+
+    .3:
+    ldmfd sp!, {r3-r5}
+
+    ; Scale rotated verts.
+    mov r3, r3, asr #MULTIPLICATION_SHIFT
+    mov r4, r4, asr #MULTIPLICATION_SHIFT
+    mov r5, r5, asr #MULTIPLICATION_SHIFT
+
+    mul r3, r0, r3      ; x_scaled=x*object_scale
+    mul r4, r0, r4      ; y_scaled=y*object_scale
+    mul r5, r0, r5      ; z_scaled=z*object_scale
+
+    ; TODO: Make camera relative again for speed?
+
+    ; Move object vertices into world space.
+    add r3, r3, r6      ; x_scaled + object_pos_x - camera_pos_x
+    add r4, r4, r7      ; y_scaled + object_pos_y - camera_pos_y
+    add r5, r5, r8      ; z_scaled + object_pos_z - camera_pos_z
+
+    stmia r2, {r3-r5}
+    sub r2, r2, #12
+
+    subs r12, r12, #1
+    bpl .3
+
+    ldr pc, [sp], #4
+.endif
 
 ; ============================================================================
 ; Rotate the current object from either vars or VU bars.
@@ -540,31 +719,82 @@ scene3d_transform_entity:
 object_rot_speed:
     VECTOR3 0.5, 0.0, 0.0
 
+object_transform:           ; Inc. scale, no translate.
+    MATRIX33_IDENTITY
+
+normal_transform:           ; Rotation only.
+    MATRIX33_IDENTITY
+
+temp_matrix_1:
+    MATRIX33_IDENTITY
+
+temp_matrix_2:
+    MATRIX33_IDENTITY
+
 scene3d_rotate_entity:
     str lr, [sp, #-4]!
 
-    ; Update any scene vars, camera, object position etc. (Rocket?)
-    ldr r2, scene3d_entity_p
-    ldr r1, object_rot_speed + 0 ; ROTATION_X
-    ldr r0, [r2, #Entity_RotX]
-    add r0, r0, r1
-    bic r0, r0, #0xff000000         ; brads
-    str r0, [r2, #Entity_RotX]
+    ; Create rotation matrix as object transform.
+    ldr r10, scene3d_entity_p
 
-    ldr r1, object_rot_speed + 4 ; ROTATION_Y
-    ldr r0, [r2, #Entity_RotY]
-    add r0, r0, r1
-    bic r0, r0, #0xff000000         ; brads
-    str r0, [r2, #Entity_RotY]
+    ; TODO: Make rotation matrix directly.
+    adr r2, temp_matrix_1
+    ldr r0, [r10, #Entity_RotX]
+    bl matrix_make_rotate_x     ; T1=rot_x
 
-    ldr r1, object_rot_speed + 8 ; ROTATION_Z
-    ldr r0, [r2, #Entity_RotZ]
-    add r0, r0, r1
-    bic r0, r0, #0xff000000         ; brads
-    str r0, [r2, #Entity_RotZ]
+    adr r2, object_transform
+    ldr r0, [r10, #Entity_RotY]
+    bl matrix_make_rotate_y     ; OT=rot_y
+
+    adr r0, temp_matrix_1
+    adr r1, object_transform
+    adr r2, temp_matrix_2
+    bl matrix_multiply          ; T2=T1.OT
+
+    adr r2, temp_matrix_1
+    ldr r0, [r10, #Entity_RotZ]
+    bl matrix_make_rotate_z     ; T1=rot_z
+
+    adr r0, temp_matrix_2
+    adr r1, temp_matrix_1
+    adr r2, normal_transform    ; NT=T2.T1  <== rotation only.
+    bl matrix_multiply
+
+.if 0
+    ldr r0, [r10, #Entity_Scale]
+    adr r2, temp_matrix_2
+    bl matrix_make_scale        ; T2=scale
+
+    adr r0, temp_matrix_2
+    adr r1, normal_transform
+    adr r2, object_transform    ; OT=T2.NT
+    bl matrix_multiply
+.endif
 
     ; Transform the object into world space.
     bl scene3d_transform_entity
+
+    ; Update any scene vars, camera, object position etc. (Rocket?)
+    ldr r10, scene3d_entity_p
+
+    ldr r1, object_rot_speed + 0 ; ROTATION_X
+    ldr r0, [r10, #Entity_RotX]
+    add r0, r0, r1
+    bic r0, r0, #0xff000000         ; brads
+    str r0, [r10, #Entity_RotX]
+
+    ldr r1, object_rot_speed + 4 ; ROTATION_Y
+    ldr r0, [r10, #Entity_RotY]
+    add r0, r0, r1
+    bic r0, r0, #0xff000000         ; brads
+    str r0, [r10, #Entity_RotY]
+
+    ldr r1, object_rot_speed + 8 ; ROTATION_Z
+    ldr r0, [r10, #Entity_RotZ]
+    add r0, r0, r1
+    bic r0, r0, #0xff000000         ; brads
+    str r0, [r10, #Entity_RotZ]
+
     ldr pc, [sp], #4
 
 scene3d_update_entity_from_vubars:
@@ -709,6 +939,11 @@ scene3d_project_verts:
 scene3d_draw_entity_as_solid_quads:
     str lr, [sp, #-4]!
 
+    .if _DEBUG
+    mov r0, #0
+    str r0, scene3d_stats_quads_plotted
+    .endif
+
     ; Project world space verts to screen space.
     bl scene3d_project_verts
  
@@ -716,9 +951,14 @@ scene3d_draw_entity_as_solid_quads:
     ldr r11, scene3d_entity_p
     ldr r11, [r11, #Entity_MeshPtr]     ; scene3d_mesh_p
     ldr r11, [r11, #MeshHeader_NumFaces]
-    sub r11, r11, #1
+    strb r11, .4                        ; SELF-MOD! ;sub r11, r11, #1
+    mov r11, #0                         ; now plot faces in forward order.
 
     .2:
+    ; TODO: Optimise this loop!
+
+    ; TODO: MicroOpt- faces now in order so can just increment r9 face v0.
+
     ldr r9, scene3d_entity_p
     ldr r9, [r9, #Entity_MeshPtr]       ; scene3d_mesh_p
     ldr r9, [r9, #MeshHeader_FaceIndices]
@@ -727,6 +967,9 @@ scene3d_draw_entity_as_solid_quads:
     ldr r1, transformed_verts_p
     add r1, r1, r5, lsl #3
     add r1, r1, r5, lsl #2      ; transformed_verts + index*12
+
+    ; TODO: MicroOpt- faces now in order so can just increment r2 normal ptr.
+
     ldr r2, transformed_normals_p
     add r2, r2, r11, lsl #3      ; face_normal for polygon N.
     add r2, r2, r11, lsl #2      ; face_normal for polygon N.
@@ -741,6 +984,8 @@ scene3d_draw_entity_as_solid_quads:
     ; vector A = (v0 - camera_pos)
     ; vector B = face_normal
 
+    ; TODO: MicroOpt- make transformed verts camera relative.
+
     ldmia r1!, {r3-r5}          ; [tx, ty, tz]
     adr r0, camera_pos
     ldmia r0, {r6-r8}           ; camera_pos
@@ -749,18 +994,30 @@ scene3d_draw_entity_as_solid_quads:
     sub r4, r4, r7
     sub r5, r5, r8
 
+    ; TODO: MicroOpt- inline dot product.
+    ; TODO: MicroOpt- pre-shift all verts to be MUL ready
+    
     bl vector_dot_product_load_B ; trashes r3-r8
-    cmp r0, #0                  
-    bpl .3                      ; normal facing away from the view direction.
+    cmp r0, #0
+    ; TODO: This should be bpl - are torus normals inverted?
+    bmi .3                      ; normal facing away from the view direction.
+
+    ; TODO: MicroOpt- use winding order test rather than dot product if no lighting calc.
 
     ; TODO: Screen space winding order test:
     ;       (y1 - y0) * (x2 - x1) - (x1 - x0) * (y2 - y1) > 0
+
+    ; TODO: MicroOpt- avoid reading quad indices again.
 
     ; SOLID
     ldr r2, projected_verts_p   ; projected vertex array.
     ldr r3, [r9, r11, lsl #2]   ; quad indices.
 
+    ; TODO: MicroOpt - avoid stashing registers?
+
     stmfd sp!, {r11,r12}
+
+    ; TODO: MicroOpt- faces now in order so can just increment r4 colour ptr.
 
     ; Look up colour index per face (no lighting).
     ldr r4, scene3d_entity_p
@@ -773,11 +1030,21 @@ scene3d_draw_entity_as_solid_quads:
     ;  R3=4x vertex indices for quad
     ;  R4=colour index
     bl triangle_plot_quad_indexed   ; faster than polygon_plot_quad_indexed.
+    ; Trashes: R0-R11.
+
+    .if _DEBUG
+    ldr r11, scene3d_stats_quads_plotted
+    add r11, r11, #1
+    str r11, scene3d_stats_quads_plotted
+    .endif
+
     ldmfd sp!, {r11,r12}
 
     .3:
-    subs r11, r11, #1
-    bpl .2
+    add r11, r11, #1
+    .4:
+    cmp r11, #0
+    blt .2
 
     ldr pc, [sp], #4
 

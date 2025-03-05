@@ -243,3 +243,83 @@ i (y0*z1) - (z0*y1)
 k (x0*y1) - (y0*x1)
 
 Then have to get the length of this and normalise. Urgh.
+
+A = [-2.34 0.0 5.65 ]
+B = [ -40.0 40.0 0.0 ]
+A^B = [ -226.25 -226.25 -93.75 ]
+
+Ring starts rhs X+ve Y=0 goes down
+Circle starts outer edge Z=0 X+ve Y+ve goes inside
+
+(outside edge) 0 1 (bottom edge) 2 3 (inside edge) 4 5 (top edge) 6 7 (outside edge)
+So draw order would be: 3 4 2 5 1 6 0 7
+Could rotate these 180 degrees: 0 7 1 6 2 5 3 4
+0 N-1
+i DIV 2 (N-1)-(i DIV 2)
+
+- Coordinates are upside down? (Y inverted?)
+    => Check transformed verts on frame 0.
+       Looks like Y is upside down? YES. FFS.
+- Face normals pointing the wrong way?!
+    => Check winding order.
+- Performance
+    => largest torus at 50Hz at 8MHz? ==> NOT MUCH!
+    => cheaper scroller?
+    => all micro-optimisations in loop
+- Sorting
+    => create front and back facing presorted face list
+    => pick face list based on direction torus is pointing
+
+More broadly?
+Triangle strip approach?
+Read a list of verts interleaved with colour word to plot?
+=> 2D or 3D? 2D verts ultimately have to be sorted top-to-bottom
+Will the cost of writing this out be higher than doing it inline?
+Perhaps reduces register pressure?
+Worth testing but in harness...
+
+
+Sarah's vertex transform code.
+~~~
+Precision is possibly s7.12
+
+; R14=count (down)
+transform_loop:
+        LDMIA r12!, {r9, r10} ;x, y
+        ORR r12, r14, r12, LSL #11  ; count | src_ptr << 11 (free up r14)
+
+        ;r0-r8 - matrix
+        ;r9, r10 - x, y
+        ;r11 - temp
+        ;r12 - source ptr
+        ;r14 - temp
+
+        MUL r11, r9, r6   ;z=x*m20 + y*m21
+        MLA r11, r10, r7, r11
+
+        MUL r14, r10, r1  ;x = y*m01
+
+        MUL r10, r4, r10     ;y = y*m11
+        MLA r10, r3, r9, r10 ;y = x*m00 + y*m11
+
+        MLA r9, r0, r9, r14 ;x = x*m00 + y*m01
+
+        MOV r14, r12, LSR #11   ; extract src_ptr
+        LDR r14, [r14]  ;z
+        ADD r12, r12, #4<<11    ; increment embeded src_ptr
+
+        MLA r9, r2, r14, r9   ;x = x*m00 + y*m01 + z*m02
+        MLA r10, r5, r14, r10 ;y = x*m01 + y*m11 + z*m12
+        MLA r11, r8, r14, r11 ;z = x*m02 + y*m21 + z*m22        
+
+        MOV r14, r12, LSL #(32-11)
+        MOV r14, r14, LSR #(32-11)  ; extract count
+        MOV r12, r12, LSR #11       ; extract src_ptr
+
+        MOV r9, r9, ASR #12         ; s7.12 after MUL
+        MOV r10, r10, ASR #12
+        MOV r11, r11, ASR #12
+        STMDB sp!, {r9, r10, r11}   ; push on stack
+
+        SUBS r14, r14, #1
+        BNE transform_loop

@@ -43,6 +43,7 @@
 
     ; Screen setup.
 ;    write_addr palette_array_p, seq_palette_red_additive
+    call_3 palette_set_block, 0, 0, seq_palette_standard
 
 	; Setup layers of FX.
     .if AppConfig_UseRasterMan
@@ -51,7 +52,7 @@
     call_3 fx_set_layer_fns, 0, 0,                          screen_cls
     .endif
     call_3 fx_set_layer_fns, 1, scene3d_rotate_entity,      scene3d_draw_entity_as_solid_quads
-    call_3 fx_set_layer_fns, 2, sine_scroller_tick,         sine_scroller_draw
+    ;call_3 fx_set_layer_fns, 2, sine_scroller_tick,         sine_scroller_draw
 
     ; FX params.
 ;    write_fp scroll_text_y_pos, 4.0 ; NB. Must match mode9-screen.asm defines. :\
@@ -147,6 +148,24 @@ math_emitter_config_2:
 ; Colour palettes.
 ; ============================================================================
 
+seq_palette_standard:
+    .long 0x00000000                    ; 00 = 0000 = black
+    .long 0x000000f0                    ; 01 = 0001 =
+    .long 0x0000f000                    ; 02 = 0010 =
+    .long 0x0000f0f0                    ; 03 = 0011 =
+    .long 0x00f00000                    ; 04 = 0100 =
+    .long 0x00f000f0                    ; 05 = 0101 =
+    .long 0x00f0f000                    ; 06 = 0110 =
+    .long 0x00f0f0f0                    ; 07 = 0111 = white
+    .long 0x00000080                    ; 08 = 1000 =
+    .long 0x00008000                    ; 09 = 1001 =
+    .long 0x00008080                    ; 10 = 1010 =
+    .long 0x00800000                    ; 11 = 1011 =
+    .long 0x00800080                    ; 12 = 1100 =
+    .long 0x00808000                    ; 13 = 1101 =
+    .long 0x00808080                    ; 14 = 1110 = dark grey
+    .long 0x00c0c0c0                    ; 15 = 1111 = light grey
+
 seq_palette_red_additive:
     .long 0x00000000                    ; 00 = 0000 = black
     .long 0x00000020                    ; 01 = 0001 =
@@ -165,7 +184,7 @@ seq_palette_red_additive:
     .long 0x00c0e0e0                    ; 14 = 1110 = oranges
     .long 0x00f0f0f0                    ; 15 = 1111 = white
 
-.if 0
+.if 1
 seq_palette_grey:
     .long 0x00000000                    ; 00 = 0000 = black
     .long 0x00101010                    ; 01 = 0001 =

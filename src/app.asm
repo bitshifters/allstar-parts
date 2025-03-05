@@ -31,9 +31,11 @@ app_init_debug:
 
     bl debug_init
 
-    DEBUG_REGISTER_VAR vsyncs_missed
+    DEBUG_REGISTER_VAR vsync_delta
     DEBUG_REGISTER_VAR frame_counter
-    DEBUG_REGISTER_VAR music_pos
+    DEBUG_REGISTER_VAR scene3d_stats_quads_plotted
+    
+;    DEBUG_REGISTER_VAR music_pos
     DEBUG_REGISTER_KEY RMKey_Space,      debug_toggle_main_loop_pause,  0
     DEBUG_REGISTER_KEY RMKey_A,          debug_set_byte_true,           debug_restart_flag
     DEBUG_REGISTER_KEY RMKey_S,          debug_set_byte_true,           debug_main_loop_step
@@ -41,7 +43,7 @@ app_init_debug:
     DEBUG_REGISTER_KEY RMKey_R,          debug_toggle_byte,             debug_show_rasters
     DEBUG_REGISTER_KEY RMKey_ArrowRight, debug_skip_to_next_pattern,    0
 
-    DEBUG_REGISTER_VAR math_var_active_count
+;    DEBUG_REGISTER_VAR math_var_active_count
     ldr pc, [sp], #4
 .endif
 

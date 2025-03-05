@@ -1,5 +1,5 @@
 ; ============================================================================
-; Triangle routines.
+; Triangle plotting routines.
 ; Not using a span buffer. Uses bottom flat, top flat algorithm.
 ; ============================================================================
 
@@ -392,6 +392,7 @@ triangle_plot_quad_batch:
 ;  R2=ptr to projected vertex array (x,y) in screen coords [16.0]
 ;  R3=4x vertex indices for quad
 ;  R4=colour index
+; Trashes: R0-R11.
 triangle_plot_quad_indexed:
     str lr, [sp, #-4]!
 
@@ -403,6 +404,11 @@ triangle_plot_quad_indexed:
 
     ; Stash screen address for now.
     str r12, triangle_screen_addr
+
+    .if _DEBUG && 0
+    mov r4, #0x0000dd00
+    bl palette_set_border
+    .endif
 
     ; v1, v2, v3
     mov r1, r3
@@ -427,6 +433,11 @@ triangle_plot_quad_indexed:
     ; (r7,r8) = (v3x,v3y)
     bl triangle_plot_ex
 
+    .if _DEBUG && 0
+    mov r4, #0x0000bb00
+    bl palette_set_border
+    .endif
+
     ldmfd sp!, {r1, r2}
 
     ; v3, v4, v0
@@ -448,6 +459,11 @@ triangle_plot_quad_indexed:
     ; (r5,r6) = (v2x,v2y)
     ; (r7,r8) = (v3x,v3y)
     bl triangle_plot_ex
+
+    .if _DEBUG && 0
+    mov r4, #0x0000ff00
+    bl palette_set_border
+    .endif
 
     ldr pc, [sp], #4
 

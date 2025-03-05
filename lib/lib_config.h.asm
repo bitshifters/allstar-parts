@@ -12,7 +12,7 @@
 .equ LibConfig_IncludePolygon,          0
 .equ LibConfig_IncludeDivide,           1
 .equ LibConfig_IncludeVector,           1
-.equ LibConfig_IncludeMatrix,           0
+.equ LibConfig_IncludeMatrix,           1
 .equ LibConfig_IncludeCircles,          0
 .equ LibConfig_IncludeSprites,          0
 .equ LibConfig_IncludeMathVar,          1
@@ -27,7 +27,7 @@
 .equ LibDivide_UseRecipTable,           (LibConfig_IncludeDivide && 1)
 
 .equ LibSpanGen_MaxSpan,                Screen_Width
-.equ LibSpanGen_MultiWord,              1                                       ; Use 1, 2 or 4 words.
+.equ LibSpanGen_MultiWord,              2                                       ; Use 1, 2 or 4 words.
 
 .equ LibCircles_MaxRadius,              20
 .equ LibCircles_MaxCircles,             2                                     ; Max circles drawn in a frame (!)
