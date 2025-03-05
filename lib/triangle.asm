@@ -18,6 +18,13 @@ triangle_reciprocal_table_p:
 
 ; ============================================================================
 
+; R12=screen addr
+triangle_prepare:
+    str r12, triangle_screen_addr
+    mov pc, lr
+
+; ============================================================================
+
 .if LibTriangle_IncludeBatchPlot
 ; Plot a batch of triangles.
 ; Parameters:
@@ -388,7 +395,7 @@ triangle_plot_quad_batch:
 
 ; Plot a quad [with same call signature as polygon module.]
 ; Parameters:
-;  R12=screen addr
+;  NB. Assume screen addr is pre-cached with triangle_prepare!
 ;  R2=ptr to projected vertex array (x,y) in screen coords [16.0]
 ;  R3=4x vertex indices for quad
 ;  R4=colour index
@@ -402,8 +409,7 @@ triangle_plot_quad_indexed:
     orr r4, r4, r4, lsl #16
     str r4, triangle_colour
 
-    ; Stash screen address for now.
-    str r12, triangle_screen_addr
+    ; NB. Assume screen addr is pre-cached with triangle_prepare!
 
     .if _DEBUG && 0
     mov r4, #0x0000dd00

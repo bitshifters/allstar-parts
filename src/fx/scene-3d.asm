@@ -87,7 +87,7 @@ torus_entity:
     VECTOR3 0.0, 0.0, 0.0      ; object_pos
     VECTOR3 0.0, 0.0, 0.0       ; object_rot
     FLOAT_TO_FP 1.0             ; object_scale
-    .long mesh_header_torus      ; mesh ptr
+    .long mesh_header_torus     ; mesh ptr
 
 ; ============================================================================
 ; Ptrs to buffers / tables.
@@ -107,6 +107,20 @@ projected_verts_p:
 
 scene3d_reciprocal_table_p:
     .long reciprocal_table_no_adr
+
+scene3d_mesh_header_cache:
+scene3d_mesh_numverts:
+    .long 0
+scene3d_mesh_numfaces:
+    .long 0
+scene3d_mesh_vertsptr:
+    .long 0
+scene3d_mesh_normalsptr:
+    .long 0
+scene3d_mesh_faceindices:
+    .long 0
+scene3d_mesh_facecolours:
+    .long 0
 
 ; ============================================================================
 ; ============================================================================
@@ -444,134 +458,13 @@ scene3d_init:
 ; Transform the current object (not scene) into world space.
 ; ============================================================================
 
-.if 0
-scene3d_transform_entity:
-    str lr, [sp, #-4]!
-
-    ; TODO: Replace this guff with Sarah's 3x3 matmul routine.
-
-    ; Skip matrix multiplication altogether.
-    ; Transform (x,y,z) into (x'',y'',z'') directly.
-    ; Uses 12 muls / rotation.
-
-    ldr r2, scene3d_entity_p
-    ldr r0, [r2, #Entity_RotZ]              ; object_rot+8
-    bl sin_cos                              ; trashes R9
-    mov r10, r0, asr #MULTIPLICATION_SHIFT  ; r10 = sin(A)
-    mov r11, r1, asr #MULTIPLICATION_SHIFT  ; r11 = cos(A)
-
-    ldr r0, [r2, #Entity_RotX]              ; object_rot+0
-    bl sin_cos                              ; trashes R9
-    mov r6, r0, asr #MULTIPLICATION_SHIFT  ; r6 = sin(C)
-    mov r7, r1, asr #MULTIPLICATION_SHIFT  ; r7 = cos(C)
-
-    ldr r0, [r2, #Entity_RotY]              ; object_rot+4
-    bl sin_cos                              ; trashes R9
-    mov r8, r0, asr #MULTIPLICATION_SHIFT  ; r8 = sin(B)
-    mov r9, r1, asr #MULTIPLICATION_SHIFT  ; r9 = cos(B)
-
-    ldr r12, [r2, #Entity_MeshPtr]
-    ldr r1, [r12, #MeshHeader_VertsPtr]
-    ldr r3, [r12, #MeshHeader_NumFaces]
-    ldr r12, [r12, #MeshHeader_NumVerts]
-
-    ldr r2, transformed_verts_p
-    add r4, r2, r12, lsl #3
-    add r4, r4, r12, lsl #2               ; transform_normals=&transformed_verts[object_num_verts]
-    str r4, transformed_normals_p
-
-    add r12, r12, r3                      ; object_num_verts + object_num_faces
-
-    ; ASSUMES THAT VERTEX AND NORMAL ARRAYS ARE CONSECUTIVE!
-    .1:
-    ldmia r1!, {r3-r5}                    ; x,y,z
-    mov r3, r3, asr #MULTIPLICATION_SHIFT
-    mov r4, r4, asr #MULTIPLICATION_SHIFT
-    mov r5, r5, asr #MULTIPLICATION_SHIFT
-
-	; x'  = x*cos(A) + y*sin(A)
-	; y'  = x*sin(A) - y*cos(A)  
-    mul r0, r3, r11                     ; x*cos(A)
-    mla r0, r4, r10, r0                 ; x' = y*sin(A) + x*cos(A)
-    mov r0, r0, asr #MULTIPLICATION_SHIFT
-
-    mul r14, r4, r11                    ; y*cos(A)
-    rsb r14, r14, #0                    ; -y*cos(A)
-    mla r4, r3, r10, r14                ; y' = x*sin(A) - y*cos(A)
-    mov r4, r4, asr #MULTIPLICATION_SHIFT
-
-	; x'' = x'*cos(B) + z*sin(B)
-	; z'  = x'*sin(B) - z*cos(B)
-
-    mul r14, r0, r9                     ; x'*cos(B)
-    mla r3, r5, r8, r14                 ; x'' = z*sin(B) + x'*cos(B)
-
-    mul r14, r5, r9                     ; z*cos(B)
-    rsb r14, r14, #0                    ; -z*cos(B)
-    mla r5, r0, r8, r14                 ; z' = x'*sin(B) - z*cos(B)
-    mov r5, r5, asr #MULTIPLICATION_SHIFT
-
-	; y'' = y'*cos(C) + z'*sin(C)
-	; z'' = y'*sin(C) - z'*cos(C)
-
-    mul r14, r4, r7                     ; y'*cos(C)
-    mla r0, r5, r6, r14                 ; y'' = y'*cos(C) + z'*sin(C)
-
-    mul r14, r5, r7                     ; z'*cos(C)
-    rsb r14, r14, #0                    ; -z'*cos(C)
-    mla r5, r4, r6, r14                 ; z'' = y'*sin(C) - z'*cos(C)
-
-    ; x''=r3, y''=r0, z''=r5
-    mov r4, r0
-    stmia r2!, {r3-r5}                  ; x'',y'',z'''
-    subs r12, r12, #1
-    bne .1
-
-    ; Transform to world coordinates.
-    ldr r11, scene3d_entity_p
-    ldmia r11, {r6-r8}                  ; pos vector
-
-    ; NB. No longer transformed to camera relative.
-
-    ; Apply object scale after rotation.
-    ldr r0, [r11, #Entity_Scale]        ; object_scale
-    mov r0, r0, asr #MULTIPLICATION_SHIFT
-
-    ldr r2, transformed_verts_p
-    ldr r12, [r11, #Entity_MeshPtr]     ; scene3d_mesh_p
-    ldr r12, [r12, #MeshHeader_NumVerts]
-    .2:
-    ldmia r2, {r3-r5}
-
-    ; Scale rotated verts.
-    mov r3, r3, asr #MULTIPLICATION_SHIFT
-    mov r4, r4, asr #MULTIPLICATION_SHIFT
-    mov r5, r5, asr #MULTIPLICATION_SHIFT
-
-    mul r3, r0, r3      ; x_scaled=x*object_scale
-    mul r4, r0, r4      ; y_scaled=y*object_scale
-    mul r5, r0, r5      ; z_scaled=z*object_scale
-
-    ; TODO: Make camera relative again for speed?
-
-    ; Move object vertices into world space.
-    add r3, r3, r6      ; x_scaled + object_pos_x - camera_pos_x
-    add r4, r4, r7      ; y_scaled + object_pos_y - camera_pos_y
-    add r5, r5, r8      ; z_scaled + object_pos_z - camera_pos_z
-
-    stmia r2!, {r3-r5}
-    subs r12, r12, #1
-    bne .2
-
-    ldr pc, [sp], #4
-.else
 scene3d_transform_entity:
     str lr, [sp, #-4]!
 
     ldr r2, scene3d_entity_p
     ldr r12, [r2, #Entity_MeshPtr]
     ldr r14, [r12, #MeshHeader_NumVerts]
-    ldr r3, [r12, #MeshHeader_NumFaces]
+    ldr r3,  [r12, #MeshHeader_NumFaces]
     ldr r12, [r12, #MeshHeader_VertsPtr]
 
     ; TODO: Update transformed_normals_p at init.
@@ -714,7 +607,7 @@ scene3d_transform_entity:
     bpl .3
 
     ldr pc, [sp], #4
-.endif
+
 
 ; ============================================================================
 ; Rotate the current object from either vars or VU bars.
@@ -859,9 +752,7 @@ scene3d_project_verts:
     ldr r2, transformed_verts_p
     ldr r9, scene3d_reciprocal_table_p
 
-    ldr r1, scene3d_entity_p
-    ldr r1, [r1, #Entity_MeshPtr]           ; scene3d_mesh_p
-    ldr r1, [r1, #MeshHeader_NumVerts]
+    ldr r1, scene3d_mesh_numverts       ; from cache.
     ldr r10, projected_verts_p
     .1:
     ; R2=ptr to world pos vector
@@ -939,37 +830,45 @@ scene3d_draw_entity_as_solid_quads:
     str r0, scene3d_stats_quads_plotted
     .endif
 
+    ; Cache the screen address in the triangle plotter.
+
+    bl triangle_prepare
+
+    ; Cache the mesh header whilst drawing this object.
+
+    ldr r11, scene3d_entity_p
+    ldr r11, [r11, #Entity_MeshPtr]     ; scene3d_mesh_p
+    adr r10, scene3d_mesh_header_cache
+    ldmia r11, {r0-r5}
+    stmia r10, {r0-r5}
+    .if MeshHeader_SIZE!=24
+    .err "Was expecting MeshHeader_SIZE == 24!"
+    .endif
+
     ; Project world space verts to screen space.
     bl scene3d_project_verts
  
-    ; TODO: MicroOpt - cache mesh header at start of draw.
-
     ; Plot faces as polys.
-    ldr r11, scene3d_entity_p
-    ldr r11, [r11, #Entity_MeshPtr]     ; scene3d_mesh_p
-    ldr r11, [r11, #MeshHeader_NumFaces]
+    ldr r11, scene3d_mesh_numfaces      ; from cache.
     strb r11, .4                        ; SELF-MOD! ;sub r11, r11, #1
     mov r11, #0                         ; now plot faces in forward order.
 
     .2:
-    ; TODO: Optimise this loop!
 
     ; TODO: MicroOpt- faces now in order so can just increment r9 face v0.
 
-    ldr r9, scene3d_entity_p
-    ldr r9, [r9, #Entity_MeshPtr]       ; scene3d_mesh_p
-    ldr r9, [r9, #MeshHeader_FaceIndices]
-    ldrb r5, [r9, r11, lsl #2]  ; vertex0 of polygon N.
+    ldr r9, scene3d_mesh_faceindices    ; from cache.
+    ldrb r5, [r9, r11, lsl #2]          ; vertex0 of polygon N.
     
     ldr r1, transformed_verts_p
     add r1, r1, r5, lsl #3
-    add r1, r1, r5, lsl #2      ; transformed_verts + index*12
+    add r1, r1, r5, lsl #2              ; transformed_verts + index*12
 
     ; TODO: MicroOpt- faces now in order so can just increment r2 normal ptr.
 
     ldr r2, transformed_normals_p
-    add r2, r2, r11, lsl #3      ; face_normal for polygon N.
-    add r2, r2, r11, lsl #2      ; face_normal for polygon N.
+    add r2, r2, r11, lsl #3             ; face_normal for polygon N.
+    add r2, r2, r11, lsl #2             ; face_normal for polygon N.
 
     ; Backfacing culling test (vertex - camera_pos).face_normal
     ; Parameters:
@@ -982,7 +881,7 @@ scene3d_draw_entity_as_solid_quads:
     ; vector B = face_normal
 
     ldmia r1!, {r3-r5}                  ; [tx, ty, tz]
-    ldmia r2, {r6-r8}                   ; [s15.16]
+    ldmia r2,  {r6-r8}                  ; [s15.16]
 
     ; TODO: MicroOpt- pre-shift all verts to be MUL ready
 
@@ -1011,14 +910,12 @@ scene3d_draw_entity_as_solid_quads:
 
     ; TODO: MicroOpt - avoid stashing registers?
 
-    stmfd sp!, {r11,r12}
+    stmfd sp!, {r11}
 
     ; TODO: MicroOpt- faces now in order so can just increment r4 colour ptr.
 
     ; Look up colour index per face (no lighting).
-    ldr r4, scene3d_entity_p
-    ldr r4, [r4, #Entity_MeshPtr]       ; scene3d_mesh_p
-    ldr r4, [r4, #MeshHeader_FaceColours]
+    ldr r4, scene3d_mesh_facecolours    ; from cache.
     ldrb r4, [r4, r11]
 
     ;  R12=screen addr
@@ -1034,7 +931,7 @@ scene3d_draw_entity_as_solid_quads:
     str r11, scene3d_stats_quads_plotted
     .endif
 
-    ldmfd sp!, {r11,r12}
+    ldmfd sp!, {r11}
 
     .3:
     add r11, r11, #1
@@ -1103,4 +1000,129 @@ project_to_screen:
 	.byte "Vertex behind camera."
 	.align 4
 	.long 0
+.endif
+
+; ============================================================================
+; ============================================================================
+
+.if 0
+scene3d_transform_entity:
+    str lr, [sp, #-4]!
+
+    ; TODO: Replace this guff with Sarah's 3x3 matmul routine.
+
+    ; Skip matrix multiplication altogether.
+    ; Transform (x,y,z) into (x'',y'',z'') directly.
+    ; Uses 12 muls / rotation.
+
+    ldr r2, scene3d_entity_p
+    ldr r0, [r2, #Entity_RotZ]              ; object_rot+8
+    bl sin_cos                              ; trashes R9
+    mov r10, r0, asr #MULTIPLICATION_SHIFT  ; r10 = sin(A)
+    mov r11, r1, asr #MULTIPLICATION_SHIFT  ; r11 = cos(A)
+
+    ldr r0, [r2, #Entity_RotX]              ; object_rot+0
+    bl sin_cos                              ; trashes R9
+    mov r6, r0, asr #MULTIPLICATION_SHIFT  ; r6 = sin(C)
+    mov r7, r1, asr #MULTIPLICATION_SHIFT  ; r7 = cos(C)
+
+    ldr r0, [r2, #Entity_RotY]              ; object_rot+4
+    bl sin_cos                              ; trashes R9
+    mov r8, r0, asr #MULTIPLICATION_SHIFT  ; r8 = sin(B)
+    mov r9, r1, asr #MULTIPLICATION_SHIFT  ; r9 = cos(B)
+
+    ldr r12, [r2, #Entity_MeshPtr]
+    ldr r1, [r12, #MeshHeader_VertsPtr]
+    ldr r3, [r12, #MeshHeader_NumFaces]
+    ldr r12, [r12, #MeshHeader_NumVerts]
+
+    ldr r2, transformed_verts_p
+    add r4, r2, r12, lsl #3
+    add r4, r4, r12, lsl #2               ; transform_normals=&transformed_verts[object_num_verts]
+    str r4, transformed_normals_p
+
+    add r12, r12, r3                      ; object_num_verts + object_num_faces
+
+    ; ASSUMES THAT VERTEX AND NORMAL ARRAYS ARE CONSECUTIVE!
+    .1:
+    ldmia r1!, {r3-r5}                    ; x,y,z
+    mov r3, r3, asr #MULTIPLICATION_SHIFT
+    mov r4, r4, asr #MULTIPLICATION_SHIFT
+    mov r5, r5, asr #MULTIPLICATION_SHIFT
+
+	; x'  = x*cos(A) + y*sin(A)
+	; y'  = x*sin(A) - y*cos(A)  
+    mul r0, r3, r11                     ; x*cos(A)
+    mla r0, r4, r10, r0                 ; x' = y*sin(A) + x*cos(A)
+    mov r0, r0, asr #MULTIPLICATION_SHIFT
+
+    mul r14, r4, r11                    ; y*cos(A)
+    rsb r14, r14, #0                    ; -y*cos(A)
+    mla r4, r3, r10, r14                ; y' = x*sin(A) - y*cos(A)
+    mov r4, r4, asr #MULTIPLICATION_SHIFT
+
+	; x'' = x'*cos(B) + z*sin(B)
+	; z'  = x'*sin(B) - z*cos(B)
+
+    mul r14, r0, r9                     ; x'*cos(B)
+    mla r3, r5, r8, r14                 ; x'' = z*sin(B) + x'*cos(B)
+
+    mul r14, r5, r9                     ; z*cos(B)
+    rsb r14, r14, #0                    ; -z*cos(B)
+    mla r5, r0, r8, r14                 ; z' = x'*sin(B) - z*cos(B)
+    mov r5, r5, asr #MULTIPLICATION_SHIFT
+
+	; y'' = y'*cos(C) + z'*sin(C)
+	; z'' = y'*sin(C) - z'*cos(C)
+
+    mul r14, r4, r7                     ; y'*cos(C)
+    mla r0, r5, r6, r14                 ; y'' = y'*cos(C) + z'*sin(C)
+
+    mul r14, r5, r7                     ; z'*cos(C)
+    rsb r14, r14, #0                    ; -z'*cos(C)
+    mla r5, r4, r6, r14                 ; z'' = y'*sin(C) - z'*cos(C)
+
+    ; x''=r3, y''=r0, z''=r5
+    mov r4, r0
+    stmia r2!, {r3-r5}                  ; x'',y'',z'''
+    subs r12, r12, #1
+    bne .1
+
+    ; Transform to world coordinates.
+    ldr r11, scene3d_entity_p
+    ldmia r11, {r6-r8}                  ; pos vector
+
+    ; NB. No longer transformed to camera relative.
+
+    ; Apply object scale after rotation.
+    ldr r0, [r11, #Entity_Scale]        ; object_scale
+    mov r0, r0, asr #MULTIPLICATION_SHIFT
+
+    ldr r2, transformed_verts_p
+    ldr r12, [r11, #Entity_MeshPtr]     ; scene3d_mesh_p
+    ldr r12, [r12, #MeshHeader_NumVerts]
+    .2:
+    ldmia r2, {r3-r5}
+
+    ; Scale rotated verts.
+    mov r3, r3, asr #MULTIPLICATION_SHIFT
+    mov r4, r4, asr #MULTIPLICATION_SHIFT
+    mov r5, r5, asr #MULTIPLICATION_SHIFT
+
+    mul r3, r0, r3      ; x_scaled=x*object_scale
+    mul r4, r0, r4      ; y_scaled=y*object_scale
+    mul r5, r0, r5      ; z_scaled=z*object_scale
+
+    ; TODO: Make camera relative again for speed?
+
+    ; Move object vertices into world space.
+    add r3, r3, r6      ; x_scaled + object_pos_x - camera_pos_x
+    add r4, r4, r7      ; y_scaled + object_pos_y - camera_pos_y
+    add r5, r5, r8      ; z_scaled + object_pos_z - camera_pos_z
+
+    stmia r2!, {r3-r5}
+    subs r12, r12, #1
+    bne .2
+
+    ldr pc, [sp], #4
 .endif
