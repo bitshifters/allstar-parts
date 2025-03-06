@@ -586,6 +586,9 @@ scene3d_transform_entity:
     .3:
     ldmfd sp!, {r3-r5}
 
+    cmp r0, #MATHS_CONST_1
+    beq .4
+
     ; Scale rotated verts.
     mov r3, r3, asr #MULTIPLICATION_SHIFT
     mov r4, r4, asr #MULTIPLICATION_SHIFT
@@ -595,10 +598,13 @@ scene3d_transform_entity:
     mul r4, r0, r4      ; y_scaled=y*object_scale
     mul r5, r0, r5      ; z_scaled=z*object_scale
 
+    .4:
     ; Move object vertices into world space.
     add r3, r3, r6      ; x_scaled + object_pos_x - camera_pos_x
     add r4, r4, r7      ; y_scaled + object_pos_y - camera_pos_y
     add r5, r5, r8      ; z_scaled + object_pos_z - camera_pos_z
+
+    ; Could shift down here ready for MULs.
 
     stmia r2, {r3-r5}
     sub r2, r2, #12
@@ -785,27 +791,35 @@ scene3d_project_verts:
 
     ; x/z
     mov r3, r3, asr #16-LibDivide_Reciprocal_s    ; [16.6]    (a<<s)
-    mul r3, r5, r3                      ; [10.22]   (a<<s)*(1<<16)/b = (a<<16+s)/b
+    mul r3, r5, r3                                ; [10.22]   (a<<s)*(1<<16)/b = (a<<16+s)/b
     mov r3, r3, asr #LibDivide_Reciprocal_s       ; [10.16]   (a<<16)/b = (a/b)<<16
 
     ; y/z
     mov r4, r4, asr #16-LibDivide_Reciprocal_s    ; [16.6]    (a<<s)
-    mul r4, r5, r4                      ; [10.22]   (a<<s)*(1<<16)/b = (a<<16+s)/b
+    mul r4, r5, r4                                ; [10.22]   (a<<s)*(1<<16)/b = (a<<16+s)/b
     mov r4, r4, asr #LibDivide_Reciprocal_s       ; [10.16]   (a<<16)/b = (a/b)<<16
 
+    ; TODO: MicroOpt- rationalise all the shifts here.
+
     ; screen_x = vp_centre_x + vp_scale * (x-cx) / (z-cz)
-    mov r0, #VIEWPORT_SCALE>>12 ; [16.4]
-    mul r3, r0, r3              ; [12.20]
-    mov r3, r3, asr #4           ; [12.16]
-    mov r0, #VIEWPORT_CENTRE_X  ; [16.16]
-    add r3, r3, r0
+    .if VIEWPORT_SCALE==160<<16
+    mov r0, r3, lsl #7              ;   x*128
+    add r3, r0, r3, lsl #5          ; + x*32 = x*160
+    .else
+    mov r0, #VIEWPORT_SCALE>>16     ; [16.0]
+    mul r3, r0, r3                  ; [12.16]
+    .endif
+    add r3, r3, #VIEWPORT_CENTRE_X  ; [16.16]
 
     ; screen_y = vp_centre_y - vp_scale * (y-cy) / (z-cz)
-    mov r0, #VIEWPORT_SCALE>>12 ; [16.4]
-    mul r4, r0, r4              ; [12.20]
-    mov r4, r4, asr #4           ; [12.16]
-    mov r0, #VIEWPORT_CENTRE_Y  ; [16.16]
-    sub r4, r0, r4              ; [16.16]
+    .if VIEWPORT_SCALE==160<<16
+    mov r0, r4, lsl #7              ;   x*128
+    add r4, r0, r4, lsl #5          ; + x*32 = x*160
+    .else
+    mov r0, #VIEWPORT_SCALE>>16     ; [16.0]
+    mul r4, r0, r4                  ; [12.16]
+    .endif
+    rsb r4, r4, #VIEWPORT_CENTRE_Y  ; [16.16]
 
     ; R0=screen_x, R1=screen_y [16.16]
     mov r3, r3, asr #16         ; [16.0]
@@ -835,6 +849,7 @@ scene3d_draw_entity_as_solid_quads:
     bl triangle_prepare
 
     ; Cache the mesh header whilst drawing this object.
+    ; TODO: Do we still need to do this now loop is simpler?
 
     ldr r11, scene3d_entity_p
     ldr r11, [r11, #Entity_MeshPtr]     ; scene3d_mesh_p
