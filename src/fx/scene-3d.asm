@@ -32,10 +32,9 @@
 ; Therefore we multiply all projected coordinates by the screen width/2
 ; in order to map the viewport onto the entire screen.
 
-; TODO: Could also speed this up by choosing a viewport scale as a shift, e.g. 128.
-.equ VIEWPORT_SCALE,    (Screen_Width /2) * PRECISION_MULTIPLIER
-.equ VIEWPORT_CENTRE_X, 160 * PRECISION_MULTIPLIER
-.equ VIEWPORT_CENTRE_Y, 128 * PRECISION_MULTIPLIER
+.equ VIEWPORT_SCALE,            (Screen_Width /2) * PRECISION_MULTIPLIER
+.equ VIEWPORT_CENTRE_X,         160 * PRECISION_MULTIPLIER
+.equ VIEWPORT_CENTRE_Y,         128 * PRECISION_MULTIPLIER
 
 ; ============================================================================
 ; Scene data.
@@ -84,7 +83,7 @@ cobra_entity:
     .long mesh_header_cobra     ; mesh ptr
 
 torus_entity:
-    VECTOR3 0.0, 0.0, 0.0      ; object_pos
+    VECTOR3 0.0, 0.0, 0.0       ; object_pos
     VECTOR3 0.0, 0.0, 0.0       ; object_rot
     FLOAT_TO_FP 1.0             ; object_scale
     .long mesh_header_torus     ; mesh ptr
@@ -96,12 +95,15 @@ torus_entity:
 .equ OBJ_MAX_VERTS, 128
 .equ OBJ_MAX_FACES, 128
 
+; These are stored as [s9.7] fixed point format (ready for MUL).
 transformed_verts_p:
     .long transformed_verts_no_adr
 
+; These are stored as [s1.8] fixed point format (ready for MUL).
 transformed_normals_p:
     .long transformed_verts_no_adr
 
+; These are stored as [s15.0] fixed point format (ready for screen).
 projected_verts_p:
     .long projected_verts_no_adr
 
@@ -554,8 +556,12 @@ scene3d_transform_entity:
     add r9, r9, r10, lsl #3
     add r9, r9, r10, lsl #2             ; top of normals array
 
+    ; Store preshifted ready for MULs.
     .2:
-    ldmfd sp!, {r0-r2}
+    ldmfd sp!, {r0-r2}                  ; [s1.16]
+    mov r0, r0, asr #8                  ; [s1.8]
+    mov r1, r1, asr #8
+    mov r2, r2, asr #8
     stmia r9, {r0-r2}
     sub r9, r9, #12
     subs r10, r10, #1
@@ -604,7 +610,10 @@ scene3d_transform_entity:
     add r4, r4, r7      ; y_scaled + object_pos_y - camera_pos_y
     add r5, r5, r8      ; z_scaled + object_pos_z - camera_pos_z
 
-    ; Could shift down here ready for MULs.
+    ; Store transformed verts preshifted ready for MULs.
+    mov r3, r3, asr #9  ; [s8.7]
+    mov r4, r4, asr #9  ; [s8.7]
+    mov r5, r5, asr #9  ; [s8.7]
 
     stmia r2, {r3-r5}
     sub r2, r2, #12
@@ -753,24 +762,28 @@ scene3d_update_entity_from_vubars:
 ; Project the transformed vertex array into screen space.
 ; ============================================================================
 
+; Params:
+;  R1=number of verts to project.
+;  R2=ptr to transformed verts array.
+;  R10=destination array for projected verts.
+; Trashes: R0, R3-R5, R9.
+; On exit: R1=0, R2=end of verts array, R10=end of projected array.
 scene3d_project_verts:
     ; Project vertices to screen.
-    ldr r2, transformed_verts_p
     ldr r9, scene3d_reciprocal_table_p
-
-    ldr r1, scene3d_mesh_numverts       ; from cache.
-    ldr r10, projected_verts_p
     .1:
     ; R2=ptr to world pos vector
     ; bl project_to_screen
 
     ; Load camera relative transformed verts [R3,R5,R5] = [x,y,z]
-    ldmia r2!, {r3-r5}
+    ldmia r2!, {r3-r5}                  ; [s8.7]
 
     ; Project to screen.
 
-    ; Put divisor in table range.
-    mov r5, r5, asr #16-LibDivide_Reciprocal_s    ; [16.6]    (b<<s)
+    ; Put divisor in table range [9.7]
+    .if LibDivide_Reciprocal_m != 9
+    .err "Was expecting the reciprocal table to be [9.7]!"
+    .endif
 
     .if _DEBUG
     cmp r5, #0
@@ -787,24 +800,20 @@ scene3d_project_verts:
     .endif
 
     ; Lookup 1/z.
-    ldr r5, [r9, r5, lsl #2]    ; [0.16]    (1<<16+s)/(b<<s) = (1<<16)/b
+    ldr r5, [r9, r5, lsl #2]                      ; [0.16]    (1<<16+s)/(b<<s) = (1<<16)/b
 
     ; x/z
-    mov r3, r3, asr #16-LibDivide_Reciprocal_s    ; [16.6]    (a<<s)
-    mul r3, r5, r3                                ; [10.22]   (a<<s)*(1<<16)/b = (a<<16+s)/b
-    mov r3, r3, asr #LibDivide_Reciprocal_s       ; [10.16]   (a<<16)/b = (a/b)<<16
+    mul r3, r5, r3                                ; [s8.23]
+    mov r3, r3, asr #7                            ; [s8.16]
 
     ; y/z
-    mov r4, r4, asr #16-LibDivide_Reciprocal_s    ; [16.6]    (a<<s)
-    mul r4, r5, r4                                ; [10.22]   (a<<s)*(1<<16)/b = (a<<16+s)/b
-    mov r4, r4, asr #LibDivide_Reciprocal_s       ; [10.16]   (a<<16)/b = (a/b)<<16
-
-    ; TODO: MicroOpt- rationalise all the shifts here.
+    mul r4, r5, r4                                ; [s8.23]
+    mov r4, r4, asr #7                            ; [s8.16]
 
     ; screen_x = vp_centre_x + vp_scale * (x-cx) / (z-cz)
     .if VIEWPORT_SCALE==160<<16
     mov r0, r3, lsl #7              ;   x*128
-    add r3, r0, r3, lsl #5          ; + x*32 = x*160
+    add r3, r0, r3, lsl #5          ; + x*32        [s15.16]
     .else
     mov r0, #VIEWPORT_SCALE>>16     ; [16.0]
     mul r3, r0, r3                  ; [12.16]
@@ -814,7 +823,7 @@ scene3d_project_verts:
     ; screen_y = vp_centre_y - vp_scale * (y-cy) / (z-cz)
     .if VIEWPORT_SCALE==160<<16
     mov r0, r4, lsl #7              ;   x*128
-    add r4, r0, r4, lsl #5          ; + x*32 = x*160
+    add r4, r0, r4, lsl #5          ; + x*32        [s15.16]
     .else
     mov r0, #VIEWPORT_SCALE>>16     ; [16.0]
     mul r4, r0, r4                  ; [12.16]
@@ -861,8 +870,12 @@ scene3d_draw_entity_as_solid_quads:
     .endif
 
     ; Project world space verts to screen space.
+    ldr r1, scene3d_mesh_numverts       ; from cache.
+    ldr r2, transformed_verts_p
+    ldr r10, projected_verts_p
     bl scene3d_project_verts
- 
+    ; Trashes: R0, R3-R5, R9.
+
     ; Plot faces as polys.
     ldr r11, scene3d_mesh_numfaces      ; from cache.
 
@@ -891,31 +904,23 @@ scene3d_draw_entity_as_solid_quads:
     ; vector A = (v0 - camera_pos)
     ; vector B = face_normal
 
-    ldmia r1!,  {r1,r4,r5}              ; [tx, ty, tz]
-    ldmia r10!, {r6-r8}                 ; [s15.16]
-
-    ; TODO: MicroOpt- pre-shift all verts to be MUL ready
-
-    mov r1, r1, asr #MULTIPLICATION_SHIFT    ; [s15.8]
-    mov r4, r4, asr #MULTIPLICATION_SHIFT    ; [s15.8]
-    mov r5, r5, asr #MULTIPLICATION_SHIFT    ; [s15.8]
-    mov r6, r6, asr #MULTIPLICATION_SHIFT    ; [s15.8]
-    mov r7, r7, asr #MULTIPLICATION_SHIFT    ; [s15.8]
-    mov r8, r8, asr #MULTIPLICATION_SHIFT    ; [s15.8]
+    ldmia r1,   {r1,r4,r5}              ; [s8.7]
+    ldmia r10!, {r6-r8}                 ; [s1.8]
 
     ; Dot product A.B
 
-    mul r0, r1, r6                      ; r0 = a1 * b1  [s30.16] potential overflow
-    mla r0, r4, r7, r0                  ;   += a2 * b2  [s30.16] potential overflow
+    mul r0, r1, r6                      ; r0 = a1 * b1  [s9.15]
+    mla r0, r4, r7, r0                  ;   += a2 * b2  [s9.15]
 
     ; Look up colour index per face (no lighting).
     ldrb r4, [r12], #1                  ; must increment ptr!
 
-    mlas r0, r5, r8, r0                 ;   += a3 * b3  [s30.16] potential overflow
+    mlas r0, r5, r8, r0                 ;   += a3 * b3  [s9.15]
     bpl .3                              ; normal facing away from the view direction.
 
     ; TODO: MicroOpt- use screen space winding order test rather than dot product if no lighting calc.
     ;       (y1 - y0) * (x2 - x1) - (x1 - x0) * (y2 - y1) > 0
+    ;       Do this in quad plot routine as have to look up screen coordinates anyway?
 
     ; SOLID
 
