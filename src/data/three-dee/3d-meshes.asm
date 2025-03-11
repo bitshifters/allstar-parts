@@ -224,6 +224,21 @@ mesh_cobra_edge_indices:
 
 ; ============================================================================
 
+.equ MeshTorus_MaxVertsFaces,   64
+
+.equ MeshTorus_NumVerts,        MeshTorus_MaxVertsFaces
+.equ MeshTorus_NumFaces,        MeshTorus_MaxVertsFaces
+
+mesh_header_torus:
+    .long  0
+    .long  0
+    .long  mesh_torus_verts_no_adr
+    .long  mesh_torus_normals_no_adr
+    .long  mesh_torus_faces_no_adr
+    .long  mesh_torus_colours_no_adr
+
+; ============================================================================
+
 ; Wireframe outlines for group names used in Mikroreise! Exported OBJs.
 .if 0
 .macro LINE a, b

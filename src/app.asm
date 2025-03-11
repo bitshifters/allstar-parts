@@ -399,6 +399,9 @@ app_vsync_code:
 
 .include "src/fx/sine-scroller.asm"
 .include "src/fx/scene-3d.asm"
+.if AppConfig_UseRasterMan
+.include "src/rasters.asm"
+.endif
 
 ; ============================================================================
 ; Support library code modules used by the FX sequence.
@@ -408,10 +411,7 @@ app_vsync_code:
 .include "lib/palette.asm"
 .endif
 .include "lib/screen.asm"
-
-.if AppConfig_UseRasterMan
-.include "src/rasters.asm"
-.endif
+.include "lib/mesh.asm"
 
 ; ============================================================================
 ; ArchieKlang generated code.

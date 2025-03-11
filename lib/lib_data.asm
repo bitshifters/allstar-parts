@@ -27,7 +27,7 @@ sqrt_table_no_adr:
 ;	.incbin "data/lib/sqrt_1024.bin"
 
     ; LARGE SQRT table goes from [1, 512*512) = [0x00001, 0x40000) (18 bits)
-    ; Contains 65536 = 0x10000 entries                       (16 bits)
+    ; Contains 65536 = 0x10000 entries                             (16 bits)
     ; Values are in 16.16 format.
 	.incbin "data/lib/sqrt_large.bin"
 .endif

@@ -40,6 +40,8 @@
     ; Init FX modules.
     call_0 sine_scroller_init
     call_0 scene3d_init
+    ;                       RingRadius          CircleRadius       RingSegments   CircleSegments   MeshPtr
+    call_5 mesh_make_torus, 32.0*MATHS_CONST_1, 8.0*MATHS_CONST_1, 8,             8,               mesh_header_torus
 
     ; Screen setup.
 ;    write_addr palette_array_p, seq_palette_red_additive
