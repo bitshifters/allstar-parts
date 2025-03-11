@@ -20,8 +20,6 @@
 ; Inner loop around the ring.
 ; ============================================================================
 
-.equ Mesh_Torus_FlatInnerFace,          0
-
 torus_ringradius:
     FLOAT_TO_FP 0.0                     ; a
 
@@ -45,13 +43,14 @@ torus_circleradius_recip:
 ; R2=ring segments
 ; R3=circle segments
 ; R4=ptr to mesh header (assumes the BSS is preallocated!)
+; R5=flat inner face flag
 mesh_make_torus:
     str lr, [sp, #-4]!
 
     ; Cache parameters.
 
-    adr r5, torus_ringradius
-    stmia r5, {r0-r4}
+    adr r6, torus_ringradius
+    stmia r6, {r0-r4}
 
     ; Calculate num verts/faces.
 
@@ -89,6 +88,11 @@ mesh_make_torus:
     bl divide                               ; trashes R8-R10
     mov r6, r0                              ; dp = 1.0/d
 
+    ; Flat inner face flag.
+    cmp r5, #0
+    moveq r3, #0
+    movne r3, r6, asr #1
+
     mov r0, #MATHS_CONST_1
     ldr r1, torus_circleradius              ; b
     bl divide                               ; trashes R8-R10
@@ -112,9 +116,7 @@ mesh_make_torus:
 .2:
     ;phi = (2*PI/c) * slice [0, c]
     sub r0, r8, #MATHS_CONST_HALF           ; start in the middle
-    .if Mesh_Torus_FlatInnerFace
-    sub r0, r0, r6, asr #1                  ; 0.5/d [1.16]
-    .endif
+    sub r0, r0, r3                          ; 0.5/d [1.16]
     mov r0, r0, asl #8                      ; phi in brads
     bl sin_cos
     ; R0=sin(phi) [s1.16]
