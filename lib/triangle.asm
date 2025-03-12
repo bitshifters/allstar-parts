@@ -125,15 +125,11 @@ triangle_plot_bottom_flat:
     ldr r1, [r14, r10, lsl #2+LibDivide_Reciprocal_s]  ; 1/(v3y-v1y)
     mul r8, r1, r12            ; slope_xe=(v3x-v1x)/(v3y-v1y)   [16.16]
 
-    ; Determine xs, xe.
-    mov r0, r3, asl #16         ; xs [16.16]
-    mov r2, r3, asl #16         ; xe [16.16]
-
     ; Ensure that slope1 < slope2 so that xs < xe.
     cmp r7, r8
-    movgt r3, r7
+    movgt r14, r7
     movgt r7, r8
-    movgt r8, r3
+    movgt r8, r14
 
     ; Calculate scanline_ptr for v1y.
     ldr r11, triangle_screen_addr
@@ -147,25 +143,31 @@ triangle_plot_bottom_flat:
     mov r5, r6
     .endif
 
+    ; Determine xs, xe.
+    mov r0, r3, asl #16         ; xs [16.16]
+    mov r6, r3, asl #16         ; xe [16.16]
+
     ; Plot this!
-    ldr r9, triangle_colour
     .if Screen_Mode!=0
     ldr r12, gen_code_pointers_p
     .endif
+
+    ldr r9, triangle_colour
     .if LibSpanGen_MultiWord>1
     mov r5, r9
+    mov r2, r9
     .endif
 
     ; Registers needed:
     ; R0 = xs [16.16]*
     ; R1 = X end (in pixels)
-    ; R2 = xe [16.16]                   (colour word 3)
+    ; R2 = colour word 3
     ; R3 = temp
     ; R4 = current y                    (colour word 4)
     ; R5 = colour word 2 (or max Y)
-    ; R6 = unused*
-    ; R7 = slope_xs (preserved)*
-    ; R8 = slope_xe (preserved)*
+    ; R6 = xe [16.16]*
+    ; R7 = slope_xs [16.16]*
+    ; R8 = slope_xe [16.16]*
     ; R9 = colour word 1
     ; R10 = ptr to screen addr
     ; R11 = scanline start addr
@@ -194,7 +196,7 @@ triangle_plot_bottom_flat:
     cmp r4, #Screen_Height
     bge .3                      ; done
 
-    mov r1, r2, asr #16         ; Xend in pixels
+    mov r1, r6, asr #16         ; Xend in pixels
     cmp r1, #0
     movlt r1, #0
     cmp r1, #Screen_Width
@@ -230,21 +232,22 @@ triangle_plot_bottom_flat:
 
     ; Increment slopes.
     add r0, r0, r7              ; xs += slope_xs
-    add r2, r2, r8              ; xe += slope_xe
+    add r6, r6, r8              ; xe += slope_xe
 
     ; Next line.
     add r4, r4, #1
     b .1
 
     .3:
-    ldmfd sp!, {r3-r8}           ; read v1, v2, v3
+    mov r2, r6                 ; blurgh
+    ldmfd sp!, {r3-r8}          ; read v1, v2, v3
 
 triangle_plot_top_flat:
 
-    ; Preserve xs (R0) and xe (R2)
+    ; Preserve xs (R0) and xe (r6)
 
     ; Calculate dy values for v2->v3
-    subs r9, r8, r6             ; v3y - v2y
+    sub r9, r8, r6              ; v3y - v2y
     sub r10, r8, r4             ; v3y - v1y
 
     ; Calculate dx values for v2->v3, v1->v3
@@ -266,11 +269,13 @@ triangle_plot_top_flat:
 
     ; Ensure that slope1 < slope2 so that xs < xe.
     cmp r7, r8
+    movle r14, r7
+    movle r7, r8
+    movle r8, r14
     movle r2, r5, asl #16
     movgt r0, r5, asl #16
-    movle r3, r7
-    movle r7, r8
-    movle r8, r3
+
+    mov r6, r2                  ; blurgh
 
     .if LibSpanGen_MultiWord>1
     strb r1, .1                 ; SELF-MOD MAX Y!
@@ -283,31 +288,21 @@ triangle_plot_top_flat:
     CALC_SCANLINE_ADDR r11, r11, r4
 
     ; Plot this!
-    ldr r9, triangle_colour
     .if Screen_Mode!=0
     ldr r12, gen_code_pointers_p
     .endif
+
+    ldr r9, triangle_colour
     .if LibSpanGen_MultiWord>1
     mov r5, r9
+    mov r2, r9
     .if LibSpanGen_MultiWord>2
     .err "Expected LibSpanGen_MultiWord<=2!"    ; and above.
     .endif
     .endif
 
-    ; Registers needed:
-    ; xs [16.16] - R0 (preserved)
-    ; xe [16.16] - R2 (preserved)
-    ; Xstart (pixels) - R6 (temp)
-    ; Xend (pixels) - R1
-    ; slope_xs - R7 (calculated)
-    ; slope_xe - R8 (calculated)
-    ; current_y - R4
-    ; max_y - R5 - CAN FREE UP WITH SELF-MOD
-    ; colour word - R9
-    ; code_ptrs - R12
-    ; scanline_adr - R11
-    ; screen_ptr - R10
-    ; 2x temp - R3, R6
+    ; Registers needed (see above).
+    
 .1:
     .if LibSpanGen_MultiWord>1
     cmp r4, #0                  ; SELF-MOD!
@@ -322,7 +317,7 @@ triangle_plot_top_flat:
     cmp r4, #Screen_Height
     bge .3                      ; done
 
-    mov r1, r2, asr #16         ; Xend in pixels
+    mov r1, r6, asr #16         ; Xend in pixels
     cmp r1, #0
     movlt r1, #0
     cmp r1, #Screen_Width
@@ -359,7 +354,7 @@ triangle_plot_top_flat:
 
     ; Increment slopes.
     add r0, r0, r7              ; xs += slope_xs
-    add r2, r2, r8              ; xe += slope_xe
+    add r6, r6, r8              ; xe += slope_xe
 
     ; Next line.
     add r4, r4, #1
