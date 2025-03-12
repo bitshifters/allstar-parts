@@ -138,7 +138,7 @@ triangle_plot_bottom_flat:
     ; Max Y=v2y.
     ; TODO: Check whether these extra cycles are worth it!
     .if LibSpanGen_MultiWord>1
-    strb r6, .1             ; SELF-MOD MAX Y!
+    strb r6, .11             ; SELF-MOD MAX Y!
     .else
     mov r5, r6
     .endif
@@ -150,11 +150,15 @@ triangle_plot_bottom_flat:
     ; Plot this!
     .if Screen_Mode!=0
     ldr r12, gen_code_pointers_p
+
+    ; Combine current y with code ptrs.
+    orr r12, r4, r12, lsl #11   ; code_ptrs << 11 | current_y
     .endif
 
     ldr r9, triangle_colour
     .if LibSpanGen_MultiWord>1
     mov r5, r9
+    mov r4, r9
     mov r2, r9
     .endif
 
@@ -175,25 +179,21 @@ triangle_plot_bottom_flat:
     ; R13 = stack
     ; R14 = link address
 
-    ; Options to get 4x register writes:
-    ; Combine current y with code ptrs.
-    ; Put current y in top 10 bits, code ptrs in bottom 22 bits?
-    ; Do we need 16.16 precision for everything?
-    ; Store slopes as 8.8?
-
     ; Loop from v1y to v2y.
 .1:
-    .if LibSpanGen_MultiWord>1
-    cmp r4, #0                  ; SELF-MOD!
-    .else
-    cmp r4, r5
-    .endif
+    ; Clip to screen
+    mov r14, r12, lsl #32-11
+    movs r14, r14, lsr #32-11
+    blt .2                      ; skip line
+    cmp r14, #Screen_Height
     bge .3                      ; done
 
-    ; Clip to screen.
-    cmp r4, #0
-    blt .2                      ; skip line
-    cmp r4, #Screen_Height
+    .if LibSpanGen_MultiWord>1
+    .11:
+    cmp r14, #255               ; SELF-MOD!
+    .else
+    cmp r14, r5
+    .endif
     bge .3                      ; done
 
     mov r1, r6, asr #16         ; Xend in pixels
@@ -221,8 +221,13 @@ triangle_plot_bottom_flat:
 
     and r3, r3, #7              ; x start offset [0-7] pixel
     add r3, r3, r14, lsl #3     ; + span length * 8
+
+    mov r3, r3, lsl #2          ; *4
+    add r3, r3, r12, lsr #11    ; + ptr base
+
     adr lr, .2                  ; link address.
-    ldr pc, [r12, r3, lsl #2]   ; jump to plot function.
+    ;ldr pc, [r12, r3, lsl #2]   ; jump to plot function.
+    ldr pc, [r3]                ; jump to plot function.
     ; Uses R1 (Xend in pixels), R3, R6, R9, R10, R11, R12
 .endif
     .2:
@@ -235,7 +240,7 @@ triangle_plot_bottom_flat:
     add r6, r6, r8              ; xe += slope_xe
 
     ; Next line.
-    add r4, r4, #1
+    add r12, r12, #1
     b .1
 
     .3:
@@ -278,7 +283,7 @@ triangle_plot_top_flat:
     mov r6, r2                  ; blurgh
 
     .if LibSpanGen_MultiWord>1
-    strb r1, .1                 ; SELF-MOD MAX Y!
+    strb r1, .11                ; SELF-MOD MAX Y!
     .else
     mov r5, r1
     .endif
@@ -290,31 +295,34 @@ triangle_plot_top_flat:
     ; Plot this!
     .if Screen_Mode!=0
     ldr r12, gen_code_pointers_p
+
+    ; Combine current y with code ptrs.
+    orr r12, r4, r12, lsl #11   ; code_ptrs << 11 | current_y
     .endif
 
     ldr r9, triangle_colour
     .if LibSpanGen_MultiWord>1
     mov r5, r9
+    mov r4, r9
     mov r2, r9
-    .if LibSpanGen_MultiWord>2
-    .err "Expected LibSpanGen_MultiWord<=2!"    ; and above.
-    .endif
     .endif
 
     ; Registers needed (see above).
-    
+
 .1:
-    .if LibSpanGen_MultiWord>1
-    cmp r4, #0                  ; SELF-MOD!
-    .else
-    cmp r4, r5
-    .endif
+    ; Clip to screen.
+    mov r14, r12, lsl #32-11
+    movs r14, r14, lsr #32-11
+    blt .2                      ; skip line
+    cmp r14, #Screen_Height
     bge .3                      ; done
 
-    ; Clip to screen.
-    cmp r4, #0
-    blt .2                      ; skip line
-    cmp r4, #Screen_Height
+    .if LibSpanGen_MultiWord>1
+    .11:
+    cmp r14, #0                  ; SELF-MOD!
+    .else
+    cmp r14, r5
+    .endif
     bge .3                      ; done
 
     mov r1, r6, asr #16         ; Xend in pixels
@@ -342,9 +350,14 @@ triangle_plot_top_flat:
 
     and r3, r3, #7              ; x start offset [0-7] pixel
     add r3, r3, r14, lsl #3     ; + span length * 8
+
+    mov r3, r3, lsl #2          ; *4
+    add r3, r3, r12, lsr #11    ; + ptr base
+
     ; MULTI_WORD uses R2, R4, R5 as well as R9.
     adr lr, .2                  ; link address.
-    ldr pc, [r12, r3, lsl #2]   ; jump to plot function.
+    ;ldr pc, [r12, r3, lsl #2]   ; jump to plot function.
+    ldr pc, [r3]                ; jump to plot function.
     ; Uses R1 (Xend in pixels), R3, R6, R9, R10, R11, R12
 .endif
     .2:
@@ -357,7 +370,7 @@ triangle_plot_top_flat:
     add r6, r6, r8              ; xe += slope_xe
 
     ; Next line.
-    add r4, r4, #1
+    add r12, r12, #1
     b .1
 
     .3:

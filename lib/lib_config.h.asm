@@ -27,10 +27,10 @@
 .equ LibDivide_UseRecipTable,           (LibConfig_IncludeDivide && 1)
 
 .equ LibSpanGen_MaxSpan,                Screen_Width
-.equ LibSpanGen_MultiWord,              2                                       ; Use 1, 2 or 4 words.
+.equ LibSpanGen_MultiWord,              4                                       ; Use 1, 2 or 4 words.
 
 .equ LibCircles_MaxRadius,              20
-.equ LibCircles_MaxCircles,             2                                     ; Max circles drawn in a frame (!)
+.equ LibCircles_MaxCircles,             2                                       ; Max circles drawn in a frame (!)
 .equ LibCircles_DataWords,              4                                       ; {X centre, colour word, ptr to size table, line count}
 
 .equ LibSqrt_IncludeRsqrt,              (LibConfig_IncludeSqrt && 0)

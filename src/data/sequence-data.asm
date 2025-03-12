@@ -41,7 +41,7 @@
     call_0 sine_scroller_init
     call_0 scene3d_init
     ;                       RingRadius          CircleRadius       RingSegments   CircleSegments   MeshPtr              Flat inner face?
-    call_6 mesh_make_torus, 32.0*MATHS_CONST_1, 8.0*MATHS_CONST_1, 8,             8,               mesh_header_torus,   1
+    call_6 mesh_make_torus, 32.0*MATHS_CONST_1, 8.0*MATHS_CONST_1, 4,             4,               mesh_header_torus,   1
 
     ; Screen setup.
 ;    write_addr palette_array_p, seq_palette_red_additive
