@@ -268,7 +268,7 @@ i DIV 2 (N-1)-(i DIV 2)
 - Performance
     => largest torus at 50Hz at 8MHz? ==> NOT MUCH!
     => cheaper scroller?
-    => all micro-optimisations in loop
+    => all micro-optimisations in loop - DONE
 - Sorting
     => create front and back facing presorted face list
     => pick face list based on direction torus is pointing

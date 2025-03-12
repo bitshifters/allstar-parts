@@ -41,7 +41,7 @@
     call_0 sine_scroller_init
     call_0 scene3d_init
     ;                       RingRadius          CircleRadius       RingSegments   CircleSegments   MeshPtr              Flat inner face?
-    call_6 mesh_make_torus, 32.0*MATHS_CONST_1, 8.0*MATHS_CONST_1, 4,             4,               mesh_header_torus,   1
+    call_6 mesh_make_torus, 32.0*MATHS_CONST_1, 8.0*MATHS_CONST_1, 8,             8,               mesh_header_torus,   1
 
     ; Screen setup.
 ;    write_addr palette_array_p, seq_palette_red_additive
@@ -55,6 +55,8 @@
     .endif
     call_3 fx_set_layer_fns, 1, scene3d_rotate_entity,      scene3d_draw_entity_as_solid_quads
     ;call_3 fx_set_layer_fns, 2, sine_scroller_tick,         sine_scroller_draw
+
+    write_vec3 object_rot_speed, 0.5, 1.25, 2.75
 
     ; FX params.
 ;    write_fp scroll_text_y_pos, 4.0 ; NB. Must match mode9-screen.asm defines. :\

@@ -102,20 +102,6 @@ projected_verts_p:
 scene3d_reciprocal_table_p:
     .long reciprocal_table_no_adr
 
-scene3d_mesh_header_cache:
-scene3d_mesh_numverts:
-    .long 0
-scene3d_mesh_numfaces:
-    .long 0
-scene3d_mesh_vertsptr:
-    .long 0
-scene3d_mesh_normalsptr:
-    .long 0
-scene3d_mesh_faceindices:
-    .long 0
-scene3d_mesh_facecolours:
-    .long 0
-
 ; ============================================================================
 ; ============================================================================
 
@@ -170,6 +156,7 @@ scene3d_transform_entity:
 
     ; ASSUMES THAT VERTEX AND NORMAL ARRAYS ARE CONSECUTIVE!
     .1:
+        ; 3x3 MATRIX MULTIPLICATION THANKS TO PROGEN!
         LDMIA r12!, {r9, r10} ;x, y
     
         ; TODO: Pre-shift vector elements.
@@ -184,33 +171,33 @@ scene3d_transform_entity:
         ;r12 - source ptr
         ;r14 - temp
 
-        MUL r11, r9, r6   ;z=x*m20 + y*m21
+        MUL r11, r9, r6             ;z=x*m20 + y*m21
         MLA r11, r10, r7, r11
 
-        MUL r14, r10, r1  ;x = y*m01
+        MUL r14, r10, r1            ;x = y*m01
 
-        MUL r10, r4, r10     ;y = y*m11
-        MLA r10, r3, r9, r10 ;y = x*m00 + y*m11
+        MUL r10, r4, r10            ;y = y*m11
+        MLA r10, r3, r9, r10        ;y = x*m00 + y*m11
 
-        MLA r9, r0, r9, r14 ;x = x*m00 + y*m01
+        MLA r9, r0, r9, r14         ;x = x*m00 + y*m01
 
-        MOV r14, r12, LSR #11   ; extract src_ptr
-        LDR r14, [r14]  ;z
+        MOV r14, r12, LSR #11       ; extract src_ptr
+        LDR r14, [r14]              ;z
 
         ; TODO: Pre-shift vector elements.
         mov r14, r14, asr #MULTIPLICATION_SHIFT
 
-        ADD r12, r12, #4<<11    ; increment embeded src_ptr
+        ADD r12, r12, #4<<11        ; increment embeded src_ptr
 
-        MLA r9, r2, r14, r9   ;x = x*m00 + y*m01 + z*m02
-        MLA r10, r5, r14, r10 ;y = x*m01 + y*m11 + z*m12
-        MLA r11, r8, r14, r11 ;z = x*m02 + y*m21 + z*m22        
+        MLA r9, r2, r14, r9         ;x = x*m00 + y*m01 + z*m02
+        MLA r10, r5, r14, r10       ;y = x*m01 + y*m11 + z*m12
+        MLA r11, r8, r14, r11       ;z = x*m02 + y*m21 + z*m22        
 
         MOV r14, r12, LSL #(32-11)
         MOV r14, r14, LSR #(32-11)  ; extract count
         MOV r12, r12, LSR #11       ; extract src_ptr
 
-        ; Sarah converts these to INTs but leave as s15.16 for now.
+        ; Progen converts these to INTs but leave as s15.16 for now.
         ;MOV r9, r9, ASR #12         ; s7.12 after MUL
         ;MOV r10, r10, ASR #12
         ;MOV r11, r11, ASR #12
@@ -290,8 +277,9 @@ scene3d_transform_entity:
     mov r4, r4, asr #9  ; [s8.7]
     mov r5, r5, asr #9  ; [s8.7]
 
+    ; Store from the end of the array to the start.
     stmia r2, {r3-r5}
-    sub r2, r2, #12
+    sub r2, r2, #12     ; VECTOR3_Size
 
     subs r12, r12, #1
     bpl .3
@@ -347,7 +335,7 @@ scene3d_rotate_entity:
     adr r2, normal_transform    ; NT=T2.T1  <== rotation only.
     bl matrix_multiply
 
-.if 0
+.if 0                           ; NB. Object scale applied directly at entity transform.
     ldr r0, [r10, #Entity_Scale]
     adr r2, temp_matrix_2
     bl matrix_make_scale        ; T2=scale
@@ -477,37 +465,37 @@ scene3d_project_verts:
     ; Lookup 1/z.
     ldr r5, [r9, r5, lsl #2]                      ; [0.16]    (1<<16+s)/(b<<s) = (1<<16)/b
 
-    ; x/z
+    ; x'=x/z
     mul r3, r5, r3                                ; [s8.23]
-    mov r3, r3, asr #7                            ; [s8.16]
 
-    ; y/z
+    ; y'=y/z
     mul r4, r5, r4                                ; [s8.23]
-    mov r4, r4, asr #7                            ; [s8.16]
 
     ; screen_x = vp_centre_x + vp_scale * (x-cx) / (z-cz)
     .if VIEWPORT_SCALE==160<<16
-    mov r0, r3, lsl #7              ;   x*128
-    add r3, r0, r3, lsl #5          ; + x*32        [s15.16]
+    ; x' is [s8.23] == 128*x' at [s15.16]
+    add r3, r3, r3, asr #2          ; + x'*32 = 160*y' [s15.16]
     .else
-    mov r0, #VIEWPORT_SCALE>>16     ; [16.0]
-    mul r3, r0, r3                  ; [12.16]
+    mov r3, r3, asr #7              ; [s7.16]
+    mov r0, #VIEWPORT_SCALE>>16     ; [8.0]
+    mul r3, r0, r3                  ; [s15.16]
     .endif
-    add r3, r3, #VIEWPORT_CENTRE_X  ; [16.16]
+    add r3, r3, #VIEWPORT_CENTRE_X  ; [s15.16]
 
     ; screen_y = vp_centre_y - vp_scale * (y-cy) / (z-cz)
     .if VIEWPORT_SCALE==160<<16
-    mov r0, r4, lsl #7              ;   x*128
-    add r4, r0, r4, lsl #5          ; + x*32        [s15.16]
+    ; y' is [s8.23] == 128*y' at [s15.16]
+    add r4, r4, r4, asr #2          ; + y'*32 = 160*y' [s15.16]
     .else
-    mov r0, #VIEWPORT_SCALE>>16     ; [16.0]
-    mul r4, r0, r4                  ; [12.16]
+    mov r4, r4, asr #7              ; [s7.16]
+    mov r0, #VIEWPORT_SCALE>>16     ; [8.0]
+    mul r4, r0, r4                  ; [s15.16]
     .endif
-    rsb r4, r4, #VIEWPORT_CENTRE_Y  ; [16.16]
+    rsb r4, r4, #VIEWPORT_CENTRE_Y  ; [s15.16]
 
     ; R0=screen_x, R1=screen_y [16.16]
-    mov r3, r3, asr #16         ; [16.0]
-    mov r4, r4, asr #16         ; [16.0]
+    mov r3, r3, asr #16             ; [16.0]
+    mov r4, r4, asr #16             ; [16.0]
 
     stmia r10!, {r3, r4}
     subs r1, r1, #1
@@ -532,32 +520,23 @@ scene3d_draw_entity_as_solid_quads:
 
     bl triangle_prepare
 
-    ; Cache the mesh header whilst drawing this object.
-    ; TODO: Do we still need to do this now loop is simpler?
-
-    ldr r11, scene3d_entity_p
-    ldr r11, [r11, #Entity_MeshPtr]     ; scene3d_mesh_p
-    adr r10, scene3d_mesh_header_cache
-    ldmia r11, {r0-r5}
-    stmia r10, {r0-r5}
-    .if MeshHeader_SIZE!=24
-    .err "Was expecting MeshHeader_SIZE == 24!"
-    .endif
+    ldr r12, scene3d_entity_p
+    ldr r12, [r12, #Entity_MeshPtr]     ; scene3d_mesh_p
 
     ; Project world space verts to screen space.
-    ldr r1, scene3d_mesh_numverts       ; from cache.
+    ldr r1, [r12, #MeshHeader_NumVerts]
     ldr r2, transformed_verts_p
     ldr r10, projected_verts_p
     bl scene3d_project_verts
     ; Trashes: R0, R3-R5, R9.
 
     ; Plot faces as polys.
-    ldr r11, scene3d_mesh_numfaces      ; from cache.
+    ldr r11, [r12, #MeshHeader_NumFaces]
 
     ; One normal per face.
-    ldr r9, scene3d_mesh_faceindices    ; from cache.
+    ldr r9, [r12, #MeshHeader_FaceIndices]
     ldr r10, transformed_normals_p
-    ldr r12, scene3d_mesh_facecolours   ; from cache.
+    ldr r12, [r12, #MeshHeader_FaceColours]
 
     .2:
     ; Get next quad.
