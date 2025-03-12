@@ -14,7 +14,7 @@ gen_code_pointers_p:
 ; r3 = temp [word read from screen]
 ; r4 = not used <= colour word
 ; r5 = not used <= colour word
-; r6 = temp [construct word to write]
+; r6 = not used
 ; r7 = not used
 ; r8 = not used [typically Y rasterline for outer loop]
 ; r9 = colour word [preserved]
@@ -79,7 +79,7 @@ gen_first_word_table:
 	.long gen_first_word_over
 
 gen_same_word_0:
-        AND r1, r1, #7
+    AND r1, r1, #7
 	MOV r1, r1, LSL #2
 	RSB r1, r1, #28
 	MVN r3, #0
@@ -87,12 +87,12 @@ gen_same_word_0:
 
 	LDR r3, [r10]
 	BIC r3, r3, r1
-	AND r6, r9, r1
-	ORR r3, r3, r6
+	AND r1, r9, r1
+	ORR r3, r3, r1
 	STR r3, [r10]
 
 gen_same_word_1:
-        AND r1, r1, #7
+    AND r1, r1, #7
 	MOV r1, r1, LSL #2
 	RSB r1, r1, #28
 	MVN r3, #0
@@ -101,12 +101,12 @@ gen_same_word_1:
 	LDR r3, [r10]
 	BIC r1, r1, #0xf
 	BIC r3, r3, r1
-	AND r6, r9, r1
-	ORR r3, r3, r6
+	AND r1, r9, r1
+	ORR r3, r3, r1
 	STR r3, [r10]
 
 gen_same_word_2:
-        AND r1, r1, #7
+    AND r1, r1, #7
 	MOV r1, r1, LSL #2
 	RSB r1, r1, #28
 	MVN r3, #0
@@ -115,12 +115,12 @@ gen_same_word_2:
 	LDR r3, [r10]
 	BIC r1, r1, #0xff
 	BIC r3, r3, r1
-	AND r6, r9, r1
-	ORR r3, r3, r6
+	AND r1, r9, r1
+	ORR r3, r3, r1
 	STR r3, [r10]
 
 gen_same_word_3:
-        AND r1, r1, #7
+    AND r1, r1, #7
 	MOV r1, r1, LSL #2
 	RSB r1, r1, #28
 	MVN r3, #0
@@ -129,12 +129,12 @@ gen_same_word_3:
 	LDR r3, [r10]
 	MOV r1, r1, LSR #12
 	BIC r3, r3, r1, LSL #12
-	AND r6, r9, r1, LSL #12
-	ORR r3, r3, r6
+	AND r1, r9, r1, LSL #12
+	ORR r3, r3, r1
 	STR r3, [r10]
 
 gen_same_word_4:
-        AND r1, r1, #7
+    AND r1, r1, #7
 	MOV r1, r1, LSL #2
 	RSB r1, r1, #28
 	MVN r3, #0
@@ -143,12 +143,12 @@ gen_same_word_4:
 	LDR r3, [r10]
 	MOV r1, r1, LSR #16
 	BIC r3, r3, r1, LSL #16
-	AND r6, r9, r1, LSL #16
-	ORR r3, r3, r6
+	AND r1, r9, r1, LSL #16
+	ORR r3, r3, r1
 	STR r3, [r10]
 
 gen_same_word_5:
-        AND r1, r1, #7
+    AND r1, r1, #7
 	MOV r1, r1, LSL #2
 	RSB r1, r1, #28
 	MVN r3, #0
@@ -157,12 +157,12 @@ gen_same_word_5:
 	LDR r3, [r10]
 	MOV r1, r1, LSR #20
 	BIC r3, r3, r1, LSL #20
-	AND r6, r9, r1, LSL #20
-	ORR r3, r3, r6
+	AND r1, r9, r1, LSL #20
+	ORR r3, r3, r1
 	STR r3, [r10]
 
 gen_same_word_6:
-        AND r1, r1, #7
+    AND r1, r1, #7
 	MOV r1, r1, LSL #2
 	RSB r1, r1, #28
 	MVN r3, #0
@@ -171,12 +171,12 @@ gen_same_word_6:
 	LDR r3, [r10]
 	MOV r1, r1, LSR #24
 	BIC r3, r3, r1, LSL #24
-	AND r6, r9, r1, LSL #24
-	ORR r3, r3, r6
+	AND r1, r9, r1, LSL #24
+	ORR r3, r3, r1
 	STR r3, [r10]
 
 gen_same_word_7:
-        AND r1, r1, #7
+    AND r1, r1, #7
 	MOV r1, r1, LSL #2
 	RSB r1, r1, #28
 	MVN r3, #0
@@ -185,8 +185,8 @@ gen_same_word_7:
 	LDR r3, [r10]
 	MOV r1, r1, LSR #28
 	BIC r3, r3, r1, LSL #28
-	AND r6, r9, r1, LSL #28
-	ORR r3, r3, r6
+	AND r1, r9, r1, LSL #28
+	ORR r3, r3, r1
 	STR r3, [r10]
 gen_same_word_over:
 

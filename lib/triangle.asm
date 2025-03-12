@@ -104,8 +104,7 @@ triangle_plot_ex:
 
     ; Now have v1y <= v2y <= v3y.
     ; Store sorted verts in a temp array.
-    adr r1, triangle_sorted_verts
-    stmia r1, {r3-r8}
+    stmfd sp!, {r3-r8}
 
 triangle_plot_bottom_flat:
 
@@ -158,19 +157,27 @@ triangle_plot_bottom_flat:
     .endif
 
     ; Registers needed:
-    ; xs [16.16] - R0
-    ; xe [16.16] - R2
-    ; Xstart (pixels) - R6 (temp)
-    ; Xend (pixels) - R1
-    ; slope_xs - R7
-    ; slope_xe - R8
-    ; current_y - R4
-    ; max_y - R5 - CAN FREE UP WITH SELF-MOD
-    ; colour word - R9
-    ; code_ptrs - R12
-    ; scanline_adr - R11
-    ; screen_ptr - R10
-    ; 2x temp - R3, R6
+    ; R0 = xs [16.16]*
+    ; R1 = X end (in pixels)
+    ; R2 = xe [16.16]                   (colour word 3)
+    ; R3 = temp
+    ; R4 = current y                    (colour word 4)
+    ; R5 = colour word 2 (or max Y)
+    ; R6 = unused*
+    ; R7 = slope_xs (preserved)*
+    ; R8 = slope_xe (preserved)*
+    ; R9 = colour word 1
+    ; R10 = ptr to screen addr
+    ; R11 = scanline start addr
+    ; R12 = code_ptrs*
+    ; R13 = stack
+    ; R14 = link address
+
+    ; Options to get 4x register writes:
+    ; Combine current y with code ptrs.
+    ; Put current y in top 10 bits, code ptrs in bottom 22 bits?
+    ; Do we need 16.16 precision for everything?
+    ; Store slopes as 8.8?
 
     ; Loop from v1y to v2y.
 .1:
@@ -193,27 +200,27 @@ triangle_plot_bottom_flat:
     cmp r1, #Screen_Width
     movgt r1, #Screen_Width
 
-    mov r6, r0, asr #16         ; Xstart in pixels
-    cmp r6, #0
-    movlt r6, #0
-    cmp r6, #Screen_Width
-    movgt r6, #Screen_Width
+    mov r3, r0, asr #16         ; Xstart in pixels
+    cmp r3, #0
+    movlt r3, #0
+    cmp r3, #Screen_Width
+    movgt r3, #Screen_Width
 
     ; Plot from [xs, xe)
     sub r1, r1, #1              ; omit last pixel.
-    subs r3, r1, r6             ; width.
+    subs r14, r1, r3            ; width.
     bmi .2                      ; skip if no pixels.
 
 .if Screen_Mode==0
     bl mode0_plot_span
 .else
-    mov r10, r6, lsr #3
-	add r10, r11, r10, lsl #2    ; ptr to start word
+    mov r10, r3, lsr #3
+	add r10, r11, r10, lsl #2   ; ptr to start word
 
-    and r6, r6, #7              ; x start offset [0-7] pixel
-    add r6, r6, r3, lsl #3      ; + span length * 8
+    and r3, r3, #7              ; x start offset [0-7] pixel
+    add r3, r3, r14, lsl #3     ; + span length * 8
     adr lr, .2                  ; link address.
-    ldr pc, [r12, r6, lsl #2]   ; jump to plot function.
+    ldr pc, [r12, r3, lsl #2]   ; jump to plot function.
     ; Uses R1 (Xend in pixels), R3, R6, R9, R10, R11, R12
 .endif
     .2:
@@ -230,8 +237,7 @@ triangle_plot_bottom_flat:
     b .1
 
     .3:
-    adr r1, triangle_sorted_verts
-    ldmia r1, {r3-r8}           ; read v1, v2, v3
+    ldmfd sp!, {r3-r8}           ; read v1, v2, v3
 
 triangle_plot_top_flat:
 
@@ -302,7 +308,6 @@ triangle_plot_top_flat:
     ; scanline_adr - R11
     ; screen_ptr - R10
     ; 2x temp - R3, R6
-
 .1:
     .if LibSpanGen_MultiWord>1
     cmp r4, #0                  ; SELF-MOD!
@@ -323,28 +328,28 @@ triangle_plot_top_flat:
     cmp r1, #Screen_Width
     movgt r1, #Screen_Width
 
-    mov r6, r0, asr #16         ; Xstart in pixels
-    cmp r6, #0
-    movlt r6, #0
-    cmp r6, #Screen_Width
-    movgt r6, #Screen_Width
+    mov r3, r0, asr #16         ; Xstart in pixels
+    cmp r3, #0
+    movlt r3, #0
+    cmp r3, #Screen_Width
+    movgt r3, #Screen_Width
 
     ; Plot from [xs, xe)
     sub r1, r1, #1              ; omit last pixel.
-    subs r3, r1, r6             ; width.
+    subs r14, r1, r3            ; width.
     bmi .2                      ; skip if no pixels.
 
 .if Screen_Mode==0
     bl mode0_plot_span
 .else
-    mov r10, r6, lsr #3
+    mov r10, r3, lsr #3
 	add r10, r11, r10, lsl #2    ; ptr to start word
 
-    and r6, r6, #7              ; x start offset [0-7] pixel
-    add r6, r6, r3, lsl #3      ; + span length * 8
-    adr lr, .2                  ; link address.
+    and r3, r3, #7              ; x start offset [0-7] pixel
+    add r3, r3, r14, lsl #3     ; + span length * 8
     ; MULTI_WORD uses R2, R4, R5 as well as R9.
-    ldr pc, [r12, r6, lsl #2]   ; jump to plot function.
+    adr lr, .2                  ; link address.
+    ldr pc, [r12, r3, lsl #2]   ; jump to plot function.
     ; Uses R1 (Xend in pixels), R3, R6, R9, R10, R11, R12
 .endif
     .2:
@@ -432,7 +437,7 @@ triangle_plot_quad_indexed:
     add r9, r2, r0, lsl #3      ; projected_verts + index*8
     ldmia r9, {r7, r8}          ; v3x, v3y
 
-    stmfd sp!, {r1, r2}
+    stmfd sp!, {r1, r2, r7, r8} ; stash v3x, v3y to reuse
 
     ; (r3,r4) = (v1x,v1y)
     ; (r5,r6) = (v2x,v2y)
@@ -444,20 +449,15 @@ triangle_plot_quad_indexed:
     bl palette_set_border
     .endif
 
-    ldmfd sp!, {r1, r2}
-
     ; v3, v4, v0
-    mov r0, r1, lsr #16
-    and r0, r0, #0x0ff           ; index 3
-    add r9, r2, r0, lsl #3      ; projected_verts + index*8
-    ldmia r9, {r3, r4}          ; v1x, v1y
+    ; index 3 becomes v1x, v1y (reuse from above)
+    ldmfd sp!, {r1, r2, r3, r4}
 
-    mov r0, r1, lsr #24
-    and r0, r0, #0x0ff           ; index 4
+    mov r0, r1, lsr #24         ; index 4
     add r9, r2, r0, lsl #3      ; projected_verts + index*8
     ldmia r9, {r5, r6}          ; v2x, v2y
 
-    and r0, r1, #0x0ff           ; index 0
+    and r0, r1, #0x0ff          ; index 0
     add r9, r2, r0, lsl #3      ; projected_verts + index*8
     ldmia r9, {r7, r8}          ; v3x, v3y
 
