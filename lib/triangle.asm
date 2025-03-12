@@ -214,18 +214,15 @@ triangle_plot_bottom_flat:
 .if Screen_Mode==0
     bl mode0_plot_span
 .else
-    mov r10, r3, lsr #3
-	add r10, r11, r10, lsl #2   ; ptr to start word
+    mov r10, r3, lsr #3         ; Xstart DIV 8
+	add r10, r11, r10, lsl #2   ; ptr to start word = scanline_ptr + (Xstart DIV 8) * 4
 
     and r3, r3, #7              ; x start offset [0-7] pixel
     add r3, r3, r14, lsl #3     ; + span length * 8
-
     mov r3, r3, lsl #2          ; *4
-    add r3, r3, r12, lsr #11    ; + ptr base
 
     adr lr, .2                  ; link address.
-    ;ldr pc, [r12, r3, lsl #2]   ; jump to plot function.
-    ldr pc, [r3]                ; jump to plot function.
+    ldr pc, [r3, r12, lsr #11]  ; jump to plot function.
     ; Uses R1 (Xend in pixels), R3, R6, R9, R10, R11, R12
 .endif
     .2:
@@ -346,14 +343,11 @@ triangle_plot_top_flat:
 
     and r3, r3, #7              ; x start offset [0-7] pixel
     add r3, r3, r14, lsl #3     ; + span length * 8
-
     mov r3, r3, lsl #2          ; *4
-    add r3, r3, r12, lsr #11    ; + ptr base
 
     ; MULTI_WORD uses R2, R4, R5 as well as R9.
     adr lr, .2                  ; link address.
-    ;ldr pc, [r12, r3, lsl #2]   ; jump to plot function.
-    ldr pc, [r3]                ; jump to plot function.
+    ldr pc, [r3, r12, lsr #11]  ; jump to plot function.
     ; Uses R1 (Xend in pixels), R3, R6, R9, R10, R11, R12
 .endif
     .2:
