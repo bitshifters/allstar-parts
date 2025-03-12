@@ -196,14 +196,12 @@ triangle_plot_bottom_flat:
     .endif
     bge .3                      ; done
 
-    mov r1, r6, asr #16         ; Xend in pixels
-    cmp r1, #0
+    movs r1, r6, asr #16         ; Xend in pixels
     movlt r1, #0
     cmp r1, #Screen_Width
     movgt r1, #Screen_Width
 
-    mov r3, r0, asr #16         ; Xstart in pixels
-    cmp r3, #0
+    movs r3, r0, asr #16         ; Xstart in pixels
     movlt r3, #0
     cmp r3, #Screen_Width
     movgt r3, #Screen_Width
@@ -325,14 +323,12 @@ triangle_plot_top_flat:
     .endif
     bge .3                      ; done
 
-    mov r1, r6, asr #16         ; Xend in pixels
-    cmp r1, #0
+    movs r1, r6, asr #16         ; Xend in pixels
     movlt r1, #0
     cmp r1, #Screen_Width
     movgt r1, #Screen_Width
 
-    mov r3, r0, asr #16         ; Xstart in pixels
-    cmp r3, #0
+    movs r3, r0, asr #16         ; Xstart in pixels
     movlt r3, #0
     cmp r3, #Screen_Width
     movgt r3, #Screen_Width
@@ -375,9 +371,6 @@ triangle_plot_top_flat:
 
     .3:
     ldr pc, [sp], #4
-
-triangle_sorted_verts:
-    .skip 3*4*2
 
 .if LibTriangle_IncludeQuadPlot
 .if LibTriangle_IncludeBatchPlot
@@ -519,6 +512,9 @@ triangle_plot_quad:
 .endif
 
 .if LibTriangle_IncludeNicksCode
+triangle_sorted_verts:
+    .skip 3*4*2
+
 .if LibTriangle_IncludeBatchPlot
 ; Plot a batch of tris.
 ; Parameters:
