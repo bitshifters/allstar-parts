@@ -365,4 +365,47 @@ ldmia r9!, {r3-r4, r5-r6}    ; if consecutive etc.
 ldr r9, [r11, #face_no]     ; read colour word
 bl triangle_plot_ex
 
+; Triangle plot routine trashes all registers!
+; So need to reload the base ptr.
+; Could structure the data so there's just one base ptr.
+; As long as the number of faces is fixed (or just set max)
+
+ldr r2, runtime_base_ptr
+; Eg. visibility array [MAX_FACE bytes]
+;     face colour array [MAX_FACE words]
+;     projected vertex array [MAX_VERTS*2 words]
+
 .1:
+
+Ideally would generate this code at runtime.
+But harder to fully optimise.
+Would need to patch up branches, but not too bad.
+Is reading two consecutive words faster with ldm?
+3c + 1.25c per reg = 3 + 2*1.25 = 3 + 2.5 = 5.5c + add at 1c = 6.5c
+Instead of 2x4c = 8c so yes!
+
+What does this save us?
+Per visible face:
+
+    stmfd sp!, {r9-r12}         ; 8c
+    orr r4, r4, r4, lsl #4      ; 1c
+    orr r4, r4, r4, lsl #8      ; 1c
+    orr r4, r4, r4, lsl #16     ; 1c
+    mov r1, r3                  ; 1c
+    and r0, r1, #0x0ff          ; 1c
+    mov r0, r1, lsr #8          ; 1c
+    and r0, r0, #0x0ff          ; 1c
+    mov r0, r1, lsr #16         ; 1c
+    and r0, r0, #0x0ff          ; 1c
+    stmfd sp!, {r1, r2}         ; 5.5c
+    mov r0, r1, lsr #24         ; 1c
+    and r0, r1, #0x0ff          ; 1c
+    ldmfd sp!, {r9-r12}         ; 5.5c
+
+Total = 11c + 11c + 8c = 30c per face. :S
+Large torus = 64 faces = 32 faces visible = 960c.
+Not a lot! < 2 scanlines.
+
+Could save some of this anyway by blowing out the mesh arrays?
+Face colour => colour word.
+Quad face indices => store as words.

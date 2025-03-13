@@ -157,7 +157,9 @@ triangle_plot_bottom_flat:
     ldr r12, gen_code_pointers_p
 
     ; Combine current y with code ptrs.
-    ; TODO: Probably breaks if current_y < 0
+    ; bic r4, r4, #0xff000000
+    ; bic r4, r4, #0x00ff0000
+    ; bic r4, r4, #0x0000f800   ; clip the leading 1s if negative
     orr r12, r4, r12, lsl #11   ; code_ptrs << 11 | current_y
     .endif
 
@@ -189,7 +191,7 @@ triangle_plot_bottom_flat:
 .1:
     ; Clip to screen
     mov r14, r12, lsl #32-11
-    movs r14, r14, lsr #32-11   ; retrieve current y
+    movs r14, r14, asr #32-11   ; retrieve current y
     blt .2                      ; skip line
     .11:
     cmp r14, #Screen_Height-1   ; SELF-MOD! bottom of tri or screen
@@ -222,7 +224,7 @@ triangle_plot_bottom_flat:
 
     adr lr, .2                  ; link address.
     ldr pc, [r3, r12, lsr #11]  ; jump to plot function.
-    ; Uses R1 (Xend in pixels), R3, R6, R9, R10, R11, R12
+    ; Uses R1 (Xend in pixels), R3, R9, R10, R11
 .endif
     .2:
 
@@ -238,7 +240,7 @@ triangle_plot_bottom_flat:
     b .1
 
     .3:
-    mov r2, r6                 ; blurgh
+    mov r2, r6                  ; blurgh - register juggling
     ldmfd sp!, {r3-r8}          ; read v1, v2, v3
 
 triangle_plot_top_flat:
@@ -255,7 +257,7 @@ triangle_plot_top_flat:
 
     ; Loop from v2y to v3y.
     mov r4, r6
-    mov r1, r8
+    sub r1, r8, #1              ; v3y-1
 
     ; Calculate slope (v3x-v2x)/(v3y-v2y):
     ldr r14, triangle_reciprocal_table_p
@@ -274,9 +276,8 @@ triangle_plot_top_flat:
     movle r2, r5, asl #16
     movgt r0, r5, asl #16
 
-    mov r6, r2                  ; blurgh
+    mov r6, r2                  ; blurgh - register juggling
 
-    sub r1, r1, #1
     cmp r1, #Screen_Height-1
     movgt r1, #Screen_Height-1  ; clip to max y or screen
     strb r1, .11                ; SELF-MOD MAX Y!
@@ -290,6 +291,9 @@ triangle_plot_top_flat:
     ldr r12, gen_code_pointers_p
 
     ; Combine current y with code ptrs.
+    ; bic r4, r4, #0xff000000
+    ; bic r4, r4, #0x00ff0000
+    ; bic r4, r4, #0x0000f800   ; clip the leading 1s if negative
     orr r12, r4, r12, lsl #11   ; code_ptrs << 11 | current_y
     .endif
 
@@ -305,7 +309,7 @@ triangle_plot_top_flat:
 .1:
     ; Clip to screen.
     mov r14, r12, lsl #32-11
-    movs r14, r14, lsr #32-11
+    movs r14, r14, asr #32-11
     blt .2                      ; skip line
     .11:
     cmp r14, #Screen_Height-1   ; SELF-MOD! bottom of tri or screen

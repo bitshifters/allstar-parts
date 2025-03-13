@@ -520,26 +520,31 @@ scene3d_draw_entity_as_solid_quads:
 
     bl triangle_prepare
 
+    ; Get ptr to the mesh header for our entity.
+
     ldr r12, scene3d_entity_p
     ldr r12, [r12, #Entity_MeshPtr]     ; scene3d_mesh_p
 
     ; Project world space verts to screen space.
+
     ldr r1, [r12, #MeshHeader_NumVerts]
     ldr r2, transformed_verts_p
     ldr r10, projected_verts_p
     bl scene3d_project_verts
     ; Trashes: R0, R3-R5, R9.
 
-    ; Plot faces as polys.
-    ldr r11, [r12, #MeshHeader_NumFaces]
+    ; Get ptrs to mesh arrays and tranformed normals for visibility.
 
-    ; One normal per face.
     ldr r9, [r12, #MeshHeader_FaceIndices]
     ldr r10, transformed_normals_p
+    ldr r11, [r12, #MeshHeader_NumFaces]
     ldr r12, [r12, #MeshHeader_FaceColours]
 
+    ; For each face.
+
     .2:
-    ; Get next quad.
+
+    ; Get vertex 0 for visibilty calculation.
 
     ldr r3, [r9], #4                    ; quad indices.
     and r5, r3, #0xff                   ; i0 of quad N.
@@ -548,15 +553,12 @@ scene3d_draw_entity_as_solid_quads:
     add r1, r1, r5, lsl #3
     add r1, r1, r5, lsl #2              ; v0 = transformed_verts[i0]
 
-    ; Backfacing culling test (vertex - camera_pos).face_normal
-    ; Parameters:
-    ;  R1=ptr to transformed vertex in camera relative space
-    ;  R2=ptr to face normal vector
-    ; Return:
+    ; Backfacing culling test.
+
+    ; vector A [r1,r4,r5] = (v0 - camera_pos)
+    ; vector B [r6,r7,r8] = face_normal
     ;  R0=dot product of (v0-cp).n
     ; Trashes: r3-r8
-    ; vector A = (v0 - camera_pos)
-    ; vector B = face_normal
 
     ldmia r1,   {r1,r4,r5}              ; [s8.7]
     ldmia r10!, {r6-r8}                 ; [s1.8]
@@ -575,8 +577,6 @@ scene3d_draw_entity_as_solid_quads:
     ; TODO: MicroOpt- use screen space winding order test rather than dot product if no lighting calc.
     ;       (y1 - y0) * (x2 - x1) - (x1 - x0) * (y2 - y1) > 0
     ;       Do this in quad plot routine as have to look up screen coordinates anyway?
-
-    ; SOLID
 
     stmfd sp!, {r9-r12}
 
@@ -605,56 +605,6 @@ scene3d_draw_entity_as_solid_quads:
 ; ============================================================================
 ; ============================================================================
 
-; Project world position to screen coordinates.
-; TODO: Try weak perspective model, i.e. a single distance for all vertices in the objects.
-;       Means that we can calculate the reciprocal once (1/z) and use the same value in
-;       all perspective calculations. Suspect this is what most Amiga & ST demos do...
-;
-; R2=ptr to camera relative transformed position
-; Returns:
-;  R0=screen x
-;  R1=screen y
-; Trashes: R3-R6,R8-R10
-.if 0
-project_to_screen:
-    str lr, [sp, #-4]!
-
-    ; Vertex already transformed and camera relative.
-    ldmia r2, {r3-r5}           ; (x,y,z)
-
-    ; vp_centre_x + vp_scale * (x-cx) / (z-cz)
-    mov r0, r3                  ; (x-cx)
-    mov r1, r5                  ; (z-cz)
-    ; Trashes R8-R10!
-    bl divide                   ; (x-cx)/(z-cz)
-                                ; [0.16]
-
-    mov r8, #VIEWPORT_SCALE>>12 ; [16.4]
-    mul r6, r0, r8              ; [12.20]
-    mov r6, r6, asr #4          ; [12.16]
-    mov r8, #VIEWPORT_CENTRE_X  ; [16.16]
-    add r6, r6, r8
-
-    ; Flip Y axis as we want +ve Y to point up the screen!
-    ; vp_centre_y - vp_scale * (y-cy) / (z-cz)
-    mov r0, r4                  ; (y-cy)
-    mov r1, r5                  ; (z-cz)
-    ; Trashes R8-R10!
-    bl divide                   ; (y-cy)/(z-cz)
-                                ; [0.16]
-    mov r8, #VIEWPORT_SCALE>>12 ; [16.4]
-    mul r1, r0, r8              ; [12.20]
-    mov r1, r1, asr #4          ; [12.16]
-    mov r8, #VIEWPORT_CENTRE_Y  ; [16.16]
-    sub r1, r8, r1              ; [16.16]
-
-    mov r0, r6
-    ldr pc, [sp], #4
-.endif
-
-; ============================================================================
-; ============================================================================
-
 .if _DEBUG
     errbehindcamera: ;The error block
     .long 0
@@ -667,123 +617,76 @@ project_to_screen:
 ; ============================================================================
 
 .if 0
-scene3d_transform_entity:
-    str lr, [sp, #-4]!
+    ; Do visibility calcs separately from triangle plot.
 
-    ; TODO: Replace this guff with Sarah's 3x3 matmul routine.
-
-    ; Skip matrix multiplication altogether.
-    ; Transform (x,y,z) into (x'',y'',z'') directly.
-    ; Uses 12 muls / rotation.
-
-    ldr r2, scene3d_entity_p
-    ldr r0, [r2, #Entity_RotZ]              ; object_rot+8
-    bl sin_cos                              ; trashes R9
-    mov r10, r0, asr #MULTIPLICATION_SHIFT  ; r10 = sin(A)
-    mov r11, r1, asr #MULTIPLICATION_SHIFT  ; r11 = cos(A)
-
-    ldr r0, [r2, #Entity_RotX]              ; object_rot+0
-    bl sin_cos                              ; trashes R9
-    mov r6, r0, asr #MULTIPLICATION_SHIFT  ; r6 = sin(C)
-    mov r7, r1, asr #MULTIPLICATION_SHIFT  ; r7 = cos(C)
-
-    ldr r0, [r2, #Entity_RotY]              ; object_rot+4
-    bl sin_cos                              ; trashes R9
-    mov r8, r0, asr #MULTIPLICATION_SHIFT  ; r8 = sin(B)
-    mov r9, r1, asr #MULTIPLICATION_SHIFT  ; r9 = cos(B)
-
-    ldr r12, [r2, #Entity_MeshPtr]
-    ldr r1, [r12, #MeshHeader_VertsPtr]
-    ldr r3, [r12, #MeshHeader_NumFaces]
-    ldr r12, [r12, #MeshHeader_NumVerts]
-
-    ldr r2, transformed_verts_p
-    add r4, r2, r12, lsl #3
-    add r4, r4, r12, lsl #2               ; transform_normals=&transformed_verts[object_num_verts]
-    str r4, transformed_normals_p
-
-    add r12, r12, r3                      ; object_num_verts + object_num_faces
-
-    ; ASSUMES THAT VERTEX AND NORMAL ARRAYS ARE CONSECUTIVE!
-    .1:
-    ldmia r1!, {r3-r5}                    ; x,y,z
-    mov r3, r3, asr #MULTIPLICATION_SHIFT
-    mov r4, r4, asr #MULTIPLICATION_SHIFT
-    mov r5, r5, asr #MULTIPLICATION_SHIFT
-
-	; x'  = x*cos(A) + y*sin(A)
-	; y'  = x*sin(A) - y*cos(A)  
-    mul r0, r3, r11                     ; x*cos(A)
-    mla r0, r4, r10, r0                 ; x' = y*sin(A) + x*cos(A)
-    mov r0, r0, asr #MULTIPLICATION_SHIFT
-
-    mul r14, r4, r11                    ; y*cos(A)
-    rsb r14, r14, #0                    ; -y*cos(A)
-    mla r4, r3, r10, r14                ; y' = x*sin(A) - y*cos(A)
-    mov r4, r4, asr #MULTIPLICATION_SHIFT
-
-	; x'' = x'*cos(B) + z*sin(B)
-	; z'  = x'*sin(B) - z*cos(B)
-
-    mul r14, r0, r9                     ; x'*cos(B)
-    mla r3, r5, r8, r14                 ; x'' = z*sin(B) + x'*cos(B)
-
-    mul r14, r5, r9                     ; z*cos(B)
-    rsb r14, r14, #0                    ; -z*cos(B)
-    mla r5, r0, r8, r14                 ; z' = x'*sin(B) - z*cos(B)
-    mov r5, r5, asr #MULTIPLICATION_SHIFT
-
-	; y'' = y'*cos(C) + z'*sin(C)
-	; z'' = y'*sin(C) - z'*cos(C)
-
-    mul r14, r4, r7                     ; y'*cos(C)
-    mla r0, r5, r6, r14                 ; y'' = y'*cos(C) + z'*sin(C)
-
-    mul r14, r5, r7                     ; z'*cos(C)
-    rsb r14, r14, #0                    ; -z'*cos(C)
-    mla r5, r4, r6, r14                 ; z'' = y'*sin(C) - z'*cos(C)
-
-    ; x''=r3, y''=r0, z''=r5
-    mov r4, r0
-    stmia r2!, {r3-r5}                  ; x'',y'',z'''
-    subs r12, r12, #1
-    bne .1
-
-    ; Transform to world coordinates.
-    ldr r11, scene3d_entity_p
-    ldmia r11, {r6-r8}                  ; pos vector
-
-    ; NB. No longer transformed to camera relative.
-
-    ; Apply object scale after rotation.
-    ldr r0, [r11, #Entity_Scale]        ; object_scale
-    mov r0, r0, asr #MULTIPLICATION_SHIFT
-
-    ldr r2, transformed_verts_p
-    ldr r12, [r11, #Entity_MeshPtr]     ; scene3d_mesh_p
-    ldr r12, [r12, #MeshHeader_NumVerts]
+    ldr r0, transformed_verts_p
+    ldr r2, visible_faces_p
+    .if _DEBUG
+    ldr r14, scene3d_stats_quads_plotted
+    .endif
     .2:
-    ldmia r2, {r3-r5}
+    ; Get next face.
 
-    ; Scale rotated verts.
-    mov r3, r3, asr #MULTIPLICATION_SHIFT
-    mov r4, r4, asr #MULTIPLICATION_SHIFT
-    mov r5, r5, asr #MULTIPLICATION_SHIFT
+    ldr r3, [r9], #4                    ; quad indices.
+    and r5, r3, #0xff                   ; i0 of quad N.
 
-    mul r3, r0, r3      ; x_scaled=x*object_scale
-    mul r4, r0, r4      ; y_scaled=y*object_scale
-    mul r5, r0, r5      ; z_scaled=z*object_scale
+    add r1, r0, r5, lsl #3
+    add r1, r1, r5, lsl #2              ; v0 = transformed_verts[i0]
 
-    ; TODO: Make camera relative again for speed?
+    ldmia r1,   {r1,r4,r5}              ; [s8.7]
+    ldmia r10!, {r6-r8}                 ; [s1.8]
 
-    ; Move object vertices into world space.
-    add r3, r3, r6      ; x_scaled + object_pos_x - camera_pos_x
-    add r4, r4, r7      ; y_scaled + object_pos_y - camera_pos_y
-    add r5, r5, r8      ; z_scaled + object_pos_z - camera_pos_z
+    ; Dot product A.B
 
-    stmia r2!, {r3-r5}
-    subs r12, r12, #1
+    mul r3, r1, r6                      ; r0 = a1 * b1  [s9.15]
+    mla r3, r4, r7, r3                  ;   += a2 * b2  [s9.15]
+    mlas r3, r5, r8, r3                 ;   += a3 * b3  [s9.15]
+    str r3, [r2], #4                    ; store result as visibility
+
+    .if _DEBUG
+    addmi r14, r14, #1
+    .endif
+
+    subs r11, r11, #1
     bne .2
 
-    ldr pc, [sp], #4
+    .if _DEBUG
+    str r14, scene3d_stats_quads_plotted
+    .endif
+
+    ; Plot visible faces.
+
+    ldr r9,  [r12, #MeshHeader_FaceIndices]
+    ldr r10, visible_faces_p
+    ldr r11, [r12, #MeshHeader_NumFaces]
+    ldr r12, [r12, #MeshHeader_FaceColours]
+    .3:
+    ; Could reduce this to a single base register.
+    ; ldr r4, [r12, #Face_Colours_Offset]
+    ; ldr r3, [r12, #Face_Indices_Offset]
+    ; ldr r0, [r12], #4                 ; assumes vis is first.
+    ; Could finagle the layout so other reads are conditional.
+    ; But would still need to store 2x registers per face plotted.
+
+    ldrb r4, [r12], #1                  ; must increment ptr!
+    ldr r3, [r9], #4                    ; quad indices.
+    ldr r0, [r10], #4
+    cmp r0, #0
+    bpl .4
+
+    stmfd sp!, {r9-r12} 
+    ldr r2, projected_verts_p       ; projected vertex array.
+    bl triangle_plot_quad_indexed   ; faster than polygon_plot_quad_indexed.
+    ldmfd sp!, {r9-r12}
+
+    .4:
+    subs r11, r11, #1
+    bne .3
+
+visible_faces_p:
+    .long visible_faces_no_adr
+
+visible_faces_no_adr:
+    .skip OBJ_MAX_FACES * 4
+
 .endif
