@@ -79,29 +79,34 @@ triangle_plot_ex:
 
     ; Sort by Y.
     cmp r4, r6              ; v1y > v2y
-    movgt r0, r3
-    movgt r1, r4
-    movgt r3, r5
-    movgt r4, r6
-    movgt r5, r0
-    movgt r6, r1
+    ble .1
+    mov r0, r3
+    mov r1, r4
+    mov r3, r5
+    mov r4, r6
+    mov r5, r0
+    mov r6, r1
 
+.1:
     cmp r4, r8              ; v1y > v3y
-    movgt r0, r3
-    movgt r1, r4
-    movgt r3, r7
-    movgt r4, r8
-    movgt r7, r0
-    movgt r8, r1
+    ble .2
+    mov r0, r3
+    mov r1, r4
+    mov r3, r7
+    mov r4, r8
+    mov r7, r0
+    mov r8, r1
 
+.2:
     cmp r6, r8              ; v2y > v3y
-    movgt r0, r5
-    movgt r1, r6
-    movgt r5, r7
-    movgt r6, r8
-    movgt r7, r0
-    movgt r8, r1
-
+    ble .3
+    mov r0, r5
+    mov r1, r6
+    mov r5, r7
+    mov r6, r8
+    mov r7, r0
+    mov r8, r1
+.3:
     ; Now have v1y <= v2y <= v3y.
     ; Store sorted verts in a temp array.
     stmfd sp!, {r3-r8}
@@ -135,13 +140,13 @@ triangle_plot_bottom_flat:
     ldr r11, triangle_screen_addr
     CALC_SCANLINE_ADDR r11, r11, r4
 
+    ; TODO: Clipping probably broken if entire poly is off top of screen.
+
     ; Max Y=v2y.
-    ; TODO: Check whether these extra cycles are worth it!
-    .if LibSpanGen_MultiWord>1
-    strb r6, .11             ; SELF-MOD MAX Y!
-    .else
-    mov r5, r6
-    .endif
+    sub r6, r6, #1              ; last line to plot
+    cmp r6, #Screen_Height-1
+    movge r6, #Screen_Height-1  ; clip to bottom of screen.
+    strb r6, .11                ; SELF-MOD MAX Y!
 
     ; Determine xs, xe.
     mov r0, r3, asl #16         ; xs [16.16]
@@ -152,6 +157,7 @@ triangle_plot_bottom_flat:
     ldr r12, gen_code_pointers_p
 
     ; Combine current y with code ptrs.
+    ; TODO: Probably breaks if current_y < 0
     orr r12, r4, r12, lsl #11   ; code_ptrs << 11 | current_y
     .endif
 
@@ -183,20 +189,13 @@ triangle_plot_bottom_flat:
 .1:
     ; Clip to screen
     mov r14, r12, lsl #32-11
-    movs r14, r14, lsr #32-11
+    movs r14, r14, lsr #32-11   ; retrieve current y
     blt .2                      ; skip line
-    cmp r14, #Screen_Height
-    bge .3                      ; done
-
-    .if LibSpanGen_MultiWord>1
     .11:
-    cmp r14, #255               ; SELF-MOD!
-    .else
-    cmp r14, r5
-    .endif
-    bge .3                      ; done
+    cmp r14, #Screen_Height-1   ; SELF-MOD! bottom of tri or screen
+    bgt .3                      ; done
 
-    movs r1, r6, asr #16         ; Xend in pixels
+    movs r1, r6, asr #16        ; Xend in pixels
     movlt r1, #0
     cmp r1, #Screen_Width
     movgt r1, #Screen_Width
@@ -277,11 +276,10 @@ triangle_plot_top_flat:
 
     mov r6, r2                  ; blurgh
 
-    .if LibSpanGen_MultiWord>1
+    sub r1, r1, #1
+    cmp r1, #Screen_Height-1
+    movgt r1, #Screen_Height-1  ; clip to max y or screen
     strb r1, .11                ; SELF-MOD MAX Y!
-    .else
-    mov r5, r1
-    .endif
 
     ; Calculate scanline_ptr for v1y.
     ldr r11, triangle_screen_addr
@@ -309,16 +307,9 @@ triangle_plot_top_flat:
     mov r14, r12, lsl #32-11
     movs r14, r14, lsr #32-11
     blt .2                      ; skip line
-    cmp r14, #Screen_Height
-    bge .3                      ; done
-
-    .if LibSpanGen_MultiWord>1
     .11:
-    cmp r14, #0                  ; SELF-MOD!
-    .else
-    cmp r14, r5
-    .endif
-    bge .3                      ; done
+    cmp r14, #Screen_Height-1   ; SELF-MOD! bottom of tri or screen
+    bgt .3                      ; done
 
     movs r1, r6, asr #16         ; Xend in pixels
     movlt r1, #0

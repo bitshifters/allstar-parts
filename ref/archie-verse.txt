@@ -273,15 +273,6 @@ i DIV 2 (N-1)-(i DIV 2)
     => create front and back facing presorted face list
     => pick face list based on direction torus is pointing
 
-More broadly?
-Triangle strip approach?
-Read a list of verts interleaved with colour word to plot?
-=> 2D or 3D? 2D verts ultimately have to be sorted top-to-bottom
-Will the cost of writing this out be higher than doing it inline?
-Perhaps reduces register pressure?
-Worth testing but in harness...
-
-
 Sarah's vertex transform code.
 ~~~
 Precision is possibly s7.12
@@ -326,3 +317,52 @@ transform_loop:
 
         SUBS r14, r14, #1
         BNE transform_loop
+
+Perf more broadly?
+~~~
+Triangle strip approach?
+Read a list of verts interleaved with colour word to plot?
+=> 2D or 3D? 2D verts ultimately have to be sorted top-to-bottom
+Will the cost of writing this out be higher than doing it inline?
+Perhaps reduces register pressure?
+Worth testing but in harness...
+
+Or! Think about a display list approach?
+As we're using a presorted mesh the face order is consistent.
+So after projection the quad loop is always the same.
+Modulo the visibility check.
+
+Compile the mesh into something that is 'executable'.
+Could have a list of bytecodes commands that are interpretable
+E.g. Draw triangle, draw strip, set colour etc.
+
+Or just compile this to actual executable code?
+What does the plot loop boil down to?
+
+; R2=ptr to projected vertex array (x,y) in screen coords
+; R10=ptr to visibility array
+; R11=ptr to face colour array
+
+; Read the visibility check.
+ldrb r1, [r10, #face_no]     ; read visibility check
+cmp r1, #0
+beq .1
+
+; Read the three verts for a triangle.
+ldr r3, [r2, #t0_v1o + 0]    ; v1x = triangle 0, vertex 1 index offset
+ldr r4, [r2, #t0_v1o + 4]    ; v1y = triangle 0, vertex 1 index offset
+
+ldr r5, [r2, #t0_v2o + 0]    ; v2x = triangle 0, vertex 2 index offset
+ldr r6, [r2, #t0_v2o + 4]    ; v2y = triangle 0, vertex 2 index offset
+
+ldr r7, [r2, #t0_v3o + 0]    ; v3x = triangle 0, vertex 3 index offset
+ldr r8, [r2, #t0_v3o + 4]    ; v3y = triangle 0, vertex 3 index offset
+; ^-- the above could be optimised where vertices are Consecutive
+
+add r9, r2, #tN_vMo
+ldmia r9!, {r3-r4, r5-r6}    ; if consecutive etc.
+
+ldr r9, [r11, #face_no]     ; read colour word
+bl triangle_plot_ex
+
+.1:
