@@ -407,7 +407,7 @@ app_vsync_code:
 ; Support library code modules used by the FX sequence.
 ; ============================================================================
 
-.if _DEBUG || _CHECK_FRAME_DROP
+.if _DEBUG || _CHECK_FRAME_DROP || 1
 .include "lib/palette.asm"
 .endif
 .include "lib/screen.asm"

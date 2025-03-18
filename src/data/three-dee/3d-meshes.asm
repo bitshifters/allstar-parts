@@ -224,7 +224,7 @@ mesh_cobra_edge_indices:
 
 ; ============================================================================
 
-.equ MeshTorus_MaxVertsFaces,   64
+.equ MeshTorus_MaxVertsFaces,   96
 
 .equ MeshTorus_NumVerts,        MeshTorus_MaxVertsFaces
 .equ MeshTorus_NumFaces,        MeshTorus_MaxVertsFaces

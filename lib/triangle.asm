@@ -7,6 +7,9 @@
 .equ LibTriangle_IncludeBatchPlot, 0
 .equ LibTriangle_IncludeNicksCode, 0
 
+.equ LibTriangle_TopClip,           48
+.equ LibTriangle_BottomClip,        48+180
+
 triangle_colour:
     .long 0
 
@@ -144,8 +147,8 @@ triangle_plot_bottom_flat:
 
     ; Max Y=v2y.
     sub r6, r6, #1              ; last line to plot
-    cmp r6, #Screen_Height-1
-    movge r6, #Screen_Height-1  ; clip to bottom of screen.
+    cmp r6, #LibTriangle_BottomClip-1
+    movge r6, #LibTriangle_BottomClip-1  ; clip to bottom of screen.
     strb r6, .11                ; SELF-MOD MAX Y!
 
     ; Determine xs, xe.
@@ -192,10 +195,12 @@ triangle_plot_bottom_flat:
     ; Clip to screen
     mov r14, r12, lsl #32-11
     movs r14, r14, asr #32-11   ; retrieve current y
-    blt .2                      ; skip line
+    ; Must test end of tri first before top clip test.
     .11:
     cmp r14, #Screen_Height-1   ; SELF-MOD! bottom of tri or screen
     bgt .3                      ; done
+    cmp r14, #LibTriangle_TopClip
+    blt .2                      ; skip line
 
     movs r1, r6, asr #16        ; Xend in pixels
     movlt r1, #0
@@ -243,11 +248,15 @@ triangle_plot_bottom_flat:
     mov r2, r6                  ; blurgh - register juggling
     ldmfd sp!, {r3-r8}          ; read v1, v2, v3
 
+    ; Expects the following registers to be preserved:
+    ; R0 = xs
+    ; R2 = xe
+
 triangle_plot_top_flat:
 
     ; Preserve xs (R0) and xe (r6)
 
-    ; Calculate dy values for v2->v3
+    ; Calculate dy values for v2->v3, v1->v3
     sub r9, r8, r6              ; v3y - v2y
     sub r10, r8, r4             ; v3y - v1y
 
@@ -256,8 +265,8 @@ triangle_plot_top_flat:
     sub r12, r7, r3             ; v3x - v1x
 
     ; Loop from v2y to v3y.
-    mov r4, r6
-    sub r1, r8, #1              ; v3y-1
+    mov r4, r6                  ; current_y = v2y
+    sub r1, r8, #1              ; max_y = v3y-1
 
     ; Calculate slope (v3x-v2x)/(v3y-v2y):
     ldr r14, triangle_reciprocal_table_p
@@ -272,14 +281,14 @@ triangle_plot_top_flat:
     cmp r7, r8
     movle r14, r7
     movle r7, r8
-    movle r8, r14
-    movle r2, r5, asl #16
-    movgt r0, r5, asl #16
+    movle r8, R14
+    movle r2, r5, asl #16       ; xe = v2x
+    movgt r0, r5, asl #16       ; xs = v2x
 
     mov r6, r2                  ; blurgh - register juggling
 
-    cmp r1, #Screen_Height-1
-    movgt r1, #Screen_Height-1  ; clip to max y or screen
+    cmp r1, #LibTriangle_BottomClip-1
+    movgt r1, #LibTriangle_BottomClip-1  ; clip to max y or screen
     strb r1, .11                ; SELF-MOD MAX Y!
 
     ; Calculate scanline_ptr for v1y.
@@ -310,10 +319,12 @@ triangle_plot_top_flat:
     ; Clip to screen.
     mov r14, r12, lsl #32-11
     movs r14, r14, asr #32-11
-    blt .2                      ; skip line
+    ; Must test end of tri first before top clip test.
     .11:
     cmp r14, #Screen_Height-1   ; SELF-MOD! bottom of tri or screen
     bgt .3                      ; done
+    cmp r14, #LibTriangle_TopClip
+    blt .2                      ; skip line
 
     movs r1, r6, asr #16         ; Xend in pixels
     movlt r1, #0

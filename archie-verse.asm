@@ -14,7 +14,7 @@
 
 .equ _DEBUG_RASTERS,            (_DEBUG && 1)
 .equ _DEBUG_SHOW,               (_DEBUG && 1)
-.equ _CHECK_FRAME_DROP,         (!_DEBUG && 0)
+.equ _CHECK_FRAME_DROP,         (!_DEBUG && 1)  ; only works for 50Hz
 .equ _SYNC_EDITOR,              (_DEBUG && 1)   ; sync driven by external editor.
 
 .equ DebugDefault_PlayPause,    1		; play
@@ -224,6 +224,7 @@ main_loop_skip_tick:
 
 	; R0 = vsync delta since last frame.
 	.if _CHECK_FRAME_DROP
+    .if 0
 	; This flashes if vsync IRQ has no pending buffer to display.
 	ldr r2, last_dropped_frame
 	ldr r1, last_last_dropped_frame
@@ -232,7 +233,14 @@ main_loop_skip_tick:
 	movne r4, #0x0000ff
 	strne r2, last_last_dropped_frame
 	bl palette_set_border
-	.endif
+    .else
+    ldr r2, vsync_delta
+    cmp r2, #2
+    movgt r4, #0x0000ff
+    movle r4, #0x000000
+	bl palette_set_border
+    .endif
+    .endif
 
 	; ========================================================================
 	; DRAW

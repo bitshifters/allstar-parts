@@ -4,16 +4,16 @@
 
 ; TODO: Best way to configure this outside lib code.
 ;       Possibly jump into the unrolled code dynamically?
-.equ Cls_FirstLine,     0
-.equ Cls_LastLine,      255
+.equ Cls_FirstLine,     48
+.equ Cls_LastLine,      48+180
 .equ Cls_Bytes,         (Cls_LastLine+1-Cls_FirstLine)*Screen_Stride
 
-.if 0
+.if 1
 screen_cls_from_line:
     mov r0, #Cls_FirstLine
-    add r12, r12, r0, lsl #8
-    add r12, r12, r0, lsl #6
-    .if Screen_Mode != 12
+    add r12, r12, r0, lsl #7
+    add r12, r12, r0, lsl #5
+    .if Screen_Mode != 9
     .err "Expected Screen_Mode to be 12!"
     .endif
 .endif

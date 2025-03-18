@@ -7,6 +7,8 @@
 ; Used in: Chipo Django musicdisk, Three-Dee Demo (mikroreise)
 ; ============================================================================
 
+.equ Scene3d_UseLighting,       1           ; otherwise face colours.
+
 .equ Entity_Pos,                0
 .equ Entity_PosX,               0
 .equ Entity_PosY,               4
@@ -538,7 +540,9 @@ scene3d_draw_entity_as_solid_quads:
     ldr r9, [r12, #MeshHeader_FaceIndices]
     ldr r10, transformed_normals_p
     ldr r11, [r12, #MeshHeader_NumFaces]
+    .if !Scene3d_UseLighting
     ldr r12, [r12, #MeshHeader_FaceColours]
+    .endif
 
     ; For each face.
 
@@ -558,6 +562,7 @@ scene3d_draw_entity_as_solid_quads:
     ; vector A [r1,r4,r5] = (v0 - camera_pos)
     ; vector B [r6,r7,r8] = face_normal
     ;  R0=dot product of (v0-cp).n
+    ;     |v0-cp||n|cos theta
     ; Trashes: r3-r8
 
     ldmia r1,   {r1,r4,r5}              ; [s8.7]
@@ -568,17 +573,32 @@ scene3d_draw_entity_as_solid_quads:
     mul r0, r1, r6                      ; r0 = a1 * b1  [s9.15]
     mla r0, r4, r7, r0                  ;   += a2 * b2  [s9.15]
 
+    .if !Scene3d_UseLighting
     ; Look up colour index per face (no lighting).
     ldrb r4, [r12], #1                  ; must increment ptr!
+    .endif
 
     mlas r0, r5, r8, r0                 ;   += a3 * b3  [s9.15]
     bpl .3                              ; normal facing away from the view direction.
 
-    ; TODO: MicroOpt- use screen space winding order test rather than dot product if no lighting calc.
+    .if Scene3d_UseLighting
+    ; Light intensity = L.N. Assume L=(0,0,-1) for now so intensity = -Nz.
+    cmp r8, #0
+    bpl .3                              ; cull poly if facing away (bit cheeky!)
+    ;movpl r4, #0                       ; otherwise make it black.
+    rsbmi r4, r8, #0                    ; -Nz [s1.8]
+    mov r4, r4, asr #4                  ;     [s1.4]
+    cmp r4, #15                         ; clamp to max colour.
+    movge r4, #15
+
+    stmfd sp!, {r9-r11}                 ; no face colour ptr needed.
+    .else
+    stmfd sp!, {r9-r12}
+    .endif
+
+    ; TODO: MicroOpt- use screen space winding order test rather than dot product if no lighting calc.?
     ;       (y1 - y0) * (x2 - x1) - (x1 - x0) * (y2 - y1) > 0
     ;       Do this in quad plot routine as have to look up screen coordinates anyway?
-
-    stmfd sp!, {r9-r12}
 
     ;  R12=screen addr (now cached)
     ;  R2=ptr to projected vertex array (x,y) in screen coords [16.0]
@@ -594,7 +614,11 @@ scene3d_draw_entity_as_solid_quads:
     str r11, scene3d_stats_quads_plotted
     .endif
 
+    .if Scene3d_UseLighting
+    ldmfd sp!, {r9-r11}             ; no face colour ptr needed.
+    .else
     ldmfd sp!, {r9-r12}
+    .endif
 
     .3:
     subs r11, r11, #1
