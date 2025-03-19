@@ -9,6 +9,7 @@
 
 .equ LibTriangle_TopClip,           48
 .equ LibTriangle_BottomClip,        48+180
+.equ LibTriangle_HandleNegativeY,   1
 
 triangle_colour:
     .long 0
@@ -111,6 +112,14 @@ triangle_plot_ex:
     mov r8, r1
 .3:
     ; Now have v1y <= v2y <= v3y.
+
+    ; Clip entire triangle to top and bottom of the screen.
+    cmp r4, #LibTriangle_BottomClip     ; v1y off bottom?
+    ldrge pc, [sp], #4
+
+    cmp r8, #LibTriangle_TopClip        ; v3y off top?
+    ldrlt pc, [sp], #4
+
     ; Store sorted verts in a temp array.
     stmfd sp!, {r3-r8}
 
@@ -143,13 +152,30 @@ triangle_plot_bottom_flat:
     ldr r11, triangle_screen_addr
     CALC_SCANLINE_ADDR r11, r11, r4
 
-    ; TODO: Clipping probably broken if entire poly is off top of screen.
-
     ; Max Y=v2y.
     sub r6, r6, #1              ; last line to plot
+
+    .if _DEBUG && !LibTriangle_HandleNegativeY
+    cmp r6, #0
+    adrlt r0, errnegativemaxy
+    swilt OS_GenerateError    
+    .endif
+
     cmp r6, #LibTriangle_BottomClip-1
     movge r6, #LibTriangle_BottomClip-1  ; clip to bottom of screen.
+
+    .if LibTriangle_HandleNegativeY
+    cmp r6, #0
+    rsblt r6, r6, #0
+    .endif
+
     strb r6, .11                ; SELF-MOD MAX Y!
+
+    .if LibTriangle_HandleNegativeY
+    movlt r6, #0x7e             ; cmn
+    movge r6, #0x5e             ; cmp
+    strb r6, .11+2              ; SELF-MOD OPCODE.
+    .endif
 
     ; Determine xs, xe.
     mov r0, r3, asl #16         ; xs [16.16]
@@ -158,13 +184,9 @@ triangle_plot_bottom_flat:
     ; Plot this!
     .if Screen_Mode!=0
     ldr r12, gen_code_pointers_p
-
-    ; Combine current y with code ptrs.
-    ; bic r4, r4, #0xff000000
-    ; bic r4, r4, #0x00ff0000
-    ; bic r4, r4, #0x0000f800   ; clip the leading 1s if negative
-    orr r12, r4, r12, lsl #11   ; code_ptrs << 11 | current_y
     .endif
+
+    mov r14, r4                 ; current_y
 
     ldr r9, triangle_colour
     .if LibSpanGen_MultiWord>1
@@ -178,8 +200,8 @@ triangle_plot_bottom_flat:
     ; R1 = X end (in pixels)
     ; R2 = colour word 3
     ; R3 = temp
-    ; R4 = current y                    (colour word 4)
-    ; R5 = colour word 2 (or max Y)
+    ; R4 = colour word 4
+    ; R5 = colour word 2
     ; R6 = xe [16.16]*
     ; R7 = slope_xs [16.16]*
     ; R8 = slope_xe [16.16]*
@@ -188,13 +210,15 @@ triangle_plot_bottom_flat:
     ; R11 = scanline start addr
     ; R12 = code_ptrs*
     ; R13 = stack
-    ; R14 = link address
+    ; R14 = current_y* -link address-
+
+    ; Push return address onto stack.
+    adr r3, .2
+    str r3, [sp, #-4]!
 
     ; Loop from v1y to v2y.
 .1:
     ; Clip to screen
-    mov r14, r12, lsl #32-11
-    movs r14, r14, asr #32-11   ; retrieve current y
     ; Must test end of tri first before top clip test.
     .11:
     cmp r14, #Screen_Height-1   ; SELF-MOD! bottom of tri or screen
@@ -214,7 +238,7 @@ triangle_plot_bottom_flat:
 
     ; Plot from [xs, xe)
     sub r1, r1, #1              ; omit last pixel.
-    subs r14, r1, r3            ; width.
+    subs r4, r1, r3            ; width.
     bmi .2                      ; skip if no pixels.
 
 .if Screen_Mode==0
@@ -224,11 +248,11 @@ triangle_plot_bottom_flat:
 	add r10, r11, r10, lsl #2   ; ptr to start word = scanline_ptr + (Xstart DIV 8) * 4
 
     and r3, r3, #7              ; x start offset [0-7] pixel
-    add r3, r3, r14, lsl #3     ; + span length * 8
-    mov r3, r3, lsl #2          ; *4
+    add r3, r3, r4, lsl #3     ; + span length * 8
+    mov r4, r9                  ; annoying.
 
-    adr lr, .2                  ; link address.
-    ldr pc, [r3, r12, lsr #11]  ; jump to plot function.
+    ;adr lr, .2                  ; link address.
+    ldr pc, [r12, r3, lsl #2]   ; jump to plot function.
     ; Uses R1 (Xend in pixels), R3, R9, R10, R11
 .endif
     .2:
@@ -241,12 +265,13 @@ triangle_plot_bottom_flat:
     add r6, r6, r8              ; xe += slope_xe
 
     ; Next line.
-    add r12, r12, #1
+    add r14, r14, #1
     b .1
 
     .3:
+
     mov r2, r6                  ; blurgh - register juggling
-    ldmfd sp!, {r3-r8}          ; read v1, v2, v3
+    ldmfd sp!, {r1,r3-r8}       ; pop return address and read v1, v2, v3
 
     ; Expects the following registers to be preserved:
     ; R0 = xs
@@ -287,9 +312,27 @@ triangle_plot_top_flat:
 
     mov r6, r2                  ; blurgh - register juggling
 
+    .if _DEBUG && !LibTriangle_HandleNegativeY
+    cmp r1, #0
+    adrlt r0, errnegativemaxy
+    swilt OS_GenerateError    
+    .endif
+
     cmp r1, #LibTriangle_BottomClip-1
     movgt r1, #LibTriangle_BottomClip-1  ; clip to max y or screen
+
+    .if LibTriangle_HandleNegativeY
+    cmp r1, #0
+    rsblt r1, r1, #0
+    .endif
+
     strb r1, .11                ; SELF-MOD MAX Y!
+    
+    .if LibTriangle_HandleNegativeY
+    movlt r1, #0x7e             ; cmn
+    movge r1, #0x5e             ; cmp
+    strb r1, .11+2              ; SELF-MOD OPCODE.
+    .endif
 
     ; Calculate scanline_ptr for v1y.
     ldr r11, triangle_screen_addr
@@ -298,13 +341,9 @@ triangle_plot_top_flat:
     ; Plot this!
     .if Screen_Mode!=0
     ldr r12, gen_code_pointers_p
-
-    ; Combine current y with code ptrs.
-    ; bic r4, r4, #0xff000000
-    ; bic r4, r4, #0x00ff0000
-    ; bic r4, r4, #0x0000f800   ; clip the leading 1s if negative
-    orr r12, r4, r12, lsl #11   ; code_ptrs << 11 | current_y
     .endif
+
+    mov r14, r4                  ; current_y
 
     ldr r9, triangle_colour
     .if LibSpanGen_MultiWord>1
@@ -315,10 +354,13 @@ triangle_plot_top_flat:
 
     ; Registers needed (see above).
 
+    ; Push return address onto stack.
+    adr r3, .2
+    str r3, [sp, #-4]!
+
+    ; Loop from v2y to v3y.
 .1:
     ; Clip to screen.
-    mov r14, r12, lsl #32-11
-    movs r14, r14, asr #32-11
     ; Must test end of tri first before top clip test.
     .11:
     cmp r14, #Screen_Height-1   ; SELF-MOD! bottom of tri or screen
@@ -338,7 +380,7 @@ triangle_plot_top_flat:
 
     ; Plot from [xs, xe)
     sub r1, r1, #1              ; omit last pixel.
-    subs r14, r1, r3            ; width.
+    subs r4, r1, r3            ; width.
     bmi .2                      ; skip if no pixels.
 
 .if Screen_Mode==0
@@ -348,12 +390,12 @@ triangle_plot_top_flat:
 	add r10, r11, r10, lsl #2    ; ptr to start word
 
     and r3, r3, #7              ; x start offset [0-7] pixel
-    add r3, r3, r14, lsl #3     ; + span length * 8
-    mov r3, r3, lsl #2          ; *4
+    add r3, r3, r4, lsl #3     ; + span length * 8
+    mov r4, r9                  ; annoying.
 
     ; MULTI_WORD uses R2, R4, R5 as well as R9.
-    adr lr, .2                  ; link address.
-    ldr pc, [r3, r12, lsr #11]  ; jump to plot function.
+    ;adr lr, .2                  ; link address.
+    ldr pc, [r12, r3, lsl #2]  ; jump to plot function.
     ; Uses R1 (Xend in pixels), R3, R6, R9, R10, R11, R12
 .endif
     .2:
@@ -366,11 +408,22 @@ triangle_plot_top_flat:
     add r6, r6, r8              ; xe += slope_xe
 
     ; Next line.
-    add r12, r12, #1
+    add r14, r14, #1
     b .1
 
+    ;ldr r3, [sp], #4
+
     .3:
-    ldr pc, [sp], #4
+    ldmfd sp!, {r3, pc}
+    ;ldr pc, [sp], #4
+
+.if _DEBUG
+    errnegativemaxy: ;The error block
+    .long 0
+	.byte "Triangle max y is negative (can't self-mod)."
+	.align 4
+	.long 0
+.endif
 
 .if LibTriangle_IncludeQuadPlot
 .if LibTriangle_IncludeBatchPlot

@@ -57,6 +57,7 @@
     ;call_3 fx_set_layer_fns, 2, sine_scroller_tick,         sine_scroller_draw
 
     write_vec3 object_rot_speed, 0.5, 1.3, 2.9
+    write_vec3 torus_entity+0, 0.0, 0.0, -26.0
 
     ; FX params.
 ;    write_fp scroll_text_y_pos, 4.0 ; NB. Must match mode9-screen.asm defines. :\

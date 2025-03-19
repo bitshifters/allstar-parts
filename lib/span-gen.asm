@@ -4,6 +4,8 @@
 ; Kindly provided by Progen (Sarah Walker).
 ; ============================================================================
 
+.equ SpanGen_NoPopReturn, 1
+
 gen_code_pointers_p:
 	.long gen_code_pointers_no_adr
 
@@ -271,7 +273,11 @@ gen_last_word_table:
 	.long gen_last_word_over
 
 gen_end_code:
+.if SpanGen_NoPopReturn
+    ldr pc, [sp]
+.else
 	mov pc, lr
+.endif
 ; Specific to circle plot.
 ;	ADD r11, r11, #Screen_Stride
 ;	SUBS r14, r14, #1
