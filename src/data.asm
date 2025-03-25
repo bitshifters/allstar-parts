@@ -7,12 +7,24 @@
 
 ; fx/sine-scroller.asm
 razor_font_no_adr:
-.incbin "build/razor-font.bin"
+.incbin "build/razor-font.bin"              ; TODO: Remove if not used!
 
-; ============================================================================
+; ===========================================================================
 
 ; fx/scene-3d.asm
-.include "src/data/three-dee/3d-meshes.asm"
+.include "src/data/three-dee/3d-meshes.asm" ; TODO: Remove what's not used!
+
+; ===========================================================================
+
+; fx/rotate.asm
+; MODE 9 texture, 4 bpp x 2
+.p2align 16
+rotate_texture_no_adr:
+.incbin "data/raw/itm128.bin"               ; TODO: Build this from PNG.
+.incbin "data/raw/itm128.bin"
+
+rotate_pal_no_adr:
+.incbin "data/raw/itmpal.bin"               ; TODO: Build this from PNG.
 
 ; ============================================================================
 ; Library data.

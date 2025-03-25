@@ -40,30 +40,40 @@
     ; Init FX modules.
     call_0 sine_scroller_init
     call_0 scene3d_init
+    call_0 rotate_init
     ;                       RingRadius          CircleRadius       RingSegments   CircleSegments   MeshPtr              Flat inner face?
     call_6 mesh_make_torus, 32.0*MATHS_CONST_1, 16.0*MATHS_CONST_1, 12,            8,               mesh_header_torus,   1
 
+script_loop:
     ; Screen setup.
-;    write_addr palette_array_p, seq_palette_red_additive
+    ; NB. Use write_addr palette_array_p, seq_palette_red_additive if setting per frame.
+
+    ; Rotate & scale.
+    call_3 palette_set_block, 0, 0, rotate_pal_no_adr
+    call_3 fx_set_layer_fns, 0, rotate_tick,                rotate_draw
+    call_3 fx_set_layer_fns, 1, 0,                          0
+
+    wait_secs 10.0
+
+    ; Show donut.
     call_3 palette_set_block, 0, 0, seq_palette_red_additive
 
-	; Setup layers of FX.
-    .if AppConfig_UseRasterMan
-    call_3 fx_set_layer_fns, 0, rasters_tick,               screen_cls
-    .else
     call_3 fx_set_layer_fns, 0, 0,                          screen_cls_from_line
-    .endif
     call_3 fx_set_layer_fns, 1, scene3d_rotate_entity,      scene3d_draw_entity_as_solid_quads
-    ;call_3 fx_set_layer_fns, 2, sine_scroller_tick,         sine_scroller_draw
 
     write_vec3 object_rot_speed, 0.5, 1.3, 2.9
     write_vec3 torus_entity+0, 0.0, 0.0, -26.0
 
-    ; FX params.
-;    write_fp scroll_text_y_pos, 4.0 ; NB. Must match mode9-screen.asm defines. :\
-;    write_addr scroller_speed, 2
-;    write_fp scope_yscale 0.5
+    wait_secs 10.0
+
+    yield script_loop
     end_script
+
+    ; Sine scroller.
+    .if AppConfig_UseRasterMan
+    call_3 fx_set_layer_fns, 0, rasters_tick,               screen_cls
+    call_3 fx_set_layer_fns, 2, sine_scroller_tick,         sine_scroller_draw
+    .endif
 
 ; ============================================================================
 ; Support functions.
@@ -126,28 +136,6 @@ text_pool_defs_no_adr:
 ; ============================================================================
 ; Sequence specific data.
 ; ============================================================================
-
-.if 0
-math_emitter_config_1:
-    math_const 50.0/80                                                  ; emission rate=80 particles per second fixed.
-    math_func  0.0,    100.0,  math_sin,  0.0,   1.0/(MATHS_2PI*60.0)   ; emitter.pos.x = 100.0 * math.sin(f/60)
-    math_func  128.0,  60.0,   math_cos,  0.0,   1.0/(MATHS_2PI*80.0)   ; emitter.pos.y = 128.0 + 60.0 * math.cos(f/80)
-    math_func  0.0,    2.0,    math_sin,  0.0,   1.0/(MATHS_2PI*100.0)  ; emitter.dir.x = 2.0 * math.sin(f/100)
-    math_func  1.0,    5.0,    math_rand, 0.0,   0.0                    ; emitter.dir.y = 1.0 + 5.0 * math.random()
-    math_const 255                                                      ; emitter.life
-    math_func  0.0,    1.0,    math_and15,0.0,   1.0                    ; emitter.colour = (emitter.colour + 1) & 15
-    math_func  8.0,    6.0,    math_sin,  0.0,   1.0/(MATHS_2PI*10.0)   ; emitter.radius = 8.0 + 6 * math.sin(f/10)
-
-math_emitter_config_2:
-    math_const 50.0/80                                                  ; emission rate=80 particles per second fixed.
-    math_const 0.0                                                      ; emitter.pos.x = 0
-    math_const 0.0                                                      ; emitter.pos.y = 192.0
-    math_func -1.0,    2.0,    math_rand,  0.0,  0.0                    ; emitter.dir.x = 4.0 + 3.0 * math.random()
-    math_func  1.0,    3.0,    math_rand,  0.0,  0.0                    ; emitter.dir.y = 1.0 + 5.0 * math.random()
-    math_const 512                                                      ; emitter.life
-    math_func  0.0,    1.0,    math_and15, 0.0,  1.0                    ; emitter.colour = (emitter.colour + 1) & 15
-    math_const 8.0                                                      ; emitter.radius = 8.0
-.endif
 
 ; ============================================================================
 ; Colour palettes.
@@ -303,6 +291,13 @@ seq_palette_lerped:
 
 seq_palette_copy:
     .skip 16*6
+
+; ============================================================================
+; Use https://gradient-blaster.grahambates.com/ by Gigabates to generate nice palettes!
+; ============================================================================
+
+gradient_pal:
+.long	0xff0,0xff3,0xfd5,0xec6,0xec7,0xeb8,0xda9,0xc9a,0xc8b,0xb7b,0xa6c,0x95d,0x84d,0x73e,0x52f,0x00f
 
 ; ============================================================================
 ; Sequence specific bss.

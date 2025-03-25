@@ -409,3 +409,41 @@ Not a lot! < 2 scanlines.
 Could save some of this anyway by blowing out the mesh arrays?
 Face colour => colour word.
 Quad face indices => store as words.
+
+Megademo TODO
+~~~
+PREP
+- One makefile produces two exes
+- Each exe has a different set of assets and music.
+- Each exe has a separate sequence script.
+- All other code is shared.
+    - In theory only need to swap the app.asm file!!
+=> Hedge against Megademo not happening, pending other folks actually committing.
+=> Keep as a single exe for now, probably only a couple of hours work to separate exes.
+=> Takes more effort to maintain two.
+
+UV PART
+- Move from proto-arc repo into archie-verse.
+- Add 8 initial tables.
+- Add 8 initial textures.
+- Add 8 initial colour palettes.
+- Make a simple sequence that just cycles through them.
+- Add music.
+- Move to new features
+    - Skip pixels
+    - Animated textures?
+    - Colour cycling?
+    - Scroller?
+    - Additional FX e.g. plasma?
+    - Transitions
+- Polish!
+
+DONUT PART
+- Add logo.
+- Add scroller.
+- Come up with at least four interesting variations.
+    - Move
+    - Morph
+    - Animate
+    - Lighting
+- RasterMan for logo and scroller?

@@ -8,6 +8,8 @@
 ;                 or just lucky!!
 ; ============================================================================
 
+.equ Palette_IncludeFade, 0
+
 ; R3 = index
 ; R4 = RGBx word (actually 0x00BbGgRr) where bgr are ignored.
 ; Uses R0,R1 
@@ -56,6 +58,35 @@ palette_set_border:
     mov pc,lr
 .endif
 
+; R2=ptr to gradient in 0x0rgb format.
+; Uses R0,R1,R3,R4
+palette_set_gradient:
+    str lr, [sp, #-4]!
+
+    mov r3, #0
+.1:
+    ldr r0, [r2], #4
+
+    mov r1, r0, lsr #8
+    orr r1, r1, r1, lsl #4
+
+    and r4, r0, #0x00f0
+    orr r4, r4, r4, lsr #4
+    orr r4, r1, r4, lsl #8
+
+    and r1, r0, #0x000f
+    orr r1, r1, r1, lsl #4
+    orr r4, r4, r1, lsl #16
+
+    bl palette_set_colour
+
+    add r3, r3, #1
+    cmp r3, #16
+    bne .1
+
+    ldr pc, [sp], #4
+
+.if Palette_IncludeFade
 ; R0 = [0-16] interpolation
 ; R2 = palette block ptr
 palette_make_fade_to_black:
@@ -153,7 +184,6 @@ palette_speed:
 palette_delay:
     .long 0
 
-.if 0
 ; R2 = palette block ptr
 palette_make_greyscale:
 	str lr, [sp, #-4]!			; push lr on stack
@@ -207,10 +237,12 @@ palette_make_fade_to_white:
 
 solid_white:
     .long 0x00f0f0f0
-.endif
 
 palette_interp_block:
     .skip 64
+.endif
+
+; ============================================================================
 
 .p2align 2
 palette_osword_block:
@@ -221,3 +253,5 @@ palette_osword_block:
     ; green
     ; blue
     ; (pad)
+
+; ============================================================================
