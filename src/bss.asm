@@ -42,6 +42,11 @@ projected_verts_no_adr:
 
 ; ============================================================================
 
+uv_tunnel_unrolled_code_no_adr:
+    .skip UV_Tunnel_CodeSize
+
+; ============================================================================
+
 .if AppConfig_UseArchieKlang
 Generated_Samples_no_adr:
 .skip AK_SMP_LEN

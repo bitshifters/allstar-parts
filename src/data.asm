@@ -27,6 +27,25 @@ rotate_pal_no_adr:
 .incbin "data/raw/itmpal.bin"               ; TODO: Build this from PNG.
 
 ; ============================================================================
+
+; fx/uv-tunnel.asm
+; MODE 9 texture, 4 bpp x 2
+.p2align 16
+uv_tunnel_texture_no_adr:
+.incbin "data/raw/phong128.bin"             ; TODO: Build this from PNG.
+.incbin "data/raw/phong128.bin"
+
+; (u,v) coordinates interleaved, 1 byte each
+; 1 word = 2 pixels worth
+.p2align 6
+uv_tunnel_map_no_adr:
+.incbin "data/raw/face_uv.bin"              ; TODO: Build this.
+.incbin "data/raw/face_uv.bin"
+
+uv_tunnel_pal_no_adr:
+.incbin "data/raw/phong.pal.bin"
+
+; ============================================================================
 ; Library data.
 ; ============================================================================
 

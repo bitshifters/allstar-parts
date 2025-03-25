@@ -3,7 +3,7 @@
 ; Configuration that is specific to a (final) production.
 ; ============================================================================
 
-.equ AppConfig_StackSize,               1024
+.equ AppConfig_StackSize,               4096    ; when transforming lots of verts!
 .equ AppConfig_LoadModFromFile,         0
 .equ AppConfig_DynamicSampleSpeed,      (_SMALL_EXE && 0)   ; Because table gen takes time at boot...
 .equ AppConfig_InstallIrqHandler,       0       ; otherwise uses Event_VSync.

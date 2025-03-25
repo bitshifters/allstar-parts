@@ -41,12 +41,20 @@
     call_0 sine_scroller_init
     call_0 scene3d_init
     call_0 rotate_init
+    call_0 uv_tunnel_init
     ;                       RingRadius          CircleRadius       RingSegments   CircleSegments   MeshPtr              Flat inner face?
     call_6 mesh_make_torus, 32.0*MATHS_CONST_1, 16.0*MATHS_CONST_1, 12,            8,               mesh_header_torus,   1
 
 script_loop:
     ; Screen setup.
     ; NB. Use write_addr palette_array_p, seq_palette_red_additive if setting per frame.
+
+    ; UV tunnel aka UV table fx.
+    call_3 palette_set_block, 0, 0, uv_tunnel_pal_no_adr
+    call_3 fx_set_layer_fns, 0, uv_tunnel_tick              uv_tunnel_draw
+    call_3 fx_set_layer_fns, 1, 0,                          0
+
+    wait_secs 10.0
 
     ; Rotate & scale.
     call_3 palette_set_block, 0, 0, rotate_pal_no_adr

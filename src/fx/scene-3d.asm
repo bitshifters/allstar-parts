@@ -288,6 +288,9 @@ scene3d_transform_entity:
 
     ldr pc, [sp], #4
 
+.if AppConfig_StackSize < (OBJ_MAX_VERTS+OBJ_MAX_FACES)*VECTOR3_SIZE
+.err "Stack is too small for scene3d_transform_entity - will overflow when pushing verts!"
+.endif
 
 ; ============================================================================
 ; Rotate the current object from either vars or VU bars.

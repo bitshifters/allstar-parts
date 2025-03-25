@@ -400,6 +400,7 @@ app_vsync_code:
 .include "src/fx/sine-scroller.asm"
 .include "src/fx/scene-3d.asm"
 .include "src/fx/rotate.asm"
+.include "src/fx/uv-tunnel.asm"
 .if AppConfig_UseRasterMan
 .include "src/rasters.asm"
 .endif
