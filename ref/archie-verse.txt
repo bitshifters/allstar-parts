@@ -423,11 +423,11 @@ PREP
 => Takes more effort to maintain two.
 
 UV PART
-- Move from proto-arc repo into archie-verse.
+- Move from proto-arc repo into archie-verse. - DONE
 - Add 8 initial tables.
 - Add 8 initial textures.
 - Add 8 initial colour palettes.
-- Make a simple sequence that just cycles through them.
+- Make a simple sequence that just cycles through them. - DONE
 - Add music.
 - Move to new features
     - Skip pixels
@@ -447,3 +447,13 @@ DONUT PART
     - Animate
     - Lighting
 - RasterMan for logo and scroller?
+
+To make it a demo?
+- Intro splash
+- Credits
+- Greets
+- Transitions
+- Tune
+- Size code down to 64Kb?
+- RasterMan or not? (Can't be 64Kb currently - need TinyQTM RM edition.)
+- Could also switch to 320x180 screen

@@ -7,8 +7,8 @@
 .equ LibTriangle_IncludeBatchPlot, 0
 .equ LibTriangle_IncludeNicksCode, 0
 
-.equ LibTriangle_TopClip,           48
-.equ LibTriangle_BottomClip,        48+180
+.equ LibTriangle_TopClip,           48          ; inclusive
+.equ LibTriangle_BottomClip,        48+180-1    ; inclusive
 .equ LibTriangle_HandleNegativeY,   1
 
 triangle_colour:
@@ -115,7 +115,7 @@ triangle_plot_ex:
 
     ; Clip entire triangle to top and bottom of the screen.
     cmp r4, #LibTriangle_BottomClip     ; v1y off bottom?
-    ldrge pc, [sp], #4
+    ldrgt pc, [sp], #4
 
     cmp r8, #LibTriangle_TopClip        ; v3y off top?
     ldrlt pc, [sp], #4
@@ -161,8 +161,8 @@ triangle_plot_bottom_flat:
     swilt OS_GenerateError    
     .endif
 
-    cmp r6, #LibTriangle_BottomClip-1
-    movge r6, #LibTriangle_BottomClip-1  ; clip to bottom of screen.
+    cmp r6, #LibTriangle_BottomClip
+    movgt r6, #LibTriangle_BottomClip   ; clip to bottom of screen.
 
     .if LibTriangle_HandleNegativeY
     cmp r6, #0
@@ -318,8 +318,8 @@ triangle_plot_top_flat:
     swilt OS_GenerateError    
     .endif
 
-    cmp r1, #LibTriangle_BottomClip-1
-    movgt r1, #LibTriangle_BottomClip-1  ; clip to max y or screen
+    cmp r1, #LibTriangle_BottomClip
+    movgt r1, #LibTriangle_BottomClip   ; clip to max y or screen
 
     .if LibTriangle_HandleNegativeY
     cmp r1, #0
