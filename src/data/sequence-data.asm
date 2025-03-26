@@ -50,11 +50,27 @@ script_loop:
     ; NB. Use write_addr palette_array_p, seq_palette_red_additive if setting per frame.
 
     ; UV tunnel aka UV table fx.
-    call_3 palette_set_block, 0, 0, uv_tunnel_pal_no_adr
+    call_3 palette_set_block, 0, 0, uv_phong_pal_no_adr
     call_3 fx_set_layer_fns, 0, uv_tunnel_tick              uv_tunnel_draw
     call_3 fx_set_layer_fns, 1, 0,                          0
 
     wait_secs 10.0
+
+    ; Regenerate the code for the new UV map
+    write_addr uv_tunnel_map_p, uv_tunnel1_map_no_adr
+    call_0 uv_tunnel_init
+
+    ; Change texture and palette.
+    write_addr uv_tunnel_texture_p, uv_cloud_texture_no_adr
+    call_3 palette_set_gradient, 0, 0, gradient_pal
+    call_3 fx_set_layer_fns, 0, uv_tunnel_tick              uv_tunnel_draw
+
+    wait_secs 10.0
+
+    ; Regenerate the code for the new UV map
+    write_addr uv_tunnel_map_p, uv_tunnel2_map_no_adr
+    call_0 uv_tunnel_init
+
 
     ; Rotate & scale.
     call_3 palette_set_block, 0, 0, rotate_pal_no_adr
@@ -74,6 +90,7 @@ script_loop:
 
     wait_secs 10.0
 
+    ; Repeat
     yield script_loop
     end_script
 

@@ -15,10 +15,10 @@ uv_tunnel_offset_v:
 .p2align 2
 
 uv_tunnel_texture_p:
-    .long uv_tunnel_texture_no_adr
+    .long uv_phong_texture_no_adr
 
 uv_tunnel_map_p:
-    .long uv_tunnel_map_no_adr
+    .long uv_face_map_no_adr
 
 uv_tunnel_code_p:
     .long uv_tunnel_unrolled_code_no_adr
