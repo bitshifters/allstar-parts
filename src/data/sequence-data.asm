@@ -265,6 +265,7 @@ seq_unlink_palette_lerp:
     math_kill_var seq_palette_id
     end_script
 
+seq_palette_lerped:
     .skip 15*4
     .long 0x00ffffff
 
