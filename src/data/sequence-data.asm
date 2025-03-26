@@ -1,113 +1,69 @@
 ; ============================================================================
-; Sequence helper macros.
-; ============================================================================
-
-.macro on_pattern pattern_no, do_thing
-    fork_and_wait_secs SeqConfig_PatternLength_Secs*\pattern_no, \do_thing
-.endm
-
-.macro wait_patterns pats
-    wait_secs SeqConfig_PatternLength_Secs*\pats
-.endm
-
-.macro palette_lerp_over_secs palette_A, palette_B, secs
-    math_make_var seq_palette_blend, 0.0, 1.0, math_clamp, 0.0, 1.0/(\secs*50.0)  ; seconds.
-    math_make_palette seq_palette_id, \palette_A, \palette_B, seq_palette_blend, seq_palette_lerped
-    write_addr palette_array_p, seq_palette_lerped
-    fork_and_wait \secs*50.0-1, seq_unlink_palette_lerp
-    ; NB. Subtract a frame to avoid race condition.
-.endm
-
-.macro rgb_lerp_over_secs rgb_addr, from_rgb, to_rgb, secs
-    math_make_var seq_rgb_blend, 0.0, 1.0, math_clamp, 0.0, 1.0/(\secs*50.0)  ; 5 seconds.
-    math_make_rgb \rgb_addr, \from_rgb, \to_rgb, seq_rgb_blend
-.endm
-
-.macro palette_copy palette_src, palette_dst
-    call_3 mem_copy_words, \palette_src, \palette_dst, 16
-.endm
-
-.macro palette_lerp_from_existing palette_B, secs
-    palette_copy seq_palette_lerped, seq_palette_copy
-    palette_lerp_over_secs seq_palette_copy, \palette_B, \secs
-.endm
-
-
-; ============================================================================
 ; The actual sequence for the demo.
+; NB. First tick of the script happens at init before music is started etc.
 ; ============================================================================
 
     ; Init FX modules.
-    call_0 sine_scroller_init
-    call_0 scene3d_init
-    call_0 rotate_init
-    call_0 uv_tunnel_init
-    ;                       RingRadius          CircleRadius       RingSegments   CircleSegments   MeshPtr              Flat inner face?
-    call_6 mesh_make_torus, 32.0*MATHS_CONST_1, 16.0*MATHS_CONST_1, 12,            8,               mesh_header_torus,   1
+    call_0      sine_scroller_init
+    call_0      scene3d_init
+    call_0      rotate_init
+    call_0      uv_tunnel_init
+    ;                               RingRadius          CircleRadius       RingSegments   CircleSegments   MeshPtr              Flat inner face?
+    call_6      mesh_make_torus,    32.0*MATHS_CONST_1, 16.0*MATHS_CONST_1, 12,            8,              mesh_header_torus,   1
 
 script_loop:
     ; Screen setup.
     ; NB. Use write_addr palette_array_p, seq_palette_red_additive if setting per frame.
 
     ; UV tunnel aka UV table fx.
-    call_3 palette_set_block, 0, 0, uv_phong_pal_no_adr
-    call_3 fx_set_layer_fns, 0, uv_tunnel_tick              uv_tunnel_draw
-    call_3 fx_set_layer_fns, 1, 0,                          0
+    call_1      palette_set_block,  uv_phong_pal_no_adr
+    call_3      fx_set_layer_fns,   0, uv_tunnel_tick              uv_tunnel_draw
+    call_3      fx_set_layer_fns,   1, 0,                          0
 
-    wait_secs 10.0
+    wait_secs   10.0
 
     ; Regenerate the code for the new UV map
-    write_addr uv_tunnel_map_p, uv_tunnel1_map_no_adr
-    call_0 uv_tunnel_init
+    write_addr  uv_tunnel_map_p,    uv_tunnel1_map_no_adr
+    call_0      uv_tunnel_init
 
     ; Change texture and palette.
-    write_addr uv_tunnel_texture_p, uv_cloud_texture_no_adr
-    call_3 palette_set_gradient, 0, 0, gradient_pal
-    call_3 fx_set_layer_fns, 0, uv_tunnel_tick              uv_tunnel_draw
+    write_addr  uv_tunnel_texture_p,  uv_cloud_texture_no_adr
+    call_3      palette_set_gradient, 0, 0, gradient_pal
+    call_3      fx_set_layer_fns,     0, uv_tunnel_tick            uv_tunnel_draw
 
-    wait_secs 10.0
+    wait_secs   10.0
 
     ; Regenerate the code for the new UV map
-    write_addr uv_tunnel_map_p, uv_tunnel2_map_no_adr
-    call_0 uv_tunnel_init
-
+    write_addr  uv_tunnel_map_p,    uv_tunnel2_map_no_adr
+    call_0      uv_tunnel_init
 
     ; Rotate & scale.
-    call_3 palette_set_block, 0, 0, rotate_pal_no_adr
-    call_3 fx_set_layer_fns, 0, rotate_tick,                rotate_draw
-    call_3 fx_set_layer_fns, 1, 0,                          0
+    call_1      palette_set_block,  rotate_pal_no_adr
+    call_3      fx_set_layer_fns,   0, rotate_tick,                rotate_draw
+    call_3      fx_set_layer_fns,   1, 0,                          0
 
     wait_secs 10.0
 
     ; Show donut.
-    call_3 palette_set_block, 0, 0, seq_palette_red_additive
+    call_1      palette_set_block,  seq_palette_red_additive
 
-    call_3 fx_set_layer_fns, 0, 0,                          screen_cls_from_line
-    call_3 fx_set_layer_fns, 1, scene3d_rotate_entity,      scene3d_draw_entity_as_solid_quads
+    call_3      fx_set_layer_fns,   0, 0,                          screen_cls_from_line
+    call_3      fx_set_layer_fns,   1, scene3d_rotate_entity,      scene3d_draw_entity_as_solid_quads
 
-    write_vec3 object_rot_speed, 0.5, 1.3, 2.9
-    write_vec3 torus_entity+0, 0.0, 0.0, -26.0
+    write_vec3  object_rot_speed,           0.5, 1.3, 2.9
+    write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, -26.0
 
-    wait_secs 10.0
+    wait_secs   10.0
 
     ; Repeat
-    yield script_loop
+    yield       script_loop     ; yield = wait 1; goto <label>
     end_script
 
     ; Sine scroller.
     .if AppConfig_UseRasterMan
-    call_3 fx_set_layer_fns, 0, rasters_tick,               screen_cls
-    call_3 fx_set_layer_fns, 2, sine_scroller_tick,         sine_scroller_draw
+    call_3      fx_set_layer_fns,   0, rasters_tick,               screen_cls
+    call_3      fx_set_layer_fns,   2, sine_scroller_tick,         sine_scroller_draw
     .endif
-
-; ============================================================================
-; Support functions.
-; ============================================================================
-
-seq_unlink_palette_lerp:
-    math_kill_var seq_palette_blend
-    math_kill_var seq_palette_id
-    end_script
 
 ; ============================================================================
 ; Sequence tasks can be forked and self-terminate on completion.
@@ -124,39 +80,21 @@ seq_unlink_palette_lerp:
 
 .if 0
 seq_test_fade_down:
-    call_3 palette_init_fade, 0, 1, seq_palette_red_additive
+    call_3              palette_init_fade, 0, 1, seq_palette_red_additive
 
 seq_test_fade_down_loop:
-    call_0 palette_update_fade_to_black
-    end_script_if_zero palette_interp
-    yield seq_test_fade_down_loop
+    call_0              palette_update_fade_to_black
+    end_script_if_zero  palette_interp
+    yield               seq_test_fade_down_loop
 
 seq_test_fade_up:
-    call_3 palette_init_fade, 0, 1, seq_palette_red_additive
+    call_3              palette_init_fade, 0, 1, seq_palette_red_additive
 
 seq_test_fade_up_loop:
-    call_0 palette_update_fade_from_black
-    end_script_if_zero palette_interp
-    yield seq_test_fade_up_loop
+    call_0              palette_update_fade_from_black
+    end_script_if_zero  palette_interp
+    yield               seq_test_fade_up_loop
 .endif
-
-; ============================================================================
-; Text.
-; ============================================================================
-
-; Font def, points size, point size height, text string, null terminated.
-text_pool_defs_no_adr:
-.if 0
-    TextDef homerton_bold_italic,   76, 76*1.2, 0x1, "BITSHIFTERS",     text_nums_no_adr+0  ; 0
-    TextDef corpus_bold,            90, 90*1.2, 0x1, "ALCATRAZ",        text_nums_no_adr+4  ; 1
-    TextDef trinity_bold,           80, 80*1.2, 0x1, "TORMENT",         text_nums_no_adr+8  ; 2
-    TextDef homerton_bold,          64, 64*1.1, 0x1, "present",         text_nums_no_adr+12 ; 3
-    TextDef homerton_bold,          76, 76*1.2, 0x1, "ArchieKlang",     text_nums_no_adr+16 ; 4
-    TextDef homerton_bold,          40, 48*1.1, 0x1, "code by kieran",  text_nums_no_adr+20 ; 5
-    TextDef homerton_bold,          40, 48*1.1, 0x1, "samples & synth by Virgill", text_nums_no_adr+28 ; 7
-    TextDef homerton_bold,          40, 48*1.1, 0x1, "music by Rhino & Virgill", text_nums_no_adr+40 ; 10
-.endif
-.long -1
 
 ; ============================================================================
 ; Sequence specific data.
@@ -202,7 +140,6 @@ seq_palette_red_additive:
     .long 0x00c0e0e0                    ; 14 = 1110 = oranges
     .long 0x00f0f0f0                    ; 15 = 1111 = white
 
-.if 1
 seq_palette_grey:
     .long 0x00000000                    ; 00 = 0000 = black
     .long 0x00101010                    ; 01 = 0001 =
@@ -220,12 +157,6 @@ seq_palette_grey:
     .long 0x00d0d0d0                    ; 13 = 1101 =
     .long 0x00e0e0e0                    ; 14 = 1110 = oranges
     .long 0x00f0f0f0                    ; 15 = 1111 = white
-
-seq_palette_single_white:
-    .rept 15
-    .long 0x00000000
-    .endr
-    .long 0x00ffffff
 
 seq_palette_red_yellow:
     .long 0x00000000                    ; 00 = 0000 = black
@@ -299,6 +230,13 @@ seq_palette_blue_cyan_ramp:
     .long 0x00f0f0c0                    ; 14 = 1110 = oranges
     .long 0x00f0f0f0                    ; 15 = 1111 = white
 
+.if 0
+seq_palette_single_white:
+    .rept 15
+    .long 0x00000000
+    .endr
+    .long 0x00ffffff
+
 seq_palette_all_black:
     .rept 16
     .long 0x00000000
@@ -310,23 +248,28 @@ seq_palette_all_white:
     .endr
 .endif
 
-seq_palette_lerped:
-    .skip 15*4
-    .long 0x00ffffff
-
-seq_palette_copy:
-    .skip 16*6
-
 ; ============================================================================
-; Use https://gradient-blaster.grahambates.com/ by Gigabates to generate nice palettes!
+; Or use https://gradient-blaster.grahambates.com/ by Gigabates to generate nice palettes!
 ; ============================================================================
 
 gradient_pal:
 .long	0xff0,0xff3,0xfd5,0xec6,0xec7,0xeb8,0xda9,0xc9a,0xc8b,0xb7b,0xa6c,0x95d,0x84d,0x73e,0x52f,0x00f
 
 ; ============================================================================
-; Sequence specific bss.
+; Palette blending - required if using palette_lerp_over_secs macro.
 ; ============================================================================
+
+.if 0
+seq_unlink_palette_lerp:
+    math_kill_var seq_palette_blend
+    math_kill_var seq_palette_id
+    end_script
+
+    .skip 15*4
+    .long 0x00ffffff
+
+seq_palette_copy:
+    .skip 16*6
 
 seq_rgb_blend:
     .long 0
@@ -336,8 +279,10 @@ seq_palette_blend:
 
 seq_palette_id:
     .long 0
+.endif
 
-text_nums_no_adr:
-    .skip 4*11
+; ============================================================================
+; Sequence specific bss.
+; ============================================================================
 
 ; ============================================================================

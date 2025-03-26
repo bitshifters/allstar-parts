@@ -28,9 +28,11 @@ palette_set_colour:
     swi OS_Word
     mov pc,lr
 
-; R2 = palette block ptr
+; R0 = palette block ptr
+; Uses R1-R4, R0 corrupted
 palette_set_block:
 	str lr, [sp, #-4]!			; push lr on stack
+    mov r2, r0
     mov r3, #0
     .1:
     ldr r4, [r2], #4            ; rgbx
@@ -135,7 +137,7 @@ palette_update_fade_to_black:
     ldr r2, palette_source
     bl palette_make_fade_to_black
 
-    adr r2, palette_interp_block
+    adr r0, palette_interp_block
     bl palette_set_block
 
     ldr r0, palette_interp
@@ -164,7 +166,7 @@ palette_update_fade_from_black:
     ldr r2, palette_source
     bl palette_make_fade_to_black
 
-    adr r2, palette_interp_block
+    adr r0, palette_interp_block
     bl palette_set_block
 
     ldr r0, palette_interp

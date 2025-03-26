@@ -32,6 +32,7 @@
 .include "lib/macros.h.asm"
 .include "lib/debug.h.asm"
 .include "lib/mesh.h.asm"
+.include "lib/sequence.h.asm"
 
 ; ============================================================================
 ; Code Start
