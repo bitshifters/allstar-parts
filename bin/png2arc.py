@@ -100,6 +100,9 @@ def main(options):
         step_x=2
         step_y=2
 
+    if options.double_pixels:
+        step_x=0.5
+
     png_result=png.Reader(filename=options.input_path).asRGBA8()
 
     src_width=png_result[0]
@@ -160,10 +163,15 @@ def main(options):
     for y in range(0,src_height,step_y):
         row=pixels[y]
         assert(len(row)==src_width)
-        for x in range(0,src_width,pixels_per_byte*step_x):
+        for x in range(0,src_width,int(pixels_per_byte*step_x)):
             xs=[]
-            for p in range(0,pixels_per_byte):
-                xs.append(row[x+p])
+            if options.double_pixels:
+                for p in range(0,pixels_per_byte/2):
+                    xs.append(row[x+p])
+                    xs.append(row[x+p])
+            else:
+                for p in range(0,pixels_per_byte):
+                    xs.append(row[x+p])
             assert len(xs)==pixels_per_byte
             pixel_data.append(pack(xs))
 
@@ -182,8 +190,13 @@ def main(options):
             assert(len(row)==src_width)
             for x in range(0,src_width,pixels_per_byte*step_x):
                 xs=[]
-                for p in range(0,pixels_per_byte):
-                    xs.append(row[x+p])
+                if options.double_pixels:
+                    for p in range(0,pixels_per_byte/2):
+                        xs.append(row[x+p])
+                        xs.append(row[x+p])
+                else:
+                    for p in range(0,pixels_per_byte):
+                        xs.append(row[x+p])
                 assert len(xs)==pixels_per_byte
                 mask_data.append(pack(xs))
 
@@ -218,6 +231,7 @@ if __name__=='__main__':
     parser.add_argument('-m',dest='mask_path',metavar='FILE',help='output mask data to %(metavar)s')
     parser.add_argument('--loud',action='store_true',help='display warnings')
     parser.add_argument('--x2',action='store_true',help='source image has 2x dimensions')
+    parser.add_argument('--double-pixels',action='store_true',help='double pixels in x')
     parser.add_argument('--mask-colour',dest='mask_colour',default=None,type=lambda x: int(x,0),help='RGBA colour used as mask.')
     parser.add_argument('--use-palette',dest='use_palette',metavar='FILE',help='use palette binary data from %(metavar)s')
     parser.add_argument('input_path',metavar='FILE',help='load PNG data from %(metavar)s')

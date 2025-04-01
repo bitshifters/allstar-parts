@@ -28,6 +28,7 @@ PNG2ARC=./bin/png2arc.py
 PNG2ARC_FONT=./bin/png2arc_font.py
 PNG2ARC_SPRITE=./bin/png2arc_sprite.py
 PNG2ARC_DEPS:=./bin/png2arc.py ./bin/arc.py ./bin/png2arc_font.py ./bin/png2arc_sprite.py
+UV_TABLE=./bin/tunnel_texture.py
 FOLDER=!Verse
 HOSTFS=../arculator/hostfs
 # TODO: Need a copy command that copes with forward slash directory separator. (Maybe MSYS cp?)
@@ -71,7 +72,8 @@ shrink: build ./build/!run.txt ./build/loader.bin ./build/icon.bin
 build:
 	$(MKDIR_P) "./build"
 
-./build/assets.txt: build ./build/music.mod ./build/razor-font.bin
+./build/assets.txt: build ./build/music.mod ./build/razor-font.bin ./build/tunnel_uv.bin ./build/tunnel2_uv.bin \
+	./build/face_uv.bin ./build/phong128.bin ./build/cloud128.bin ./build/itm128.bin
 	echo done > $@
 
 ./build/archie-verse.shri: build ./build/archie-verse.bin
@@ -144,6 +146,26 @@ clean:
 ./build/razor-font.bin: ./data/font/Charset_1Bitplan.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC_FONT) -o $@ --glyph-dim 16 15 --max-glyphs 60 --store-as-byte-cols --map-to-ascii ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-./!\"$%&:;'()=*+?,^@ $< 9
 
+./build/phong128.bin: ./data/gfx/phong-x4.png ./data/raw/phong.pal.bin $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --use-palette ./data/raw/phong.pal.bin --double-pixels $< 9
+
+./build/cloud128.bin: ./data/gfx/Elements_22-128x128x16.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels $< 9
+
+./build/itm128.bin: ./data/gfx/itm-rot-tex16.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels -p ./build/itmpal.bin $< 9
+
+##########################################################################
+##########################################################################
+
+./build/tunnel_uv.bin: $(UV_TABLE)
+	$(PYTHON2) $(UV_TABLE) -o $@ --func tunnel_func --param1 0.25 --square-aspect
+
+./build/tunnel2_uv.bin: $(UV_TABLE)
+	$(PYTHON2) $(UV_TABLE) -o $@ --func fancy_func1
+
+./build/face_uv.bin: ./data/gfx/face-160.png $(UV_TABLE)
+	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128
 
 ##########################################################################
 ##########################################################################

@@ -20,11 +20,11 @@ razor_font_no_adr:
 ; MODE 9 texture, 4 bpp x 2
 .p2align 16
 rotate_texture_no_adr:
-.incbin "data/raw/itm128.bin"               ; TODO: Build this from PNG.
-.incbin "data/raw/itm128.bin"
+.incbin "build/itm128.bin"               ; TODO: Build this from PNG.
+.incbin "build/itm128.bin"
 
 rotate_pal_no_adr:
-.incbin "data/raw/itmpal.bin"               ; TODO: Build this from PNG.
+.incbin "build/itmpal.bin"               ; TODO: Build this from PNG.
 
 ; ============================================================================
 
@@ -32,28 +32,28 @@ rotate_pal_no_adr:
 ; MODE 9 texture, 4 bpp x 2
 .p2align 16
 uv_phong_texture_no_adr:
-.incbin "data/raw/phong128.bin"             ; TODO: Build this from PNG.
-.incbin "data/raw/phong128.bin"
+.incbin "build/phong128.bin"
+.incbin "build/phong128.bin"
 
 .p2align 16
 uv_cloud_texture_no_adr:
-.incbin "data/raw/cloud.bin"
-.incbin "data/raw/cloud.bin"
+.incbin "build/cloud128.bin"
+.incbin "build/cloud128.bin"
 
 ; (u,v) coordinates interleaved, 1 byte each
 ; 1 word = 2 pixels worth
 uv_face_map_no_adr:
-.incbin "data/raw/face_uv.bin"              ; TODO: Build this.
-.incbin "data/raw/face_uv.bin"
+.incbin "build/face_uv.bin"
+.incbin "build/face_uv.bin"
 
 uv_phong_pal_no_adr:
 .incbin "data/raw/phong.pal.bin"
 
 uv_tunnel1_map_no_adr:
-.incbin "data/raw/tun.bin"                 ; TODO: Build this.
+.incbin "build/tunnel_uv.bin"
 
 uv_tunnel2_map_no_adr:
-.incbin "data/raw/tun2.bin"                ; TODO: Build this.
+.incbin "build/tunnel2_uv.bin"
 
 ; ============================================================================
 ; Library data.
