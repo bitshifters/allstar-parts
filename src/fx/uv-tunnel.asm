@@ -6,6 +6,8 @@
 .equ UV_Tunnel_Columns,         160
 .equ UV_Tunnel_Rows,            128
 
+.equ UV_Tunnel_BlankPixels,     1
+
 uv_tunnel_offset_u:
     .byte 0
 
@@ -89,12 +91,16 @@ uv_tunnel_gen_code:
     adr r8, uv_tunnel_code_snippet
 
     ldr r7, [r8], #4                ; ldrb rX, [rY, #Z]
+    .if UV_Tunnel_BlankPixels
     and r2, r0, #0x01               ; u0 invalid bit
     and r3, r0, #0x010000           ; v0 invalid bit
     orrs r14, r2, r3                ; u0 invalid or v0 invalid?
     ldrne r7, [r8, #11*4]           ; mov rX, #0
+    .endif
     orr r7, r7, r9, lsl #12         ; dest reg
+    .if UV_Tunnel_BlankPixels
     bne .20                         ; Skip pixel
+    .endif
 
     and r2, r0, #0xfe               ; u0<<1  [0, 127]
     and r3, r0, #0xfe0000           ; v0<<17 [0, 127]
@@ -109,11 +115,13 @@ uv_tunnel_gen_code:
     str r7, [r12], #4               ; write out instruction 0
 
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
+    .if UV_Tunnel_BlankPixels
     and r2, r0, #0x0100             ; u1 invalid bit
     and r3, r0, #0x01000000         ; v1 invalid bit
     orrs r14, r2, r3                ; u1 invalid or v1 invalid?
     ldrne r7, [r8, #11*4]           ; mov r14, #0
     bne .21                         ; Skip pixel
+    .endif
 
     and r2, r0, #0xfe00             ; u1<<9  [0, 127]
     and r3, r0, #0xfe000000         ; v1<<25 [0, 127]
@@ -133,11 +141,13 @@ uv_tunnel_gen_code:
     str r7, [r12], #4               ; write out instruction 2
 
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
+    .if UV_Tunnel_BlankPixels
     and r2, r1, #0x01               ; u2 invalid bit
     and r3, r1, #0x010000           ; v2 invalid bit
     orrs r14, r2, r3                ; u2 invalid or v2 invalid?
     ldrne r7, [r8, #9*4]           ; mov r14, #0
     bne .22                         ; Skip pixel
+    .endif
 
     and r2, r1, #0xfe               ; u2<<1  [0, 127]
     and r3, r1, #0xfe0000           ; v2<<17 [0, 127]
@@ -157,12 +167,14 @@ uv_tunnel_gen_code:
     str r7, [r12], #4               ; write out instruction 4
 
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
+    .if UV_Tunnel_BlankPixels
     and r2, r1, #0x0100             ; u3 invalid bit
     and r3, r1, #0x01000000         ; v3 invalid bit
     orrs r14, r2, r3                ; u3 invalid or v3 invalid?
     ldrne r7, [r8, #7*4]            ; mov r14, #0
     bne .23                         ; Skip pixel
-
+    .endif
+    
     and r2, r1, #0xfe00             ; u3<<9  [0, 127]
     and r3, r1, #0xfe000000         ; v3<<25 [0, 127]
     mov r4, r3, lsl #2              ; bottom 5 bits of v3
@@ -237,6 +249,8 @@ uv_tunnel_code_snippet:
     ; Return.
     ldr pc, [sp], #4
 
+    .if UV_Tunnel_BlankPixels
     ; Skip a pixel.
     mov r0, #0
     mov r14, #0
+    .endif
