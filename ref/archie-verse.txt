@@ -520,3 +520,4 @@ But can do 128x128 at 50Hz anyway using sampling technique that
 includes scale. Could maybe get to 180x180 ish in theory?
 
 ---
+I wanna make another acid demo!!

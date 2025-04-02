@@ -89,7 +89,13 @@ uv_tunnel_gen_code:
     adr r8, uv_tunnel_code_snippet
 
     ldr r7, [r8], #4                ; ldrb rX, [rY, #Z]
+    and r2, r0, #0x01               ; u0 invalid bit
+    and r3, r0, #0x010000           ; v0 invalid bit
+    orrs r14, r2, r3                ; u0 invalid or v0 invalid?
+    ldrne r7, [r8, #11*4]           ; mov rX, #0
     orr r7, r7, r9, lsl #12         ; dest reg
+    bne .20                         ; Skip pixel
+
     and r2, r0, #0xfe               ; u0<<1  [0, 127]
     and r3, r0, #0xfe0000           ; v0<<17 [0, 127]
     mov r4, r3, lsl #10             ; bottom 5 bits of v0
@@ -99,9 +105,16 @@ uv_tunnel_gen_code:
     mov r3, r3, lsr #22             ; top 2 bits of v0
     add r3, r3, #8                  ; [8, 11]
     orr r7, r7, r3, lsl #16         ; base reg
+    .20:
     str r7, [r12], #4               ; write out instruction 0
 
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
+    and r2, r0, #0x0100             ; u1 invalid bit
+    and r3, r0, #0x01000000         ; v1 invalid bit
+    orrs r14, r2, r3                ; u1 invalid or v1 invalid?
+    ldrne r7, [r8, #11*4]           ; mov r14, #0
+    bne .21                         ; Skip pixel
+
     and r2, r0, #0xfe00             ; u1<<9  [0, 127]
     and r3, r0, #0xfe000000         ; v1<<25 [0, 127]
     mov r4, r3, lsl #2              ; bottom 5 bits of v1
@@ -111,6 +124,7 @@ uv_tunnel_gen_code:
     mov r3, r3, lsr #30             ; top 2 bits of v1
     add r3, r3, #8                  ; [8, 11]
     orr r7, r7, r3, lsl #16         ; base reg
+    .21:
     str r7, [r12], #4               ; write out instruction 1
 
     ldr r7, [r8], #4                ; orr r0, r0, r14, lsl #8
@@ -119,6 +133,12 @@ uv_tunnel_gen_code:
     str r7, [r12], #4               ; write out instruction 2
 
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
+    and r2, r1, #0x01               ; u2 invalid bit
+    and r3, r1, #0x010000           ; v2 invalid bit
+    orrs r14, r2, r3                ; u2 invalid or v2 invalid?
+    ldrne r7, [r8, #9*4]           ; mov r14, #0
+    bne .22                         ; Skip pixel
+
     and r2, r1, #0xfe               ; u2<<1  [0, 127]
     and r3, r1, #0xfe0000           ; v2<<17 [0, 127]
     mov r4, r3, lsl #10             ; bottom 5 bits of v2
@@ -128,6 +148,7 @@ uv_tunnel_gen_code:
     mov r3, r3, lsr #22             ; top 2 bits of v2
     add r3, r3, #8                  ; [8, 11]
     orr r7, r7, r3, lsl #16         ; base reg
+    .22:
     str r7, [r12], #4               ; write out instruction 3
 
     ldr r7, [r8], #4                ; orr r0, r0, r14, lsl #16
@@ -136,6 +157,12 @@ uv_tunnel_gen_code:
     str r7, [r12], #4               ; write out instruction 4
 
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
+    and r2, r1, #0x0100             ; u3 invalid bit
+    and r3, r1, #0x01000000         ; v3 invalid bit
+    orrs r14, r2, r3                ; u3 invalid or v3 invalid?
+    ldrne r7, [r8, #7*4]            ; mov r14, #0
+    bne .23                         ; Skip pixel
+
     and r2, r1, #0xfe00             ; u3<<9  [0, 127]
     and r3, r1, #0xfe000000         ; v3<<25 [0, 127]
     mov r4, r3, lsl #2              ; bottom 5 bits of v3
@@ -145,6 +172,7 @@ uv_tunnel_gen_code:
     mov r3, r3, lsr #30             ; top 2 bits of v3
     add r3, r3, #8                  ; [8, 11]
     orr r7, r7, r3, lsl #16         ; base reg
+    .23:
     str r7, [r12], #4               ; write out instruction 5
 
     ldr r7, [r8], #4                ; orr r0, r0, r14, lsl #24
@@ -208,3 +236,7 @@ uv_tunnel_code_snippet:
 
     ; Return.
     ldr pc, [sp], #4
+
+    ; Skip a pixel.
+    mov r0, #0
+    mov r14, #0
