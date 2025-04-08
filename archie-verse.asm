@@ -32,7 +32,9 @@
 .include "lib/macros.h.asm"
 .include "lib/debug.h.asm"
 .include "lib/mesh.h.asm"
+.include "lib/script.h.asm"
 .include "lib/sequence.h.asm"
+; TODO: Put all these into a single lib header?
 
 ; ============================================================================
 ; Code Start

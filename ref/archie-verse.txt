@@ -430,7 +430,7 @@ UV PART
 - Make a simple sequence that just cycles through them. - DONE
 - Add music.
 - Move to new features
-    - Skip pixels
+    - Skip pixels - DONE
     - Animated textures?
     - Colour cycling?
     - Scroller?
@@ -448,6 +448,7 @@ DONUT PART
     - Morph
     - Animate
     - Lighting
+    - Triangle wibble by offseting X start by Y index into table..
 - RasterMan for logo and scroller?
 
 To make it a demo?
@@ -458,7 +459,7 @@ To make it a demo?
 - Tune
 - Size code down to 64Kb?
 - RasterMan or not? (Can't be 64Kb currently - need TinyQTM RM edition.)
-- Could also switch to 320x180 screen
+- Could also switch to 320x180 screen if desperate?
 
 
 Shear Rotator Notes

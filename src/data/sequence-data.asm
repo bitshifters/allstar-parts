@@ -11,9 +11,25 @@
     ;                               RingRadius          CircleRadius       RingSegments   CircleSegments   MeshPtr              Flat inner face?
     call_6      mesh_make_torus,    32.0*MATHS_CONST_1, 16.0*MATHS_CONST_1, 12,            8,              mesh_header_torus,   1
 
-script_loop:
-    ; Screen setup.
-    ; NB. Use write_addr palette_array_p, seq_palette_red_additive if setting per frame.
+    goto        seq_donut_part
+    ;goto        seq_table_part
+    ;goto        seq_test_part
+
+seq_donut_part:
+
+    ; Show donut.
+    call_1      palette_set_block,  seq_palette_red_additive
+
+    call_3      fx_set_layer_fns,   0, 0,                          screen_cls_from_line
+    call_3      fx_set_layer_fns,   1, scene3d_rotate_entity,      scene3d_draw_entity_as_solid_quads
+
+    write_vec3  object_rot_speed,           0.5, 1.3, 2.9
+    write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, -26.0
+
+    end_script
+
+
+seq_table_part:
 
     ; UV tunnel aka UV table fx.
     call_1      palette_set_block,  uv_phong_pal_no_adr
@@ -44,26 +60,24 @@ script_loop:
 
     wait_secs 10.0
 
-    ; Show donut.
-    call_1      palette_set_block,  seq_palette_red_additive
-
-    call_3      fx_set_layer_fns,   0, 0,                          screen_cls_from_line
-    call_3      fx_set_layer_fns,   1, scene3d_rotate_entity,      scene3d_draw_entity_as_solid_quads
-
-    write_vec3  object_rot_speed,           0.5, 1.3, 2.9
-    write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, -26.0
-
-    wait_secs   10.0
-
-    ; Repeat
-    yield       script_loop     ; yield = wait 1; goto <label>
+    yield       seq_table_part  ; yield = wait 1; goto <label>
     end_script
+
+
+seq_test_part:
+    ; Screen setup.
+    ; NB. Use write_addr palette_array_p, seq_palette_red_additive if setting per frame.
 
     ; Sine scroller.
     .if AppConfig_UseRasterMan
     call_3      fx_set_layer_fns,   0, rasters_tick,               screen_cls
-    call_3      fx_set_layer_fns,   2, sine_scroller_tick,         sine_scroller_draw
+    .else
+    call_3      fx_set_layer_fns,   0, 0,                          screen_cls
     .endif
+    call_3      fx_set_layer_fns,   2, sine_scroller_tick,         sine_scroller_draw
+
+    end_script
+
 
 ; ============================================================================
 ; Sequence tasks can be forked and self-terminate on completion.

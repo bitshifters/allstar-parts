@@ -24,7 +24,7 @@ screen_cls_from_line:
 screen_cls:
     mov r0, #0
 
-; TODO: Make unrolled cls fn from code at init.
+; TODO: Make unrolled cls fn from code at init. (Actually Shrinkler works better!)
 ; R0 = word to fill screen.
 screen_cls_with_word:
 	mov r1, r0

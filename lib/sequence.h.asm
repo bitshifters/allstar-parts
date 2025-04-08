@@ -1,6 +1,6 @@
 ; ============================================================================
 ; Sequence helper macros.
-; TODO: Nice detaied descriptions of how to use each MACRO.
+; TODO: Nice detailed descriptions of how to use each MACRO.
 ; ============================================================================
 
 .macro on_pattern pattern_no, do_thing
