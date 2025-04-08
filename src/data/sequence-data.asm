@@ -11,9 +11,17 @@
     ;                               RingRadius          CircleRadius       RingSegments   CircleSegments   MeshPtr              Flat inner face?
     call_6      mesh_make_torus,    32.0*MATHS_CONST_1, 16.0*MATHS_CONST_1, 12,            8,              mesh_header_torus,   1
 
+    .if _PART_NUMBER==0
     goto        seq_donut_part
-    ;goto        seq_table_part
-    ;goto        seq_test_part
+    .endif
+    .if _PART_NUMBER==1
+    goto        seq_table_part
+    .endif
+    .if _PART_NUMBER==2
+    goto        seq_test_part
+    .endif
+    end_script
+
 
 seq_donut_part:
 

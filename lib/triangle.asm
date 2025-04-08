@@ -3,12 +3,12 @@
 ; Not using a span buffer. Uses bottom flat, top flat algorithm.
 ; ============================================================================
 
-.equ LibTriangle_IncludeQuadPlot, 1
-.equ LibTriangle_IncludeBatchPlot, 0
-.equ LibTriangle_IncludeNicksCode, 0
+.equ LibTriangle_IncludeQuadPlot,   1
+.equ LibTriangle_IncludeBatchPlot,  0
+.equ LibTriangle_IncludeNicksCode,  0
 
-.equ LibTriangle_TopClip,           48          ; inclusive
-.equ LibTriangle_BottomClip,        48+180-1    ; inclusive
+.equ LibTriangle_TopClip,           Cls_FirstLine   ; inclusive
+.equ LibTriangle_BottomClip,        Cls_LastLine    ; inclusive
 .equ LibTriangle_HandleNegativeY,   1
 
 triangle_colour:

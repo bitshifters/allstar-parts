@@ -2,6 +2,20 @@
 ; Rasters via RasterMan.
 ; ============================================================================
 
+raster_table_p:
+    .long vidc_table_1_no_adr
+
+raster_table_top_p:
+    .long vidc_table_1_no_adr+256*4*4
+
+raster_tables:
+	.long vidc_table_1_no_adr
+	.long vidc_table_2_no_adr
+	.long vidc_table_3_no_adr
+	.long memc_table_no_adr
+
+; ============================================================================
+
 rasters_init:
     ; Configure RasterMan for future compatibility.
     mov r0, #4              ; number of VIDC reg writes
@@ -24,6 +38,7 @@ rasters_init:
 	mov r5, #256
 .1:
 	stmia r0!, {r6-r9}		; 4x VIDC commands per line.
+	stmia r0!, {r6-r9}		; Double up as we're scrolling through the first buffer.
 	stmia r1!, {r6-r9}		; 4x VIDC commands per line.
 	stmia r2!, {r6-r9}		; 4x VIDC commands per line.
 	stmia r2!, {r6-r9}		; 4x VIDC commands per line.
@@ -67,22 +82,6 @@ rasters_init:
 
     b .2
 
-raster_list:
-    ;    Repeat    Reg,        Start       Delta
-    .long 48,       VIDC_Col1,  0x0000ff,     0x000500
-    .long 48,       VIDC_Col1,  0x00ffff,   0xfffffffb
-    .long 32,       VIDC_Col1,  0x00ff00,     0x080000  ; make green shorter
-    .long 32,       VIDC_Col1,  0xffff00,   0xfffff800  ; make green shorter
-    .long 48,       VIDC_Col1,  0xff0000,     0x000005
-    .long 48,       VIDC_Col1,  0xff00ff,   0xfffb0000
-    .long -1
-
-raster_table_p:
-    .long vidc_table_1_no_adr
-
-raster_table_top_p:
-    .long vidc_table_1_no_adr+256*4*4
-
 rasters_tick:
 	adr r5, raster_tables
 	ldmia r5, {r0-r3}
@@ -99,48 +98,7 @@ rasters_tick:
 	swi RasterMan_SetTables
     mov pc, lr
 
-.if 0
-    ; Add some actual rasters. Use a table, dummy.
-    mov r3, #0
-    adr r2, raster_list
-.2:
-    ldmia r2!, {r5-r9}
-    cmp r5, #-1
-    moveq pc, lr
-
-    movs r4, r5, lsr #8     ; strip out repeat.
-    moveq r4, #1            ; zero repeat means just 1.
-    and r5, r5, #0xff       ; raster line.
-    add r1, r0, r5, lsl #4  ; find line entry in VIDC table 1.
-
-.3:
-    stmia r1!, {r6-r9}      ; blat VIDC registers for line.
-    subs r4, r4, #1
-    bne .3
-
-    str r3, [r1]            ; always reset bg colour to black.
-
-    b .2
-
-; Number repeats << 8 | Rasterline, VIDC registers x 4.
-; 0xffffffff to end list.
-raster_list:
-    .long 0,   VIDC_Col8 | 0x222, VIDC_Col0 | 0x000, VIDC_Col0 | 0x000, VIDC_Col0 | 0x000
-    .long 1,   VIDC_Border | 0x222, VIDC_Col0 | 0x000, VIDC_Col0 | 0x000, VIDC_Col0 | 0x000
-    .long 170, VIDC_Border | 0x444, VIDC_Col0 | 0x000, VIDC_Col0 | 0x000, VIDC_Col0 | 0x000
-    .long 171, VIDC_Col8 | 0x444, VIDC_Col0 | 0x000, VIDC_Col0 | 0x000, VIDC_Col0 | 0x000
-    .long 254, VIDC_Border | 0x222, VIDC_Col0 | 0x000, VIDC_Col0 | 0x000, VIDC_Col0 | 0x000
-    .long 255, VIDC_Col8 | 0x222, VIDC_Col0 | 0x000, VIDC_Col0 | 0x000, VIDC_Col0 | 0x000
-
-    ; End.
-    .long 0xffffffff
-.endif
-
-raster_tables:
-	.long vidc_table_1_no_adr
-	.long vidc_table_2_no_adr
-	.long vidc_table_3_no_adr
-	.long memc_table_no_adr
+; ============================================================================
 
 .if 0   ; if need to double-buffer raster table.
 rasters_copy_table:
@@ -156,3 +114,17 @@ rasters_copy_table:
 
     mov pc, lr
 .endif
+
+; ============================================================================
+
+raster_list:
+    ;    Repeat    Reg,        Start       Delta
+    .long 48,       VIDC_Col1,  0x0000ff,     0x000500
+    .long 48,       VIDC_Col1,  0x00ffff,   0xfffffffb
+    .long 32,       VIDC_Col1,  0x00ff00,     0x080000  ; make green shorter
+    .long 32,       VIDC_Col1,  0xffff00,   0xfffff800  ; make green shorter
+    .long 48,       VIDC_Col1,  0xff0000,     0x000005
+    .long 48,       VIDC_Col1,  0xff00ff,   0xfffb0000
+    .long -1
+
+; ============================================================================

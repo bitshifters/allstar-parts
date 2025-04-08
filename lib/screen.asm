@@ -2,13 +2,6 @@
 ; Screen routines, clear, copy, etc.
 ; ============================================================================
 
-; TODO: Best way to configure this outside lib code.
-;       Possibly jump into the unrolled code dynamically?
-;       Also coordinate with other parts of the code, e.g. triangle clip.
-.equ Cls_FirstLine,     48          ; inclusive
-.equ Cls_LastLine,      48+180-1    ; inclusive
-.equ Cls_Bytes,         (Cls_LastLine+1-Cls_FirstLine)*Screen_Stride
-
 .if 1
 screen_cls_from_line:
     mov r0, #Cls_FirstLine

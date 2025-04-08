@@ -10,7 +10,7 @@
 .equ AppConfig_UseSyncTracks,           0       ; currently Luapod could also be Rocket.
 .equ AppConfig_UseQtmEmbedded,          0
 .equ AppConfig_UseArchieKlang,          (_SMALL_EXE && 0)
-.equ AppConfig_UseRasterMan,            0       ; removes event / IRQ handler.
+.equ AppConfig_UseRasterMan,            _PART_NUMBER==2     ; removes event / IRQ handler.
 
 ; ============================================================================
 ; Sequence config.
@@ -53,28 +53,39 @@
 ; Screen config.
 ; ============================================================================
 
-.equ VideoConfig_Widescreen,    0
-.equ VideoConfig_ScreenBanks,   3
+.equ VideoConfig_Widescreen,            0
+.equ VideoConfig_ScreenBanks,           3
 
-.equ Screen_Mode,               9
-.equ Screen_Width,              320
-.equ Screen_PixelsPerByte,      2
+.equ Screen_Mode,                       9
+.equ Screen_Width,                      320
+.equ Screen_PixelsPerByte,              2
 
 .if VideoConfig_Widescreen
-.equ VideoConfig_VduMode,       97  ; MODE 9 widescreen (320x180)
-									; or 96 for MODE 13 widescreen (320x180)
-.equ VideoConfig_ModeHeight,    180
-.equ Screen_Height,             180
+.equ VideoConfig_VduMode,               97  ; MODE 9 widescreen (320x180)
+									        ; or 96 for MODE 13 widescreen (320x180)
+.equ VideoConfig_ModeHeight,            180
+.equ Screen_Height,                     180
 .else
-.equ VideoConfig_VduMode,       Screen_Mode
-.equ VideoConfig_ModeHeight,    256
-.equ Screen_Height,             256
+.equ VideoConfig_VduMode,               Screen_Mode
+.equ VideoConfig_ModeHeight,            256
+.equ Screen_Height,                     256
 .endif
 
-.equ Screen_Stride,             Screen_Width/Screen_PixelsPerByte
-.equ Screen_WidthWords,         Screen_Stride/4
-.equ Screen_Bytes,              Screen_Stride*Screen_Height
-.equ Mode_Bytes,                Screen_Stride*VideoConfig_ModeHeight
+; Clear screen (clipping)
+.if _PART_NUMBER==0                     ; donut
+.equ Cls_FirstLine,                     48              ; inclusive
+.equ Cls_LastLine,                      48+180-1        ; inclusive
+.else
+.equ Cls_FirstLine,                     0               ; inclusive
+.equ Cls_LastLine,                      Screen_Height-1 ; inclusive
+.endif
+
+; Derived values.
+.equ Screen_Stride,                     Screen_Width/Screen_PixelsPerByte
+.equ Screen_WidthWords,                 Screen_Stride/4
+.equ Screen_Bytes,                      Screen_Stride*Screen_Height
+.equ Mode_Bytes,                        Screen_Stride*VideoConfig_ModeHeight
+.equ Cls_Bytes,                         (Cls_LastLine+1-Cls_FirstLine)*Screen_Stride
 
 ; ============================================================================
 ; QTM Embedded entry points.
