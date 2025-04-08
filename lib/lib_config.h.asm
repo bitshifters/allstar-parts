@@ -6,6 +6,7 @@
 
 .equ LibConfig_ShowInitProgress,        1
 
+.equ LibConfig_IncludeMem,              1
 .equ LibConfig_IncludeSqrt,             1
 .equ LibConfig_IncludeLine,             0
 .equ LibConfig_IncludeTriangle,         1

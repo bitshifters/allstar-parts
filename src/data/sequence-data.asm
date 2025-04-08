@@ -34,6 +34,13 @@ seq_donut_part:
     write_vec3  object_rot_speed,           0.5, 1.3, 2.9
     write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, -26.0
 
+    ; TODO: Change this to init all screens at boot (in app_late_init).
+    call_3      app_copy_to_screen,    temp_logo_no_adr,   0,  48*Screen_Stride
+    wait 1
+    call_3      app_copy_to_screen,    temp_logo_no_adr,   0,  48*Screen_Stride
+    wait 1
+    call_3      app_copy_to_screen,    temp_logo_no_adr,   0,  48*Screen_Stride
+
     end_script
 
 

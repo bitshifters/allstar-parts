@@ -73,7 +73,7 @@ build:
 	$(MKDIR_P) "./build"
 
 ./build/assets.txt: build ./build/music.mod ./build/razor-font.bin ./build/tunnel_uv.bin ./build/tunnel2_uv.bin \
-	./build/face_uv.bin ./build/phong128.bin ./build/cloud128.bin ./build/itm128.bin
+	./build/face_uv.bin ./build/phong128.bin ./build/cloud128.bin ./build/itm128.bin ./build/temp-logo.bin
 	echo done > $@
 
 ./build/archie-verse.shri: build ./build/archie-verse.bin
@@ -154,6 +154,9 @@ clean:
 
 ./build/itm128.bin: ./data/gfx/itm-rot-tex16.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels -p ./build/itmpal.bin $< 9
+
+./build/temp-logo.bin: ./data/gfx/temp-logo-320x48x16.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC) -o $@ -p $@.pal $< 9
 
 ##########################################################################
 ##########################################################################

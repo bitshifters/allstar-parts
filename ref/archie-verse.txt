@@ -441,13 +441,22 @@ UV PART
 - Polish!
 
 DONUT PART
-- Add logo.
+- Add logo. - BODGED
 - Add scroller.
+    - Scroller at 50Hz how?
+        - Update on vsync
+        - Use RasterMan to display a separate buffer?
 - Come up with at least four interesting variations.
     - Move
     - Morph
     - Animate
+        => Need to be careful with sorting order
+           (Or implement face sorting.)
+           E.g. twisting the verts will invalidate the static draw order.
     - Lighting
+        - Move the light source
+        - Multiple light sources?
+        - Draw the light source
     - Triangle wibble by offseting X start by Y index into table..
 - RasterMan for logo and scroller?
 

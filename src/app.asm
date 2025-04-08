@@ -393,6 +393,15 @@ app_vsync_code:
     b exitVs
 .endif
 
+; R0=src ptr
+; R1=dst offset
+; R2=bytes
+app_copy_to_screen:
+    ldr r3, screen_addr
+    add r1, r3, r1
+    mov r2, r2, lsr #2          ; #words
+    b mem_copy_words
+
 ; ============================================================================
 ; FX code modules.
 ; ============================================================================

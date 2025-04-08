@@ -1,5 +1,6 @@
 ; ============================================================================
 ; DATA Segment.
+; TODO: Only include data needed for corresponding _PART_NUMBER.
 ; ============================================================================
 
 .data
@@ -20,11 +21,11 @@ razor_font_no_adr:
 ; MODE 9 texture, 4 bpp x 2
 .p2align 16
 rotate_texture_no_adr:
-.incbin "build/itm128.bin"               ; TODO: Build this from PNG.
+.incbin "build/itm128.bin"
 .incbin "build/itm128.bin"
 
 rotate_pal_no_adr:
-.incbin "build/itmpal.bin"               ; TODO: Build this from PNG.
+.incbin "build/itmpal.bin"
 
 ; ============================================================================
 
@@ -54,6 +55,11 @@ uv_tunnel1_map_no_adr:
 
 uv_tunnel2_map_no_adr:
 .incbin "build/tunnel2_uv.bin"
+
+; ============================================================================
+
+temp_logo_no_adr:
+.incbin "build/temp-logo.bin"
 
 ; ============================================================================
 ; Library data.
