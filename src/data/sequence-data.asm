@@ -30,6 +30,7 @@ seq_donut_part:
 
     call_3      fx_set_layer_fns,   0, 0,                          screen_cls_from_line
     call_3      fx_set_layer_fns,   1, scene3d_rotate_entity,      scene3d_draw_entity_as_solid_quads
+    call_3      fx_set_layer_fns,   2, tipsy_scroller_tick,        tipsy_scroller_draw
 
     write_vec3  object_rot_speed,           0.5, 1.3, 2.9
     write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, -26.0

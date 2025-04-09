@@ -413,6 +413,7 @@ app_copy_to_screen:
 .if AppConfig_UseRasterMan
 .include "src/rasters.asm"
 .endif
+.include "src/fx/tipsy-scroller.asm"
 
 ; ============================================================================
 ; Support library code modules used by the FX sequence.

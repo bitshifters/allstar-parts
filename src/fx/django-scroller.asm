@@ -184,6 +184,9 @@ scroller_plot_glyph:
 	add r9, r9, r0, lsl #7				; glyph_no * 128
 	add r9, r9, r0, lsl #6				; + glyph_no * 64
 	; !ASSUMES GLYPH SIZE IS (8+4)x16 BYTES!
+    .if Scroller_Glyph_Width!=16
+    .err "scroller_plot_glyph assumes glyphs are 2-3 words wide!"
+    .endif
 
 	.rept Scroller_Glyph_Height
 	ldmia r9!, {r0-r2}					; read glyph words

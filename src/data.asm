@@ -6,6 +6,8 @@
 .data
 .p2align 6
 
+; ===========================================================================
+
 ; fx/sine-scroller.asm
 razor_font_no_adr:
 .incbin "build/razor-font.bin"              ; TODO: Remove if not used!
@@ -60,6 +62,11 @@ uv_tunnel2_map_no_adr:
 
 temp_logo_no_adr:
 .incbin "build/temp-logo.bin"
+
+; ============================================================================
+
+fine_font_no_adr:
+.incbin "build/fine-font.bin"
 
 ; ============================================================================
 ; Library data.

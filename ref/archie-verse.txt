@@ -459,6 +459,7 @@ DONUT PART
         - Draw the light source
     - Triangle wibble by offseting X start by Y index into table..
 - RasterMan for logo and scroller?
+    => Need vsync callback to run != 50Hz
 
 To make it a demo?
 - Intro splash

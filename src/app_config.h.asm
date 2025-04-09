@@ -74,7 +74,7 @@
 ; Clear screen (clipping)
 .if _PART_NUMBER==0                     ; donut
 .equ Cls_FirstLine,                     48              ; inclusive
-.equ Cls_LastLine,                      48+180-1        ; inclusive
+.equ Cls_LastLine,                      255-8           ; inclusive
 .else
 .equ Cls_FirstLine,                     0               ; inclusive
 .equ Cls_LastLine,                      Screen_Height-1 ; inclusive

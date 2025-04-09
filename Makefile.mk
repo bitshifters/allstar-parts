@@ -73,7 +73,8 @@ build:
 	$(MKDIR_P) "./build"
 
 ./build/assets.txt: build ./build/music.mod ./build/razor-font.bin ./build/tunnel_uv.bin ./build/tunnel2_uv.bin \
-	./build/face_uv.bin ./build/phong128.bin ./build/cloud128.bin ./build/itm128.bin ./build/temp-logo.bin
+	./build/face_uv.bin ./build/phong128.bin ./build/cloud128.bin ./build/itm128.bin ./build/temp-logo.bin \
+	./build/fine-font.bin
 	echo done > $@
 
 ./build/archie-verse.shri: build ./build/archie-verse.bin
@@ -144,7 +145,7 @@ clean:
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ $< 4
 
 ./build/razor-font.bin: ./data/font/Charset_1Bitplan.png $(PNG2ARC_DEPS)
-	$(PYTHON2) $(PNG2ARC_FONT) -o $@ --glyph-dim 16 15 --max-glyphs 60 --store-as-byte-cols --map-to-ascii ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-./!\"$%&:;'()=*+?,^@ $< 9
+	$(PYTHON2) $(PNG2ARC_FONT) -o $@ --use-palette ./data/raw/razor-font.pal.bin --glyph-dim 16 15 --max-glyphs 60 --store-as-byte-cols --map-to-ascii ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-./!\"$%&:;'()=*+?,^@ $< 9
 
 ./build/phong128.bin: ./data/gfx/phong-x4.png ./data/raw/phong.pal.bin $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --use-palette ./data/raw/phong.pal.bin --double-pixels $< 9
@@ -157,6 +158,9 @@ clean:
 
 ./build/temp-logo.bin: ./data/gfx/temp-logo-320x48x16.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) -o $@ -p $@.pal $< 9
+
+./build/fine-font.bin: ./data/font/Fine.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC_FONT) -o $@ --glyph-dim 8 8 --max-glyphs 96 $< 9
 
 ##########################################################################
 ##########################################################################
