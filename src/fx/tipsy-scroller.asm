@@ -130,7 +130,8 @@ tipsy_scroller_draw:
     beq .1
 
     sub r0, r0, #32                 ; ascii space
-    add r9, r14, r0, lsl #5         ; assumes 32 bytes per glyph.
+    ldr r9, tipsy_scroller_font_p
+    add r9, r9, r0, lsl #5          ; assumes 32 bytes per glyph.
 
     .if TipsyScroller_UnrollPlot
     ; R14=font base p
@@ -145,59 +146,89 @@ tipsy_scroller_draw:
     ; R1=shifted word
     ; R0=free
 
-    .rept 2
-    ldmia r9!, {r3-r6}              ; four words = four rows
-    ; 3+1.25*4=8c
+    ldmia r9!, {r0-r7}              ; 8 words
     ; 3+1.25*8=13c - save 3c to read 8 registers...
 
-    cmp r10, #0
-    addeq pc, pc, #21*4-4           ; skip 21 insructions
-
-    ; LHS
-    sub r11, r11, #4                ; prev column
-
-    movs r1, r3, lsl r7             ; first glyph word shifted.
-    ldrne r2, [r11]                 ; load prev screen word.
-    ;bicne r2, r2, r1
-    orrne r2, r2, r1                ; mask in first glyph word.
-    strne r2, [r11]                 ; store prev screen word.
-    add r11, r11, #Screen_Stride
-
-    movs r1, r4, lsl r7             ; first glyph word shifted.
-    ldrne r2, [r11]                 ; load prev screen word.
-    ;bicne r2, r2, r1
-    orrne r2, r2, r1                ; mask in first glyph word.
-    strne r2, [r11]                 ; store prev screen word.
-    add r11, r11, #Screen_Stride
-
-    movs r1, r5, lsl r7             ; first glyph word shifted.
-    ldrne r2, [r11]                 ; load prev screen word.
-    ;bicne r2, r2, r1
-    orrne r2, r2, r1                ; mask in first glyph word.
-    strne r2, [r11]                 ; store prev screen word.
-    add r11, r11, #Screen_Stride
-
-    movs r1, r6, lsl r7             ; first glyph word shifted.
-    ldrne r2, [r11]                 ; load prev screen word.
-    ;bicne r2, r2, r1
-    orrne r2, r2, r1                ; mask in first glyph word.
-    strne r2, [r11]                 ; store prev screen word.
-    sub r11, r11, #3*Screen_Stride-4
-
     cmp r10, #40
-    addge r11, r11, #4*Screen_Stride
-    addge pc, pc, #8*4-4            ; skip 8 instructions
+    addge r11, r11, #8*Screen_Stride
+    bge .10                          ; skip RHS
 
     ; RHS
-    mov r1, r3, lsr r8              ; second glyph word shifted.
-    str r1, [r11], #Screen_Stride
-    mov r1, r4, lsr r8              ; second glyph word shifted.
-    str r1, [r11], #Screen_Stride
-    mov r1, r5, lsr r8              ; second glyph word shifted.
-    str r1, [r11], #Screen_Stride
-    mov r1, r6, lsr r8              ; second glyph word shifted.
-    str r1, [r11], #Screen_Stride
-    .endr
+    mov r14, r0, lsr r8              ; second glyph word shifted.
+    str r14, [r11], #Screen_Stride
+    mov r14, r1, lsr r8              ; second glyph word shifted.
+    str r14, [r11], #Screen_Stride
+    mov r14, r2, lsr r8              ; second glyph word shifted.
+    str r14, [r11], #Screen_Stride
+    mov r14, r3, lsr r8              ; second glyph word shifted.
+    str r14, [r11], #Screen_Stride
+    mov r14, r4, lsr r8              ; second glyph word shifted.
+    str r14, [r11], #Screen_Stride
+    mov r14, r5, lsr r8              ; second glyph word shifted.
+    str r14, [r11], #Screen_Stride
+    mov r14, r6, lsr r8              ; second glyph word shifted.
+    str r14, [r11], #Screen_Stride
+    mov r14, r7, lsr r8              ; second glyph word shifted.
+    str r14, [r11], #Screen_Stride
+
+    .10:
+    cmp r10, #0
+    beq .11                         ; skip LHS
+
+    ; LHS
+    sub r11, r11, #Screen_Stride*8+4; top of prev column
+    rsb r8, r8, #32
+
+    movs r0, r0, lsl r8             ; first glyph word shifted.
+    ldrne r14, [r11]                ; load prev screen word.
+    orrne r14, r14, r0              ; mask in first glyph word.
+    strne r14, [r11]                ; store prev screen word.
+    add r11, r11, #Screen_Stride
+
+    movs r1, r1, lsl r8             ; first glyph word shifted.
+    ldrne r14, [r11]                ; load prev screen word.
+    orrne r14, r14, r1              ; mask in first glyph word.
+    strne r14, [r11]                ; store prev screen word.
+    add r11, r11, #Screen_Stride
+
+    movs r2, r2, lsl r8             ; first glyph word shifted.
+    ldrne r14, [r11]                ; load prev screen word.
+    orrne r14, r14, r2              ; mask in first glyph word.
+    strne r14, [r11]                ; store prev screen word.
+    add r11, r11, #Screen_Stride
+
+    movs r3, r3, lsl r8             ; first glyph word shifted.
+    ldrne r14, [r11]                ; load prev screen word.
+    orrne r14, r14, r3              ; mask in first glyph word.
+    strne r14, [r11]                ; store prev screen word.
+    add r11, r11, #Screen_Stride
+
+    movs r4, r4, lsl r8             ; first glyph word shifted.
+    ldrne r14, [r11]                ; load prev screen word.
+    orrne r14, r14, r4              ; mask in first glyph word.
+    strne r14, [r11]                ; store prev screen word.
+    add r11, r11, #Screen_Stride
+
+    movs r5, r5, lsl r8             ; first glyph word shifted.
+    ldrne r14, [r11]                ; load prev screen word.
+    orrne r14, r14, r5              ; mask in first glyph word.
+    strne r14, [r11]                ; store prev screen word.
+    add r11, r11, #Screen_Stride
+
+    movs r6, r6, lsl r8             ; first glyph word shifted.
+    ldrne r14, [r11]                ; load prev screen word.
+    orrne r14, r14, r6              ; mask in first glyph word.
+    strne r14, [r11]                ; store prev screen word.
+    add r11, r11, #Screen_Stride
+
+    movs r7, r7, lsl r8             ; first glyph word shifted.
+    ldrne r14, [r11]                ; load prev screen word.
+    orrne r14, r14, r7              ; mask in first glyph word.
+    strne r14, [r11]                ; store prev screen word.
+    add r11, r11, #Screen_Stride+4
+    
+    rsb r8, r8, #32
+    .11:
 
     .else
     ; Row loop.
