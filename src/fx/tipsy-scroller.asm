@@ -9,6 +9,7 @@
 
 .equ TipsyScroller_DropShadow,  0
 .equ TipsyScroller_MaskPlot,    0
+.equ TipsyScroller_UnrollPlot,  1
 
 ; ============================================================================
 
@@ -119,6 +120,8 @@ tipsy_scroller_draw:
     rsb r7, r8, #32                 ; shift for first word.
     mov r10, #0                     ; screen column
 
+    ldr r14, tipsy_scroller_font_p
+
     ; Character loop.
     .1:
     ldrb r0, [r12], #1
@@ -127,9 +130,70 @@ tipsy_scroller_draw:
     beq .1
 
     sub r0, r0, #32                 ; ascii space
-    ldr r9, tipsy_scroller_font_p
-    add r9, r9, r0, lsl #5          ; assumes 32 bytes per glyph.
+    add r9, r14, r0, lsl #5         ; assumes 32 bytes per glyph.
 
+    .if TipsyScroller_UnrollPlot
+    ; R14=font base p
+    ; R12=text p
+    ; R11=screen p
+    ; R10=screen col
+    ; R9=font p
+    ; R8=shift 2
+    ; R7=shift 1
+
+    .rept 2
+    ldmia r9!, {r3-r6}              ; four words = four rows
+
+    mov r1, r3, lsr r8              ; second glyph word shifted.
+    cmp r10, #0
+    addeq pc, pc, #16               ; skip 5 instructions
+    movs r3, r3, lsl r7             ; first glyph word shifted.
+    ldrne r2, [r11, #-4]            ; load prev screen word.
+    bicne r2, r2, r3
+    orrne r2, r2, r3                ; mask in first glyph word.
+    strne r2, [r11, #-4]            ; store prev screen word.
+    cmp r10, #40                    ; skip RH edge
+    strlt r1, [r11]
+    add r11, r11, #Screen_Stride
+
+    mov r1, r4, lsr r8              ; second glyph word shifted.
+    cmp r10, #0
+    addeq pc, pc, #16               ; skip 5 instructions
+    movs r4, r4, lsl r7             ; first glyph word shifted.
+    ldrne r2, [r11, #-4]            ; load prev screen word.
+    bicne r2, r2, r4
+    orrne r2, r2, r4                ; mask in first glyph word.
+    strne r2, [r11, #-4]            ; store prev screen word.
+    cmp r10, #40                    ; skip RH edge
+    strlt r1, [r11]
+    add r11, r11, #Screen_Stride
+
+    mov r1, r5, lsr r8              ; second glyph word shifted.
+    cmp r10, #0
+    addeq pc, pc, #16               ; skip 5 instructions
+    movs r5, r5, lsl r7             ; first glyph word shifted.
+    ldrne r2, [r11, #-4]            ; load prev screen word.
+    bicne r2, r2, r5
+    orrne r2, r2, r5                ; mask in first glyph word.
+    strne r2, [r11, #-4]            ; store prev screen word.
+    cmp r10, #40                    ; skip RH edge
+    strlt r1, [r11]
+    add r11, r11, #Screen_Stride
+
+    mov r1, r6, lsr r8              ; second glyph word shifted.
+    cmp r10, #0
+    addeq pc, pc, #16               ; skip 5 instructions
+    movs r6, r6, lsl r7             ; first glyph word shifted.
+    ldrne r2, [r11, #-4]            ; load prev screen word.
+    bicne r2, r2, r6
+    orrne r2, r2, r6                ; mask in first glyph word.
+    strne r2, [r11, #-4]            ; store prev screen word.
+    cmp r10, #40                    ; skip RH edge
+    strlt r1, [r11]
+    add r11, r11, #Screen_Stride
+    .endr
+
+    .else
     ; Row loop.
     mov r6, #8
 
@@ -183,8 +247,9 @@ tipsy_scroller_draw:
     add r11, r11, #Screen_Stride
     subs r6, r6, #1
     bne .2                          ; next row.
-    
-    subs r11, r11, #8*Screen_Stride
+    .endif
+
+    sub r11, r11, #8*Screen_Stride
     add r11, r11, #4                ; next screen word.
 
     add r10, r10, #1                ; next screen column.
