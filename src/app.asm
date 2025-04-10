@@ -3,7 +3,8 @@
 ; Hack as necessary per prod.
 ; ============================================================================
 
-.equ RasterSplitLine, 56+90			; 56 lines from vsync to screen start
+.equ TipsyScrollerOnVsync,      0
+.equ RasterSplitLine,           56+90			; 56 lines from vsync to screen start
 
 ; ============================================================================
 
@@ -216,12 +217,17 @@ app_late_init:
     bl rasters_init
 .endif
 
+    mov r0, #1
+    str r0, app_ready
+
     ;ldr r10, init_screen_addr
     ;bl text_pool_init
 
     ldr pc, [sp], #4
 ; TODO: Make this more generic or include in sequence?
 
+app_ready:
+    .long 0
 
 ; ============================================================================
 ; App main loop.
@@ -363,6 +369,19 @@ app_vsync_code:
 	add r0, r0, #1
 	str r0, vsync_count
 
+    .if TipsyScrollerOnVsync
+    ; Do scrolltext?!
+    ldr r0, app_ready
+    cmp r0, #0
+    beq .3
+    stmfd sp!, {r2-r10}
+    bl tipsy_scroller_tick
+    ldr r12, screen_addr    ; write to screen to be displayed.
+    bl tipsy_scroller_draw
+    ldmfd sp!, {r2-r10}
+    .3:
+    .endif
+
 	; Pending bank will now be displayed.
 	ldr r1, pending_bank
 	cmp r1, #0
@@ -370,8 +389,10 @@ app_vsync_code:
 	streq r0, last_dropped_frame
 	.endif
 	beq exitVs
+    str r1, displayed_bank
 
-	str r1, displayed_bank
+    ldr r12, pending_screen_addr
+    str r12, displayed_screen_addr
 
     ; Set palette for pending bank.
 	mov r11, #VIDC_Write

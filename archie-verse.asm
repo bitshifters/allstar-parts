@@ -210,7 +210,8 @@ main_loop_skip_tick:
 	; ========================================================================
 
 	; This will block if there isn't a bank available to write to.
-	bl get_next_bank_for_writing
+    ; I.e. we're running too fast and our next buffer is the one being displayed.
+	; bl get_next_bank_for_writing
 
 	; Useful to determine frame rate for debug or frame-rate independent animation.
 	ldr r1, last_vsync
@@ -260,6 +261,8 @@ main_loop_skip_tick:
 	.endif
 
 	; Swap screens!
+    ; NB. This blocks if there is already a bank pending display.
+    ;     This also now fetches the next bank to write to.
 	bl mark_write_bank_as_pending_display
 
 	; repeat!
@@ -476,6 +479,9 @@ mark_write_bank_as_pending_display:
 	bne .1
 	str r1, pending_bank
 
+    ldr r12, screen_addr
+    str r12, pending_screen_addr
+
     ; Convert palette buffer to VIDC writes here!
     ldr r2, vidc_buffers_p
     add r2, r2, r1, lsl #6              ; 64 bytes per bank
@@ -513,7 +519,8 @@ mark_write_bank_as_pending_display:
 	; Show pending bank at next vsync.
 	MOV r0, #OSByte_WriteDisplayBank
 	swi OS_Byte
-	mov pc, lr
+;	mov pc, lr
+; FALL THROUGH!
 
 get_next_bank_for_writing:
 	; Increment to next bank for writing
@@ -550,6 +557,7 @@ get_next_bank_for_writing:
 	; Now set the screen bank to write to
 	mov r0, #OSByte_WriteVDUBank
 	swi OS_Byte
+; FALL THROUGH!
 
 get_screen_addr:
 	; Back buffer address for writing bank stored at screen_addr
@@ -617,11 +625,17 @@ init_screen_addr:
 displayed_bank:
 	.long 0				; VIDC sreen bank being displayed
 
+displayed_screen_addr:
+    .long 0             ; ptr to the screen being displayed
+
 write_bank:
 	.long 0				; VIDC screen bank being written to
 
 pending_bank:
 	.long 0				; VIDC screen to be displayed next
+
+pending_screen_addr:
+    .long 0             ; ptr to the screen about to be displayed
 
 vsync_count:
 	.long 0				; current vsync count from start of exe.

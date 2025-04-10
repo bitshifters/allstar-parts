@@ -30,12 +30,16 @@ seq_donut_part:
 
     call_3      fx_set_layer_fns,   0, 0,                          screen_cls_from_line
     call_3      fx_set_layer_fns,   1, scene3d_rotate_entity,      scene3d_draw_entity_as_solid_quads
+    .if !TipsyScrollerOnVsync
     call_3      fx_set_layer_fns,   2, tipsy_scroller_tick,        tipsy_scroller_draw
+    .endif
 
     write_vec3  object_rot_speed,           0.5, 1.3, 2.9
     write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, -26.0
 
     ; TODO: Change this to init all screens at boot (in app_late_init).
+    ;       It doesn't work because 'wait 1' waits for a frame not a vsync
+    ;       and because of triple buffering we can easily beat the vsync.
     call_3      app_copy_to_screen,    temp_logo_no_adr,   0,  48*Screen_Stride
     wait 1
     call_3      app_copy_to_screen,    temp_logo_no_adr,   0,  48*Screen_Stride

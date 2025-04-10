@@ -20,7 +20,7 @@ tipsy_scroller_base_p:
     .long tipsy_scroller_message_no_adr
 
 tipsy_scroller_speed:
-    .long 2
+    .long 1
 
 tipsy_scroller_column:
     .long 0
