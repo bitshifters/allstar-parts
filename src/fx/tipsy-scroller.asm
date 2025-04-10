@@ -9,7 +9,7 @@
 
 .equ TipsyScroller_DropShadow,  0
 .equ TipsyScroller_MaskPlot,    0
-.equ TipsyScroller_UnrollPlot,  1
+.equ TipsyScroller_UnrollPlot,  1   ; NB. Broke the loop version. :)
 
 ; ============================================================================
 
@@ -20,7 +20,7 @@ tipsy_scroller_base_p:
     .long tipsy_scroller_message_no_adr
 
 tipsy_scroller_speed:
-    .long 1
+    .long 2
 
 tipsy_scroller_column:
     .long 0
@@ -118,9 +118,9 @@ tipsy_scroller_draw:
     ldr r8, tipsy_scroller_column
     mov r8, r8, lsl #2              ; shift for second word.
     rsb r7, r8, #32                 ; shift for first word.
-    mov r10, #0                     ; screen column
+    mov r10, #40                    ; screen column
 
-    ldr r14, tipsy_scroller_font_p
+    ldr r9, tipsy_scroller_font_p
 
     ; Character loop.
     .1:
@@ -130,28 +130,23 @@ tipsy_scroller_draw:
     beq .1
 
     sub r0, r0, #32                 ; ascii space
-    ldr r9, tipsy_scroller_font_p
-    add r9, r9, r0, lsl #5          ; assumes 32 bytes per glyph.
+    add r14, r9, r0, lsl #5          ; assumes 32 bytes per glyph.
 
     .if TipsyScroller_UnrollPlot
-    ; R14=font base p
+    ; R14=temp
     ; R12=text p
     ; R11=screen p
-    ; R10=screen col
+    ; R10=screen column count
     ; R9=font p
-    ; R8=shift 2
-    ; R7=shift 1        <= calc this for 1 cycle?
-    ; R3-R6=font words
-    ; R2=screen word    <= spare this by reordering?
-    ; R1=shifted word
-    ; R0=free
+    ; R8=shift
+    ; R0-R7=font words
 
-    ldmia r9!, {r0-r7}              ; 8 words
+    ldmia r14!, {r0-r7}              ; 8 words
     ; 3+1.25*8=13c - save 3c to read 8 registers...
 
-    cmp r10, #40
-    addge r11, r11, #8*Screen_Stride
-    bge .10                          ; skip RHS
+    cmp r10, #0
+    addeq r11, r11, #8*Screen_Stride
+    beq .10                          ; skip RHS
 
     ; RHS
     mov r14, r0, lsr r8              ; second glyph word shifted.
@@ -172,12 +167,12 @@ tipsy_scroller_draw:
     str r14, [r11], #Screen_Stride
 
     .10:
-    cmp r10, #0
-    beq .11                         ; skip LHS
+    cmp r10, #40
+    beq .11                          ; skip LHS
 
     ; LHS
     sub r11, r11, #Screen_Stride*8+4; top of prev column
-    rsb r8, r8, #32
+    rsb r8, r8, #32                 ; flip shift
 
     movs r0, r0, lsl r8             ; first glyph word shifted.
     ldrne r14, [r11]                ; load prev screen word.
@@ -227,7 +222,7 @@ tipsy_scroller_draw:
     strne r14, [r11]                ; store prev screen word.
     add r11, r11, #Screen_Stride+4
     
-    rsb r8, r8, #32
+    rsb r8, r8, #32                 ; flip shift
     .11:
 
     .else
@@ -244,7 +239,7 @@ tipsy_scroller_draw:
     beq .3                          ; skip.
 
     ; display first glyph word in prev screen word.
-    cmp r10, #0
+    cmp r10, #40
     beq .3                          ; skip if left hand edge of screen.
 
     ldr r2, [r11, #-4]              ; load prev screen word.
@@ -261,8 +256,8 @@ tipsy_scroller_draw:
 
     ; display second glyph word in current screen word.
     .3:
-    cmp r10, #40
-    bge .4                          ; skip if right hand edge of screen.
+    cmp r10, #0
+    beq .4                          ; skip if right hand edge of screen.
 
     .if TipsyScroller_MaskPlot
     ldr r2, [r11]                   ; load current screen word.
@@ -286,11 +281,10 @@ tipsy_scroller_draw:
     bne .2                          ; next row.
     .endif
 
-    sub r11, r11, #8*Screen_Stride-4 ; next screen word.
+    sub r11, r11, #8*Screen_Stride-4    ; next screen word.
 
-    add r10, r10, #1                ; next screen column.
-    cmp r10, #41                    ; one extra column for scroll!
-    bne .1
+    subs r10, r10, #1               ; next screen column.
+    bpl .1                          ; 41 columns!
 
     ldr pc, [sp], #4
 
