@@ -217,6 +217,25 @@ app_late_init:
     bl rasters_init
 .endif
 
+    ; Copy the logo to all of our screen buffers.
+    .if _PART_NUMBER==0
+    adr r0, app_logo_p
+    ldmia r0, {r0-r2}
+    bl app_copy_to_screen
+
+    bl get_next_bank_for_writing
+
+    adr r0, app_logo_p
+    ldmia r0, {r0-r2}
+    bl app_copy_to_screen
+
+    bl get_next_bank_for_writing
+
+    adr r0, app_logo_p
+    ldmia r0, {r0-r2}
+    bl app_copy_to_screen
+    .endif
+
     mov r0, #1
     str r0, app_ready
 
@@ -225,6 +244,13 @@ app_late_init:
 
     ldr pc, [sp], #4
 ; TODO: Make this more generic or include in sequence?
+
+.if _PART_NUMBER==0
+app_logo_p:
+    .long temp_logo_no_adr  ; src ptr
+    .long 0                 ; offset
+    .long 48*Screen_Stride  ; length
+.endif
 
 app_ready:
     .long 0

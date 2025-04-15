@@ -261,6 +261,7 @@ math_evaluate_func2:
 ;  R0=i [16.0]
 ; Trashes: R1-R9
 ; Returns: R0=v, R10=ptr to next func.
+; TODO: Replace with RGB blend in one mul: https://gist.github.com/mattiasgustavsson/c11e824e3d603d0c86e5e0dde4ecf839
 math_evaluate_rgb_lerp:
     ldmia r10!, {r1-r3}     ; [a, b, c]
 
@@ -373,6 +374,8 @@ math_evaluate_palette_lerp:
     mov pc, lr
 
 ; ============================================================================
+; Math functions.
+; ============================================================================
 
 .equ math_sin, sine
 .equ math_cos, cosine
@@ -410,65 +413,5 @@ math_clamp:
     cmp r0, #MATHS_CONST_1
     movgt r0, #MATHS_CONST_1
     mov pc, lr
-
-; ============================================================================
-; Script helpers.
-; ============================================================================
-
-; v = a + b * f(c + d * i)      ; linear fn.
-; Potentially add a parameter to f?
-.macro math_func a, b, f, c, d
-    FLOAT_TO_FP \a
-    FLOAT_TO_FP \b
-    FLOAT_TO_FP \c
-    FLOAT_TO_FP \d
-    .long \f
-.endm
-
-.macro math_func_read_addr a, b, c
-    FLOAT_TO_FP \a
-    FLOAT_TO_FP \b
-    .long \c
-    .long 0
-    .long math_read_addr
-.endm
-
-.macro math_const a
-    math_func \a, 0.0, 0.0, 0.0, 0
-.endm
-
-.equ math_no_func, 0
-
-.macro math_make_var addr, a, b, f, c, d
-    .long script_call_6, math_var_register, \addr, MATHS_CONST_1*\a, MATHS_CONST_1*\b, MATHS_CONST_1*\c, MATHS_CONST_1*\d, \f
-.endm
-
-.macro math_make_var2 addr, a, b, f, c, d
-    .long script_call_7, math_var_register_ex, \addr, MATHS_CONST_1*\a, \b, MATHS_CONST_1*\c, MATHS_CONST_1*\d, \f, math_evaluate_func2
-.endm
-
-.macro math_kill_var addr
-    .long script_call_1, math_var_unregister, \addr
-.endm
-
-.macro math_link_vars addr, a, b, c
-    .long script_call_6, math_var_register, \addr, MATHS_CONST_1*\a, MATHS_CONST_1*\b, \c, 0, math_read_addr
-.endm
-
-.macro math_unlink_vars addr, c
-    math_kill_var \addr
-.endm
-
-.macro math_make_rgb rgb_addr, colA, colB, blend_addr
-    .long script_call_7, math_var_register_ex, \rgb_addr, \colA, \colB, \blend_addr, 0, 0, math_evaluate_rgb_lerp
-.endm
-
-.macro math_kill_rgb rgb_addr
-    math_kill_var \rgb_addr
-.endm
-
-.macro math_make_palette dummy_addr, palette_A, palette_B, blend_addr, tableDst
-    .long script_call_7, math_var_register_ex, \dummy_addr, \palette_A, \palette_B, \blend_addr, \tableDst, 0, math_evaluate_palette_lerp
-.endm
 
 ; ============================================================================
