@@ -28,15 +28,47 @@ debug_prev_mask:
 .endif
 ; TODO: debug font for MODE!=9
 
-; R0=value to plot as %04x
-; Trashes R1-R2.
-debug_plot_hex4:
+; R0=address of value to plot as %04x
+; Trashes R1-R2,R8-R12.
+debug_plot_addr_as_hex4:
+    ldr r0, [r0]
     adr r1, debug_temp_string
     mov r2, #Debug_TempLen
     swi OS_ConvertHex4
 
     adr r0, debug_temp_string
     b debug_plot_string
+
+; R0=address of value to plot as %04x
+; Trashes R1-R2,R8-R12.
+debug_plot_addr_as_hex8:
+    ldr r0, [r0]
+    adr r1, debug_temp_string
+    mov r2, #Debug_TempLen
+    swi OS_ConvertHex8
+
+    adr r0, debug_temp_string
+    b debug_plot_string
+
+; R0=address of value to plot as vec3
+; Trashes R1-R4,R8-R12.
+debug_plot_addr_as_vec3:
+    str lr, [sp, #-4]!
+
+    ; TODO: Make this nice FP view, e.g. "(XX.xx, YY.yy, ZZ.zz)" %02.2f in C parlance.
+
+    mov r3, r0
+    bl debug_plot_addr_as_hex8
+    bl debug_cursor_right
+
+    add r0, r3, #4
+    bl debug_plot_addr_as_hex8
+    bl debug_cursor_right
+
+    add r0, r3, #8
+    bl debug_plot_addr_as_hex8
+
+    ldr pc, [sp], #4
 
 .if 0
 ; R0=fp value.
@@ -67,19 +99,21 @@ debug_write_vector:
 
 
 ; R0=address of a variable to add to the debug display.
-; Trashes: R1-R3
+; R1=function used to display the variable.
+; Trashes: R1-R4
 debug_register_var:
-    adr r1, debug_var_stack
+    adr r4, debug_var_stack
     mov r2, #0
 .1:
-    ldr r3, [r1, r2, lsl #2]
+    ldr r3, [r4]
     cmp r3, r0
     moveq pc, lr        ; already registered.
 
     cmp r3, #0
-    streq r0, [r1, r2, lsl #2]
+    stmeqia r4, {r0,r1}
     moveq pc, lr
 
+    add r4, r4, #8
     add r2, r2, #1
     cmp r2, #Debug_MaxVars
     blt .1
@@ -103,12 +137,14 @@ debug_plot_vars:
     adr r10, debug_var_stack
     mov r9, #0
 .1:
-    ldr r1, [r10, r9, lsl #2]
-    cmp r1, #0
+    ldmia r10!, {r0, r1}    ; var addr, plot func
+    cmp r0, #0
     beq .2
 
-    ldr r0, [r1]
-    bl debug_plot_hex4
+    adr lr, .3
+    ; TODO: Store regs if necessary.
+    mov pc, r1              ; call plot func.
+    .3:
     bl debug_cursor_right
 
     add r9, r9, #1
@@ -224,7 +260,7 @@ debug_temp_string:
 	.skip Debug_TempLen
 
 debug_var_stack:
-    .skip 4*Debug_MaxVars
+    .skip 8*Debug_MaxVars
 
 error_out_of_vars:
     .long 0
@@ -256,7 +292,8 @@ debug_init:
     adr r1, debug_var_stack
     mov r2, #Debug_MaxVars
 .3:
-    str r0, [r1], #4
+    str r0, [r1], #4                    ; var address
+    str r0, [r1], #4                    ; plot func
     subs r2, r2, #1
     bne .3
 
@@ -375,7 +412,7 @@ debug_cursor_right:
     add r1, r1, #1
     cmp r1, #40
     movge r1, #0
-    addge r2, r2, #1
+    addge r2, r2, #8
     cmp r2, #32
     movge r2, #0
 ; FALL THROUGH!

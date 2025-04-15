@@ -25,21 +25,42 @@
 
 seq_donut_part:
 
+    write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, 54.0
+
     ; Show donut.
     call_1      palette_set_block,  seq_palette_red_additive
 
-    call_3      fx_set_layer_fns,   0, 0,                          screen_cls_from_line
-    call_3      fx_set_layer_fns,   1, scene3d_rotate_entity,      scene3d_draw_entity_as_solid_quads
+    call_3      fx_set_layer_fns,   0, scene3d_rotate_entity,         screen_cls_from_line
+    call_3      fx_set_layer_fns,   1, scene3d_move_entity_to_target, 0
+    call_3      fx_set_layer_fns,   3, scene3d_transform_entity,      scene3d_draw_entity_as_solid_quads
     .if !TipsyScrollerOnVsync
     ; TODO: Remove scroller for now.
     ;call_3      fx_set_layer_fns,   2, tipsy_scroller_tick,        tipsy_scroller_draw
     .endif
 
     write_vec3  object_rot_speed,           0.5, 1.3, 2.9
+    ;write_vec3  object_rot_speed,           0.0, 0.0, 0.0
     ;write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, -26.0
 
-    math_make_var torus_entity+Entity_PosX, 0.0, 32.0, math_cos, 0.0, 0.006
-    math_make_var torus_entity+Entity_PosY, 0.0, 32.0, math_sin, 0.0, 0.004
+;    math_make_var torus_entity+Entity_PosX, 0.0, 32.0, math_cos, 0.0, 0.006
+;    math_make_var torus_entity+Entity_PosY, 0.0, 32.0, math_sin, 0.0, 0.004
+
+    write_vec3  object_target_pos,          0.0, 0.0, -26.0
+
+    wait_secs 5.0
+    write_vec3  object_target_pos,          40.0, 0.0, 0
+
+    wait_secs 5.0
+    write_vec3  object_target_pos,          -40.0, 0.0, 54.0
+
+    wait_secs 5.0
+    write_vec3  object_target_pos,          0.0, 40.0, 0
+
+    wait_secs 5.0
+    write_vec3  object_target_pos,          0.0, -40.0, -26.0
+
+    wait_secs 5.0
+    write_vec3  object_target_pos,          0.0, 0.0, 0.0
 
     end_script
 

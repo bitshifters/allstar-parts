@@ -5,6 +5,23 @@
 .macro DEBUG_REGISTER_VAR addr
     .if _DEBUG
     adr r0, \addr
+    adr r1, debug_plot_addr_as_hex4         ; default plot func.
+    bl debug_register_var
+    .endif
+.endm
+
+.macro DEBUG_REGISTER_VAR_EX addr, func
+    .if _DEBUG
+    adr r0, \addr
+    adr r1, \func
+    bl debug_register_var
+    .endif
+.endm
+
+.macro DEBUG_REGISTER_VEC3 addr
+    .if _DEBUG
+    adr r0, \addr
+    adr r1, debug_plot_addr_as_vec3
     bl debug_register_var
     .endif
 .endm

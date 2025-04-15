@@ -6,7 +6,7 @@ Contains all accumulated libraries and code from previous prods.
 Framework TODOs as of 15/5/24:
 ~~~
 => Add logo on screen and submit as blank framework. - DONE
-- Separate tick/draw order from being tied together.
+- Separate tick/draw order from being tied together. <=== THIS
     - Strict draw order in layers.
     - Are there any dependencies between tick?
       => Could be if moving objects in a scene then doing collisions, say.
@@ -444,10 +444,13 @@ DONUT PART
 - Add logo. - BODGED
 - Add scroller.
     - Scroller at 50Hz how?
-        - Update on vsync
+        - Update on vsync - STARTED
         - Use RasterMan to display a separate buffer?
 - Come up with at least four interesting variations.
     - Move
+        - Defining paths with individual math_vars is tedious.
+          Now need to define a math_vec_func !?
+          Could also have a 'move to target' tick?
     - Morph
     - Animate
         => Need to be careful with sorting order

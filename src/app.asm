@@ -32,9 +32,9 @@ app_init_debug:
 
     bl debug_init
 
-    DEBUG_REGISTER_VAR vsync_delta
-    DEBUG_REGISTER_VAR frame_counter
-    DEBUG_REGISTER_VAR scene3d_stats_quads_plotted
+;    DEBUG_REGISTER_VAR vsync_delta
+;    DEBUG_REGISTER_VAR frame_counter
+;    DEBUG_REGISTER_VAR scene3d_stats_quads_plotted
     
 ;    DEBUG_REGISTER_VAR music_pos
     DEBUG_REGISTER_KEY RMKey_Space,      debug_toggle_main_loop_pause,  0

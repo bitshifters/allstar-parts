@@ -117,6 +117,9 @@ scene3d_stats_quads_plotted:
 scene3d_init:
     str lr, [sp, #-4]!
 
+    DEBUG_REGISTER_VEC3 object_target_pos
+    DEBUG_REGISTER_VEC3 torus_entity+Entity_Pos
+
     ldr pc, [sp], #4
 
 ; ============================================================================
@@ -352,7 +355,8 @@ scene3d_rotate_entity:
 .endif
 
     ; Transform the object into world space.
-    bl scene3d_transform_entity
+    ;    bl scene3d_transform_entity
+    ; NB. Now do this explicitly in sequences script so entity updates can be composed.
 
     ; Update any scene vars, camera, object position etc. (Rocket?)
     ldr r10, scene3d_entity_p
@@ -377,6 +381,50 @@ scene3d_rotate_entity:
 
     ldr pc, [sp], #4
 
+object_target_pos:
+    VECTOR3 0.0, 0.0, 0.0
+
+object_target_lerp_factor:
+    FLOAT_TO_FP 0.1
+
+; Lerp the entity towards a target position.
+scene3d_move_entity_to_target:
+    str lr, [sp, #-4]!
+
+    ldr r10, scene3d_entity_p
+    ldmia r10, {r0-r2}              ; Entity Pos
+
+    adr r9, object_target_pos
+    ldmia r9, {r3-r5}               ; target pos
+
+    ; Calculate delta=(target-pos).
+    sub r3, r3, r0
+    sub r4, r4, r1
+    sub r5, r5, r2
+
+    ; Scale this by our lerp factor.
+    ldr r6, object_target_lerp_factor
+
+    ; Multiplication scaling.
+    mov r3, r3, asr #8
+    mov r4, r4, asr #8
+    mov r5, r5, asr #8              ; s15.8
+
+    ; Calculate new pos = pos + (target-pos) * lerp.
+    mul r3, r6, r3
+    mul r4, r6, r4
+    mul r5, r6, r5
+
+    add r0, r0, r3, asr #8
+    add r1, r1, r4, asr #8
+    add r2, r2, r5, asr #8
+
+    ; Store new pos.
+    stmia r10, {r0-r2}
+
+    ldr pc, [sp], #4
+
+.if 0
 scene3d_update_entity_from_vubars:
     str lr, [sp, #-4]!
 
@@ -425,6 +473,7 @@ scene3d_update_entity_from_vubars:
     ; Transform the object into world space.
     bl scene3d_transform_entity
     ldr pc, [sp], #4
+.endif
 
 ; ============================================================================
 ; Project the transformed vertex array into screen space.
