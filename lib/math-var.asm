@@ -215,7 +215,7 @@ math_var_tick:
 ;  R10=ptr to func parameters [a, b, c, d, f]
 ;  R0=i [16.0]
 ; Trashes: R1-R5, R9
-; Returns: R0=v, R10=ptr to next func.
+; Returns: R0=v
 math_evaluate_func:
     str lr, [sp, #-4]!
     ldmia r10!, {r1-r5}     ; [a, b, c, d, f]
@@ -237,7 +237,7 @@ math_evaluate_func:
 ;  R10=ptr to func parameters [a, b, c, d, f]
 ;  R0=i [16.0]
 ; Trashes: R1-R5, R9
-; Returns: R0=v, R10=ptr to next func.
+; Returns: R0=v
 math_evaluate_func2:
     str lr, [sp, #-4]!
     ldmia r10!, {r1-r5}     ; [a, b, c, d, f]
@@ -260,7 +260,7 @@ math_evaluate_func2:
 ;  R10=ptr to func parameters [a, b, c, d, f]
 ;  R0=i [16.0]
 ; Trashes: R1-R9
-; Returns: R0=v, R10=ptr to next func.
+; Returns: R0=v
 ; TODO: Replace with RGB blend in one mul: https://gist.github.com/mattiasgustavsson/c11e824e3d603d0c86e5e0dde4ecf839
 math_evaluate_rgb_lerp:
     ldmia r10!, {r1-r3}     ; [a, b, c]
@@ -314,7 +314,7 @@ math_evaluate_rgb_lerp:
 ;  R10=ptr to func parameters [a, b, c, d, f]
 ;  R0=i [16.0]
 ; Trashes: R1-R9
-; Returns: R0=v, R10=ptr to next func.
+; Returns: R0=v
 math_evaluate_palette_lerp:
     ldr r3, [r10, #8]
     ldr r3, [r3]                ; blend = RAM[c] [1.16]
@@ -372,6 +372,42 @@ math_evaluate_palette_lerp:
     ; NOTE: For Push intro we ignore colour 15 (orb).
     
     mov pc, lr
+
+; ============================================================================
+
+; Super hack balls!
+; Abuse the math_var functionality to update a VECTOR3.
+; Where a, b, c are math_func definitions to be evaluated.
+;       d is the base address of the vector.
+; Params:
+;  R10=ptr to func parameters [a, b, c, d, f]
+;  R0=i [16.0]
+; Trashes: R1-R9
+; Returns: R0=v
+math_evaluate_vec3:
+    str lr, [sp, #-4]!
+
+    ; Function parameters can be math_func definitions for X, Y, Z.
+
+    mov r8, r10
+    mov r7, r0
+    ldr r6, [r8, #12]       ; vector3_base
+
+    ldr r10, [r8, #8]       ; c=func_z definition
+    bl math_evaluate_func   ; evaluate func_z
+    str r0, [r6, #8]        ; store z in vector3_base[8]
+
+    ldr r10, [r8, #4]       ; b=func_y definition
+    mov r0, r7
+    bl math_evaluate_func   ; evaluate func_y
+    str r0, [r6, #4]        ; store y in vector3_base[4]
+
+    ldr r10, [r8, #0]       ; b=func_x definition
+    mov r0, r7
+    bl math_evaluate_func   ; evaluate func_x
+    ; Return v in R0 which will store X in vector3_base[0]
+
+    ldr pc, [sp], #4
 
 ; ============================================================================
 ; Math functions.

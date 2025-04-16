@@ -51,7 +51,7 @@ debug_plot_addr_as_hex8:
     b debug_plot_string
 
 ; R0=address of value to plot as vec3
-; Trashes R1-R4,R8-R12.
+; Trashes R1-R3,R8-R12.
 debug_plot_addr_as_vec3:
     str lr, [sp, #-4]!
 

@@ -80,6 +80,11 @@
     write_addr \address, MATHS_CONST_1*\fp_value
 .endm
 
+.macro write_vec2 address, x, y
+    write_addr 0+\address, MATHS_CONST_1*\x
+    write_addr 4+\address, MATHS_CONST_1*\y
+.endm
+
 .macro write_vec3 address, x, y, z
     write_addr 0+\address, MATHS_CONST_1*\x
     write_addr 4+\address, MATHS_CONST_1*\y
@@ -199,6 +204,10 @@
 ; Separate the link between two variables.
 .macro math_unlink_vars addr, c
     math_kill_var \addr
+.endm
+
+.macro math_make_vec3 addr, func_x, func_y, func_z
+    .long script_call_7, math_var_register_ex, \addr, \func_x, \func_y, \func_z, \addr, 0, math_evaluate_vec3
 .endm
 
 ; ============================================================================
