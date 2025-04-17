@@ -14,7 +14,7 @@ Framework TODOs as of 15/5/24:
       Could be implemented using script_fork!!
 - Improve build using Tom's Python scripts and makefile-foo.
 - Does ErrorV actually do anything? => Handles OS_GenerateError calls.
-- Move png2arc to Python 3.
+- Move png2arc to Python 3. ==> Use Gemini!
 - MOD file analyser to configure code / script.
 - Move scripting to use seconds throughout?
 - Create text-pool module from code in fx/bits.asm. - DONE
@@ -428,6 +428,11 @@ UV PART
 - Add 8 initial textures.
 - Add 8 initial colour palettes.
 - Make a simple sequence that just cycles through them. - DONE
+- Make a sequence with energy and sync:
+    - Something a bit more acid like?
+    - Fast switch to the beat.
+    - Change direction quickly to the beat.
+    - Animated texture to the beat.
 - Add music.
 - Move to new features
     - Skip pixels - DONE
@@ -449,18 +454,23 @@ DONUT PART
 - Come up with at least four interesting variations.
     - Move
         - Defining paths with individual math_vars is tedious.
-          Now need to define a math_vec_func !?
-          Could also have a 'move to target' tick?
+          Now need to define a math_vec_func !? - DONE
+          Could also have a 'move to target' tick? - STARTED
     - Morph
     - Animate
         => Need to be careful with sorting order
            (Or implement face sorting.)
            E.g. twisting the verts will invalidate the static draw order.
     - Lighting
-        - Move the light source
-        - Multiple light sources?
+        - Move the light source - DONE
+        - Multiple light sources? => NOT ENOUGH COLOURS?
         - Draw the light source
     - Triangle wibble by offseting X start by Y index into table..
+- Colours
+    - Some nicer palettes.
+    - Some palette blends.
+    - What about dithering?
+    - Any sync?
 - RasterMan for logo and scroller?
     => Need vsync callback to run != 50Hz
 

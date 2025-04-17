@@ -211,6 +211,8 @@ math_var_tick:
 ; ============================================================================
 
 ; Evaluate the linear function v = a + b * f(c + d * i)
+; Where a, b, c, d are fixed-point values. [s15.16]
+; Where i is an integer iterator value that is incremented externally (usually per call).
 ; Params:
 ;  R10=ptr to func parameters [a, b, c, d, f]
 ;  R0=i [16.0]
@@ -232,7 +234,10 @@ math_evaluate_func:
     mla r0, r2, r0, r1      ; a + b * f(c + d * i)  [16.16]
     ldr pc, [sp], #4
 
-; Evaluate the linear function v = a + RAM[b] * f(c + d * i)
+; Evaluate the linear function v = a + (*b) * f(c + d * i)
+; Where a, c, d are fixed-point values. [s15.16]
+; Where b is the address containing a fixed-point value in [s15.16]
+; Where i is an integer iterator value that is incremented externally (usually per call).
 ; Params:
 ;  R10=ptr to func parameters [a, b, c, d, f]
 ;  R0=i [16.0]
@@ -256,6 +261,9 @@ math_evaluate_func2:
     ldr pc, [sp], #4
 
 ; Evaluate the RGB lerp function v = RGB[a] + RAM[c] * (RGB[b] - RGB[a])
+; Where a, b are addresses assumed to contain RGB values in the format 0x00BbGgRr.
+; Where c is an address assumed to contain a blend value in fixed-point format [1.16]
+; Where i is an integer iterator value that is incremented externally (usually per call).
 ; Params:
 ;  R10=ptr to func parameters [a, b, c, d, f]
 ;  R0=i [16.0]
@@ -310,6 +318,8 @@ math_evaluate_rgb_lerp:
 ; Super hack balls!
 ; Abuse the math_var functionality to lerp an entire table of RGB values.
 ; RGB[d] = RGB[a] + blend[c] * (RGB[b] - RGB[a])
+; Where a, b, d are base addresses assumed to contain an array of 16 RGB values in the format 0x00BbGgRr.
+; Where c is an address assumed to contain a blend value in fixed-point format [1.16]
 ; Params:
 ;  R10=ptr to func parameters [a, b, c, d, f]
 ;  R0=i [16.0]
@@ -371,6 +381,8 @@ math_evaluate_palette_lerp:
     blt .1
     ; NOTE: For Push intro we ignore colour 15 (orb).
     
+    ; TODO: R0 gets stored in the handle - could use &dest_palette[0] as the handle..
+
     mov pc, lr
 
 ; ============================================================================
@@ -387,21 +399,24 @@ math_evaluate_palette_lerp:
 math_evaluate_vec3:
     str lr, [sp, #-4]!
 
-    ; Function parameters can be math_func definitions for X, Y, Z.
+    ; Function parameters are math_func definitions for X, Y, Z componets.
 
     mov r8, r10
     mov r7, r0
     ldr r6, [r8, #12]       ; vector3_base
 
+    ; Evaluate Z component.
     ldr r10, [r8, #8]       ; c=func_z definition
     bl math_evaluate_func   ; evaluate func_z
     str r0, [r6, #8]        ; store z in vector3_base[8]
 
+    ; Evaluate Y component.
     ldr r10, [r8, #4]       ; b=func_y definition
     mov r0, r7
     bl math_evaluate_func   ; evaluate func_y
     str r0, [r6, #4]        ; store y in vector3_base[4]
 
+    ; Evaluate X component.
     ldr r10, [r8, #0]       ; b=func_x definition
     mov r0, r7
     bl math_evaluate_func   ; evaluate func_x
@@ -411,6 +426,8 @@ math_evaluate_vec3:
 
 ; ============================================================================
 ; Math functions.
+; Param: R0
+; Returns: R0
 ; ============================================================================
 
 .equ math_sin, sine

@@ -206,6 +206,10 @@
     math_kill_var \addr
 .endm
 
+; Make a math variable: V = [fx(i), fy(i), fz(i)]
+; Where fx, fy, fz are math_func definitions that define linear equations:
+; E.g. fx = a + b * f(c + d * i)
+; Where i is an iteration integer that counts up from 0 with each call (usually frame).
 .macro math_make_vec3 addr, func_x, func_y, func_z
     .long script_call_7, math_var_register_ex, \addr, \func_x, \func_y, \func_z, \addr, 0, math_evaluate_vec3
 .endm

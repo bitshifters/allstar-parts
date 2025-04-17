@@ -25,7 +25,7 @@
 
 seq_donut_part:
 
-    write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, 54.0
+    write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, 0.0
 
     ; Show donut.
     call_1      palette_set_block,  seq_palette_red_additive
@@ -38,14 +38,17 @@ seq_donut_part:
     ;call_3      fx_set_layer_fns,   2, tipsy_scroller_tick,        tipsy_scroller_draw
     .endif
 
-    write_vec3  object_rot_speed,           0.5, 1.3, 2.9
+;    write_vec3  object_rot_speed,           0.5, 1.3, 2.9
+    write_vec3  object_rot_speed,           1.0, 0.0, 2.0
 
 ;    write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, -26.0
 ;    math_make_var torus_entity+Entity_PosX, 0.0, 32.0, math_cos, 0.0, 0.006
 ;    math_make_var torus_entity+Entity_PosY, 0.0, 32.0, math_sin, 0.0, 0.004
 
     ; Update a VECTOR3 using three math_funcs.
-    math_make_vec3 torus_entity+Entity_Pos, my_func_for_x, my_func_for_y, my_func_for_z
+    ;math_make_vec3 torus_entity+Entity_Pos, my_func_for_x, my_func_for_y, my_func_for_z
+
+    math_make_vec3 light_direction, light_func_x, light_func_y, light_func_z
 
     end_script
 
@@ -58,6 +61,14 @@ my_func_for_y:
 my_func_for_z:
     math_func   0.0,    26.0,      math_cos,   0.0,    1.0/(MATHS_2PI*90.0)
 
+light_func_x:
+    math_func   0.0,    1.0,       math_sin,   0.0,    1.0/(MATHS_2PI*20.0)
+
+light_func_y:
+    math_func   0.0,    1.0,       math_cos,   0.0,    1.0/(MATHS_2PI*20.0)
+
+light_func_z:
+    math_const  0.0
 
 seq_table_part:
 

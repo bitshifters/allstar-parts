@@ -7,7 +7,8 @@
 ; Used in: Chipo Django musicdisk, Three-Dee Demo (mikroreise)
 ; ============================================================================
 
-.equ Scene3d_UseLighting,       1           ; otherwise face colours.
+.equ Scene3d_UseLighting,       1       ; TODO: Should be a separate draw func.
+.equ Scene3d_UseLightDirection, 1       ; TODO: Should be a separate draw func.
 
 .equ Entity_Pos,                0
 .equ Entity_PosX,               0
@@ -117,8 +118,8 @@ scene3d_stats_quads_plotted:
 scene3d_init:
     str lr, [sp, #-4]!
 
-    DEBUG_REGISTER_VEC3 object_target_pos
-    DEBUG_REGISTER_VEC3 torus_entity+Entity_Pos
+;    DEBUG_REGISTER_VEC3 object_target_pos
+;    DEBUG_REGISTER_VEC3 torus_entity+Entity_Pos
 
     ldr pc, [sp], #4
 
@@ -333,9 +334,11 @@ scene3d_rotate_entity:
     adr r1, object_transform
     adr r2, temp_matrix_2
     bl matrix_multiply          ; T2=T1.OT
+    ; Trashes R10
 
-    adr r2, temp_matrix_1
+    ldr r10, scene3d_entity_p
     ldr r0, [r10, #Entity_RotZ]
+    adr r2, temp_matrix_1
     bl matrix_make_rotate_z     ; T1=rot_z
 
     adr r0, temp_matrix_2
@@ -561,6 +564,14 @@ scene3d_project_verts:
 ; Draw the current object (not scene) using solid filled quads.
 ; ============================================================================
 
+.if Scene3d_UseLightDirection
+light_direction:                ; direction towards the light
+    VECTOR3 0.0, 0.0, -1.0
+
+light_dir_cached:
+    VECTOR3 0.0, 0.0, 0.0
+.endif
+
 ; R12=screen addr
 scene3d_draw_entity_as_solid_quads:
     str lr, [sp, #-4]!
@@ -573,6 +584,18 @@ scene3d_draw_entity_as_solid_quads:
     ; Cache the screen address in the triangle plotter.
 
     bl triangle_prepare
+
+    ; Other preparation, e.g. caching things or preshifting.
+
+    .if Scene3d_UseLightDirection
+    adr r1, light_direction
+    ldmia r1, {r1,r4,r5}                ; [s1.16]
+    mov r1, r1, asr #9                  ; [s1.7]
+    mov r4, r4, asr #9
+    mov r5, r5, asr #9
+    adr r2, light_dir_cached
+    stmia r2, {r1,r4,r5}                ; [s1.7]
+    .endif
 
     ; Get ptr to the mesh header for our entity.
 
@@ -634,11 +657,27 @@ scene3d_draw_entity_as_solid_quads:
     bpl .3                              ; normal facing away from the view direction.
 
     .if Scene3d_UseLighting
+    .if Scene3d_UseLightDirection
+    ; Dynamic light source.
+    ; Load light direction vector.
+    adr r1, light_dir_cached
+    ldmia r1, {r1,r4,r5}                ; [s1.7]
+
+    ; Calculate L.N.
+    ; N already in R6-E8.
+    mul r0, r1, r6                      ; r0 = a1 * b1  [s1.15]
+    mla r0, r4, r7, r0                  ;   += a2 * b2  [s1.15]
+    mla r0, r5, r8, r0                  ;   += a3 * b3  [s1.15]
+    movs r4, r0, asr #7
+    movmi r4, #1                        ; clamp to min intensity
+    .else
     ; Light intensity = L.N. Assume L=(0,0,-1) for now so intensity = -Nz.
     cmp r8, #0
     bpl .3                              ; cull poly if facing away (bit cheeky!)
     ;movpl r4, #0                       ; otherwise make it black.
     rsbmi r4, r8, #0                    ; -Nz [s1.8]
+    .endif
+
     mov r4, r4, asr #4                  ;     [s1.4]
     cmp r4, #15                         ; clamp to max colour.
     movge r4, #15
