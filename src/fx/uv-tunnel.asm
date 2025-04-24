@@ -2,11 +2,11 @@
 ; UV tunnel (made into generic UV table map)
 ; ============================================================================
 
-.equ UV_Tunnel_CodeSize,        151556
+.equ UV_Tunnel_CodeSize,        335876  ; 151556
 .equ UV_Tunnel_Columns,         160
 .equ UV_Tunnel_Rows,            128
 
-.equ UV_Tunnel_BlankPixels,     1
+.equ UV_Tunnel_BlankPixels,     1       ; TODO: Decide at runtime.
 
 uv_tunnel_offset_u:
     .byte 0
@@ -14,13 +14,18 @@ uv_tunnel_offset_u:
 uv_tunnel_offset_v:
     .byte 0
 
+uv_tunnel_offset_du:
+    .byte 1
+
+uv_tunnel_offset_dv:
+    .byte 1
 .p2align 2
 
 uv_tunnel_texture_p:
-    .long uv_phong_texture_no_adr
+    .long 0
 
 uv_tunnel_map_p:
-    .long uv_face_map_no_adr
+    .long 0
 
 uv_tunnel_code_p:
     .long uv_tunnel_unrolled_code_no_adr
@@ -49,12 +54,14 @@ uv_tunnel_draw:
 
 uv_tunnel_tick:
     ldrb r9, uv_tunnel_offset_u
-    add r9, r9, #1
+    ldrb r8, uv_tunnel_offset_du
+    add r9, r9, r8
     and r9, r9, #0x7f           ; u [0, 127]
     strb r9, uv_tunnel_offset_u
 
     ldrb r1, uv_tunnel_offset_v
-    add r1, r1, #1
+    ldrb r2, uv_tunnel_offset_dv
+    add r1, r1, r2
     and r1, r1, #0x7f           ; v [0, 127]
     strb r1, uv_tunnel_offset_v
     mov pc, lr
@@ -223,6 +230,209 @@ uv_tunnel_gen_code:
 
     ldr pc, [sp], #4
 
+; R11 = pointer to UV map data
+; Each word is 2 pixels of packed U,V  = v1v0u1u0
+; u,v [0, 255] => we're going to use half resolution.
+; R12 = pointer to where unrolled code is written
+; TODO: Feed in row/column count as params?
+uv_tunnel_init_paul:
+    ldr r12, uv_tunnel_code_p       ; dest
+    ldr r11, uv_tunnel_map_p        ; uv data
+    ; Fall through!
+
+uv_tunnel_gen_code_paul_scheme:
+    str lr, [sp, #-4]!
+
+    mov r10, #UV_Tunnel_Rows        ; rows to plot
+.1:
+
+    mov r6, #UV_Tunnel_Columns      ; columns to plot
+.3:
+    mov r9, #0                      ; dest register
+
+.2:
+    ; Load 4 pixels worth of (u,v)
+
+    ldmia r11!, {r0,r5}      ; R0=v1v0u1u0 R5=b1a1b0a0
+    ldmia r11!, {r1,r14}     ; R1=v3v2u3u2 R14=b3a3b2a2
+
+    ; Copy one snippet for 4 pixels = assemble 1 word for writing
+
+    adr r8, uv_tunnel_code_snippet
+
+    ldr r7, [r8], #4                ; ldrb rX, [rY, #Z]
+    orr r7, r7, r9, lsl #12         ; dest reg
+
+    and r2, r0, #0xfe               ; u0<<1  [0, 127]
+    and r3, r0, #0xfe0000           ; v0<<17 [0, 127]
+    mov r4, r3, lsl #10             ; bottom 5 bits of v0
+    mov r2, r2, lsr #1
+    orr r2, r2, r4, lsr #20         ; v0 | u0
+    orr r7, r7, r2                  ; offset [0, 4095]
+    mov r3, r3, lsr #22             ; top 2 bits of v0
+    add r3, r3, #8                  ; [8, 11]
+    orr r7, r7, r3, lsl #16         ; base reg
+    .20:
+    str r7, [r12], #4               ; write out instruction 0
+
+    ; Write out optional a/b operations for Rdest.
+    ; TODO: Skip instructions if values are 0.
+    ands r2, r5, #0x0000000f         ; a0
+    beq .201
+    ldr r7, [r8, #13*4]             ; additional op shift (logical_colour >> a)
+    orr r7, r7, r9, lsl #12         ; dest reg
+    orr r7, r7, r9                  ; base reg
+    orr r7, r7, r2, lsl #7          ; shift amount in bits 7-11
+    str r7, [r12], #4               ; write out additional instruction 1a
+    .201:
+
+    ands r2, r5, #0x00000f00         ; b0 << 8
+    beq .202
+    ldr r7, [r8, #14*4]             ; additional op add (logical_colour >> a) + b
+    orr r7, r7, r9, lsl #12         ; dest reg
+    orr r7, r7, r9, lsl #16         ; base reg
+    orr r7, r7, r2, lsr #8          ; b0
+    str r7, [r12], #4               ; write out additional instruction 1a
+    .202:
+
+    ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
+    and r2, r0, #0xfe00             ; u1<<9  [0, 127]
+    and r3, r0, #0xfe000000         ; v1<<25 [0, 127]
+    mov r4, r3, lsl #2              ; bottom 5 bits of v1
+    mov r2, r2, lsr #9
+    orr r2, r2, r4, lsr #20         ; v1 | u1
+    orr r7, r7, r2                  ; offset [0, 4095]
+    mov r3, r3, lsr #30             ; top 2 bits of v1
+    add r3, r3, #8                  ; [8, 11]
+    orr r7, r7, r3, lsl #16         ; base reg
+    .21:
+    str r7, [r12], #4               ; write out instruction 1
+
+    ; Write out optional a/b operations for R14.
+    ands r2, r5, #0x000f0000         ; a1
+    beq .211
+    ldr r7, [r8, #14*4]             ; additional op shift (logical_colour >> a)
+    orr r7, r7, r2, lsr #16-7       ; shift amount in bits 7-11
+    str r7, [r12], #4               ; write out additional instruction 1a
+    .211:
+
+    ands r2, r5, #0x0f000000         ; b1 << 24
+    beq .212
+    ldr r7, [r8, #15*4]             ; additional op add (logical_colour >> a) + b
+    orr r7, r7, r2, lsr #24         ; b1
+    str r7, [r12], #4               ; write out additional instruction 1a
+    .212:
+
+    ldr r7, [r8], #4                ; orr r0, r0, r14, lsl #8
+    orr r7, r7, r9, lsl #12         ; dest reg
+    orr r7, r7, r9, lsl #16         ; base reg
+    str r7, [r12], #4               ; write out instruction 2
+
+    ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
+    and r2, r1, #0xfe               ; u2<<1  [0, 127]
+    and r3, r1, #0xfe0000           ; v2<<17 [0, 127]
+    mov r4, r3, lsl #10             ; bottom 5 bits of v2
+    mov r2, r2, lsr #1
+    orr r2, r2, r4, lsr #20         ; v2 | u2
+    orr r7, r7, r2                  ; offset [0, 4095]
+    mov r3, r3, lsr #22             ; top 2 bits of v2
+    add r3, r3, #8                  ; [8, 11]
+    orr r7, r7, r3, lsl #16         ; base reg
+    .22:
+    str r7, [r12], #4               ; write out instruction 3
+
+    ; Write out optional a/b operations for R14.
+    ands r2, r14, #0x0000000f        ; a2
+    beq .221
+    ldr r7, [r8, #12*4]             ; additional op shift (logical_colour >> a)
+    orr r7, r7, r2, lsl #7          ; shift amount in bits 7-11
+    str r7, [r12], #4               ; write out additional instruction 1a
+    .221:
+
+    ands r2, r14, #0x00000f00        ; b2 << 8
+    beq .222
+    ldr r7, [r8, #13*4]             ; additional op add (logical_colour >> a) + b
+    orr r7, r7, r2, lsr #8          ; b2
+    str r7, [r12], #4               ; write out additional instruction 1a
+    .222:
+
+    ldr r7, [r8], #4                ; orr r0, r0, r14, lsl #16
+    orr r7, r7, r9, lsl #12         ; dest reg
+    orr r7, r7, r9, lsl #16         ; base reg
+    str r7, [r12], #4               ; write out instruction 4
+
+    ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
+    and r2, r1, #0xfe00             ; u3<<9  [0, 127]
+    and r3, r1, #0xfe000000         ; v3<<25 [0, 127]
+    mov r4, r3, lsl #2              ; bottom 5 bits of v3
+    mov r2, r2, lsr #9
+    orr r2, r2, r4, lsr #20         ; v3 | u3
+    orr r7, r7, r2                  ; offset [0, 4095]
+    mov r3, r3, lsr #30             ; top 2 bits of v3
+    add r3, r3, #8                  ; [8, 11]
+    orr r7, r7, r3, lsl #16         ; base reg
+    .23:
+    str r7, [r12], #4               ; write out instruction 5
+
+    ; Write out optional a/b operations for R14.
+    ands r2, r14, #0x000f0000        ; a3
+    beq .231
+    ldr r7, [r8, #10*4]             ; additional op shift (logical_colour >> a)
+    orr r7, r7, r2, lsr #16-7       ; shift amount in bits 7-11
+    str r7, [r12], #4               ; write out additional instruction 1a
+    .231:
+
+    ands r2, r14, #0x0f000000        ; b3 << 24
+    beq .232
+    ldr r7, [r8, #11*4]             ; additional op add (logical_colour >> a) + b
+    orr r7, r7, r2, lsr #24         ; b3
+    str r7, [r12], #4               ; write out additional instruction 1a
+    .232:
+
+    ldr r7, [r8], #4                ; orr r0, r0, r14, lsl #24
+    orr r7, r7, r9, lsl #12         ; dest reg
+    orr r7, r7, r9, lsl #16         ; base reg
+    str r7, [r12], #4               ; write out instruction 6
+
+    ; Write out full word ORR.
+    ldr r7, [r8, #11*4]             ; orr r0, r0, r0, lsl #4
+    orr r7, r7, r9, lsl #12         ; dest reg
+    orr r7, r7, r9, lsl #16         ; base reg
+    orr r7, r7, r9                  ; src reg
+    str r7, [r12], #4               ; write out full word shift
+
+    ; Do this 8 times for R0-7
+    add r9, r9, #1
+    cmp r9, #8
+    bne .2
+    ; Code size = 7 words x 8 times = 56 words
+    ;           = 16 words x 8 times = 335876 bytes (!)
+
+    ; Write out plot snippet.
+    ldmia r8!, {r0-r2}
+    stmia r12!, {r0-r2}
+    ; Code size = 56 words + 3 words = 59 words
+
+    subs r6, r6, #32                ; 8 words at a time = 32 chunky pixels.
+    bne .3
+    ; Code size = 59 words * 5 times = 295 words
+
+    ; Write out increment screen ptr to skip a line.
+    ldr r0, [r8], #4
+    str r0, [r12], #4
+    ; Code size = 295 words + 1 word = 296 words per row
+
+    subs r10, r10, #1               ; next row
+    bne .1
+    ; Code size = 296 words * 128 rows = 37888 words
+
+    ; Write out rts.
+    ldr r0, [r8], #4
+    str r0, [r12], #4
+    ; Code size = 37889 words = 151556 bytes = 148K + 4 bytes!
+
+    ldr pc, [sp], #4
+
 ; ============================================================================
 ; NB. Not called directly, copied and patched at runtime.
 ; ============================================================================
@@ -242,6 +452,7 @@ uv_tunnel_code_snippet:
     stmia r14!, {r0-r7}             ; 3+8*1.25=13c
 
     ; 19c per word * 8 + 27 = 179c for 8 words * 5 = 895c per row * 128 = 114560c per screen
+    ; ~5.6c per chunky pixel
 
     ; Skip a line.
     add r12, r12, #Screen_Stride    ; 1c
@@ -250,7 +461,29 @@ uv_tunnel_code_snippet:
     ldr pc, [sp], #4
 
     .if UV_Tunnel_BlankPixels
-    ; Skip a pixel.
+    ; Blank a pixel.
     mov r0, #0
     mov r14, #0
     .endif
+
+    ; Texture byte is 0xLL where L=logical colour
+    ; But could be 0x0L or 0xAB
+
+    ; Optional operation:
+    ; logical_colour = (logical_colour >> a) + b
+    ; Assumes texture bytes are 0x0L.
+    mov r0, r0, lsr #0              ; For Rdest.
+    add r0, r0, #0
+
+    mov r14, r14, lsr #0            ; For R14.
+    add r14, r14, #0
+
+    orr r0, r0, r0, lsl #4          ; <= do this once per word, not per byte
+    ; 28c per word * 8 + 27 = 251 * 5 = 1255 * 128 = 160640c
+    ; ~7.8c per chunky pixel (160x90 gives approx same count as vanilla version)
+
+    and r0, r0, #0x0f               ; either texture select A
+    mov r0, r0, lsr #4              ;     or texture select B
+    orr r0, r0, r0, lsl #4          ; <= do this once per word, not per byte
+    ; 25c per word * 8 + 27 = 227 * 5 = 1135 * 128 = 145280c
+    ; ~7.1c per chunky pixel (160x100 gives approx same count as vanilla version)

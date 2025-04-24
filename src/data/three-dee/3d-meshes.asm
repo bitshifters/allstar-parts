@@ -230,12 +230,12 @@ mesh_cobra_edge_indices:
 .equ MeshTorus_NumFaces,        MeshTorus_MaxVertsFaces
 
 mesh_header_torus:
-    .long  0
-    .long  0
-    .long  mesh_torus_verts_no_adr
-    .long  mesh_torus_normals_no_adr
-    .long  mesh_torus_faces_no_adr
-    .long  mesh_torus_colours_no_adr
+    .long  0                            ; NumVerts
+    .long  0                            ; NumFaces
+    .long  mesh_torus_verts_no_adr      ; Ptr to Verts array
+    .long  mesh_torus_normals_no_adr    ; Ptr to Face array
+    .long  mesh_torus_faces_no_adr      ; Ptr to Face Indices array for Quads
+    .long  mesh_torus_colours_no_adr    ; Ptr to Face Colours array
 
 ; ============================================================================
 

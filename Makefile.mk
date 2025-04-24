@@ -74,7 +74,8 @@ build:
 
 ./build/assets.txt: build ./build/music.mod ./build/razor-font.bin ./build/tunnel_uv.bin ./build/tunnel2_uv.bin \
 	./build/face_uv.bin ./build/phong128.bin ./build/cloud128.bin ./build/itm128.bin ./build/temp-logo.bin \
-	./build/fine-font.bin
+	./build/fine-font.bin ./build/paul1_uv.bin ./build/paul2_uv.bin ./build/paul3_uv.bin  ./build/paul5_uv.bin \
+	./build/paul7_uv.bin ./build/fire128.bin
 	echo done > $@
 
 ./build/archie-verse.shri: build ./build/archie-verse.bin
@@ -151,6 +152,9 @@ clean:
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --use-palette ./data/raw/phong.pal.bin --double-pixels $< 9
 
 ./build/cloud128.bin: ./data/gfx/Elements_22-128x128x16.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --as-bytes $< 9
+
+./build/fire128.bin: ./data/gfx/Elements_02-128x128x16.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels $< 9
 
 ./build/itm128.bin: ./data/gfx/itm-rot-tex16.png $(PNG2ARC_DEPS)
@@ -171,8 +175,23 @@ clean:
 ./build/tunnel2_uv.bin: $(UV_TABLE)
 	$(PYTHON2) $(UV_TABLE) -o $@ --func fancy_func1
 
-./build/face_uv.bin: ./data/gfx/face-160.png $(UV_TABLE)
+./build/face_uv.bin: ./data/gfx/BlenderTest01_small.png $(UV_TABLE)	# face
 	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128
+
+./build/paul1_uv.bin: ./data/gfx/PaulUV1.png $(UV_TABLE)	# inside torus
+	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128
+
+./build/paul2_uv.bin: ./data/gfx/PaulUV2.png $(UV_TABLE)	# knot test
+	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128
+
+./build/paul3_uv.bin: ./data/gfx/PaulUV3.png $(UV_TABLE)	 # knot hit test
+	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128 --blue-mask 0x89
+
+./build/paul5_uv.bin: ./data/gfx/PaulUV5.png $(UV_TABLE)	 # ship with extended data
+	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128 --paul
+
+./build/paul7_uv.bin: ./data/gfx/PaulUV7.png $(UV_TABLE)	 # ship with extended data
+	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128 --paul
 
 ##########################################################################
 ##########################################################################

@@ -7,7 +7,6 @@
     call_0      sine_scroller_init
     call_0      scene3d_init
     call_0      rotate_init
-    call_0      uv_tunnel_init
     ;                               RingRadius          CircleRadius       RingSegments   CircleSegments   MeshPtr              Flat inner face?
     call_6      mesh_make_torus,    32.0*MATHS_CONST_1, 16.0*MATHS_CONST_1, 12,            8,              mesh_header_torus,   1
 
@@ -73,31 +72,54 @@ light_func_z:
 seq_table_part:
 
     ; UV tunnel aka UV table fx.
-    call_1      palette_set_block,  uv_phong_pal_no_adr
     call_3      fx_set_layer_fns,   0, uv_tunnel_tick              uv_tunnel_draw
     call_3      fx_set_layer_fns,   1, 0,                          0
+    
+    ; Inside torus.
+    write_addr  uv_tunnel_map_p,      uv_paul1_map_no_adr
+    write_addr  uv_tunnel_texture_p,  uv_fire_texture_no_adr
+    call_0      uv_tunnel_init
+    call_1      palette_set_block,    seq_palette_red_additive
+    write_byte  uv_tunnel_offset_du,    1
+    write_byte  uv_tunnel_offset_dv,    0
 
     wait_secs   10.0
 
-    ; Regenerate the code for the new UV map
-    write_addr  uv_tunnel_map_p,    uv_tunnel1_map_no_adr
+    ; Test.
+    write_addr  uv_tunnel_map_p,      uv_paul2_map_no_adr
+    write_addr  uv_tunnel_texture_p,  uv_fire_texture_no_adr
     call_0      uv_tunnel_init
+    call_1      palette_set_block,    seq_palette_red_additive
+    write_byte  uv_tunnel_offset_du,    0
+    write_byte  uv_tunnel_offset_dv,    -1
 
-    ; Change texture and palette.
+    wait_secs   10.0
+
+    ; Ship w/ ext data.
+    write_addr  uv_tunnel_map_p,      uv_paul5_map_no_adr
     write_addr  uv_tunnel_texture_p,  uv_cloud_texture_no_adr
-    call_3      palette_set_gradient, 0, 0, gradient_pal
-    call_3      fx_set_layer_fns,     0, uv_tunnel_tick            uv_tunnel_draw
+    call_0      uv_tunnel_init_paul
+    call_3      palette_set_gradient, 0, 0, paul_ship_gradient
+    write_byte  uv_tunnel_offset_du,    0
+    write_byte  uv_tunnel_offset_dv,    1
 
     wait_secs   10.0
-
-    ; Regenerate the code for the new UV map
-    write_addr  uv_tunnel_map_p,    uv_tunnel2_map_no_adr
-    call_0      uv_tunnel_init
 
     ; Rotate & scale.
     call_1      palette_set_block,  rotate_pal_no_adr
     call_3      fx_set_layer_fns,   0, rotate_tick,                rotate_draw
-    call_3      fx_set_layer_fns,   1, 0,                          0
+
+    wait_secs 10.0
+
+    ; Inside out.
+    write_addr  uv_tunnel_texture_p,  uv_phong_texture_no_adr
+    write_addr  uv_tunnel_map_p,      uv_tunnel2_map_no_adr
+    call_0      uv_tunnel_init
+
+    call_1      palette_set_block,    uv_phong_pal_no_adr
+    call_3      fx_set_layer_fns,     0, uv_tunnel_tick              uv_tunnel_draw
+    write_byte  uv_tunnel_offset_du,  -1
+    write_byte  uv_tunnel_offset_dv,   1
 
     wait_secs 10.0
 
@@ -309,6 +331,13 @@ seq_palette_all_white:
 
 gradient_pal:
 .long	0xff0,0xff3,0xfd5,0xec6,0xec7,0xeb8,0xda9,0xc9a,0xc8b,0xb7b,0xa6c,0x95d,0x84d,0x73e,0x52f,0x00f
+
+paul_ship_gradient:
+.long 	0x000,0x000,0x000,0x011,0x022,0x123,0x134,0x246,0x357,0x469,0x47a,0x58c,0x7ad,0xace,0xdef,0xfff    
+
+paul_other_gradient:
+.long 	0x000,0x100,0x110,0x310,0x421,0x530,0x740,0x950,0xa61,0xb84,0xc86,0xda8,0xdb9,0xedb,0xfee,0xfff
+
 
 ; ============================================================================
 ; Palette blending - required if using palette_lerp_over_secs macro.

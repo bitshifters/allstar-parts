@@ -38,25 +38,38 @@ uv_phong_texture_no_adr:
 .incbin "build/phong128.bin"
 .incbin "build/phong128.bin"
 
+; Stored as sparse bytes for extended data lookup UV FX.
 .p2align 16
 uv_cloud_texture_no_adr:
 .incbin "build/cloud128.bin"
 .incbin "build/cloud128.bin"
 
+; Stored as sparse bytes for extended data lookup UV FX.
+.p2align 16
+uv_fire_texture_no_adr:
+.incbin "build/fire128.bin"
+.incbin "build/fire128.bin"
+
 ; (u,v) coordinates interleaved, 1 byte each
 ; 1 word = 2 pixels worth
-uv_face_map_no_adr:
-.incbin "build/face_uv.bin"
-.incbin "build/face_uv.bin"
+uv_paul1_map_no_adr:
+.incbin "build/paul1_uv.bin"            ; inside torus
+
+uv_paul2_map_no_adr:
+.incbin "build/face_uv.bin"             ; Blender test
+;.incbin "build/paul2_uv.bin"           ; knot hit test
+
+uv_paul5_map_no_adr:
+.incbin "build/paul7_uv.bin"            ; ship w/ ext data
 
 uv_phong_pal_no_adr:
 .incbin "data/raw/phong.pal.bin"
 
 uv_tunnel1_map_no_adr:
-.incbin "build/tunnel_uv.bin"
+.incbin "build/tunnel_uv.bin"           ; regular tunnel
 
 uv_tunnel2_map_no_adr:
-.incbin "build/tunnel2_uv.bin"
+.incbin "build/tunnel2_uv.bin"          ; inside out tunnel
 
 ; ============================================================================
 

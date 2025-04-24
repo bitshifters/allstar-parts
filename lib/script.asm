@@ -277,6 +277,14 @@ script_write_addr:
 
 ; R12=context.
 ; R10=script ptr.
+script_write_byte:
+    ldmia r10!, {r0-r1}         ; params={address, value}
+    strb r1, [r0]
+    str r10, [r12, #ScriptContext_PC]
+    mov pc, lr
+
+; R12=context.
+; R10=script ptr.
 script_call_swi:
     ldr r11, [r10], #4          ; fn ptr.
     ldmia r10!, {r0-r1}         ; 2 params

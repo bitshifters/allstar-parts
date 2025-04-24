@@ -76,6 +76,10 @@
     .long script_write_addr, \address, \value
 .endm
 
+.macro write_byte address, value
+    .long script_write_byte, \address, \value
+.endm
+
 .macro write_fp address, fp_value
     write_addr \address, MATHS_CONST_1*\fp_value
 .endm

@@ -425,12 +425,14 @@ PREP
 UV PART
 - Move from proto-arc repo into archie-verse. - DONE
 - Add 8 initial tables.
+    => Paul to the rescue!
 - Add 8 initial textures.
 - Add 8 initial colour palettes.
 - Make a simple sequence that just cycles through them. - DONE
 - Make a sequence with energy and sync:
     - Something a bit more acid like?
     - Fast switch to the beat.
+        => Note that unrolled code is large and generating tables is slow.
     - Change direction quickly to the beat.
     - Animated texture to the beat.
 - Add music.
@@ -439,8 +441,12 @@ UV PART
     - Animated textures?
     - Colour cycling?
     - Scroller?
-    - Additional FX e.g. plasma?
+    - Additional FX e.g. plasma? <= No time!
     - Transitions
+        - Smoothly appear one/two lines at a time.
+        - Palette fade.
+        - Wipe the texture instead of the screen.
+        ==> Create jump table with call points per line plotted.
     - Generate tables at runtime?
         (Requires sqrt, atan2, sin, cos functions)
 - Polish!
@@ -461,6 +467,10 @@ DONUT PART
         => Need to be careful with sorting order
            (Or implement face sorting.)
            E.g. twisting the verts will invalidate the static draw order.
+        - Copy mesh header for animated version of the mesh.
+        - Create a new vert array and update ptr in header.
+        - Animated verts into a new verts array from base vert array.
+        - Update mesh ptr in the entity being displayed...
     - Lighting
         - Move the light source - DONE
         - Multiple light sources? => NOT ENOUGH COLOURS?
@@ -485,63 +495,57 @@ To make it a demo?
 - Could also switch to 320x180 screen if desperate?
 
 
-Shear Rotator Notes
-~~~
-Rotation by theta
-Need to handle flipping at 90 degrees etc.
-a=-tan(theta/2) theta=0 a=0 theta=90 a=-1
-b=sin(theta)    theta=0 b=0 theta=90 b=1
-
-1. x_shear(a)   y'=y x'=x+ay  where x (-1,1) and y (-1,1)
-2. y_shear(b)   x'=x y'=y+bx
-3. x_shear(a)
-
-X shear
----
-Ultimately comes down to shifting a row by X pixels.
-What's the extent of this shift? x' (-2,2) scaled by w/2
-Say image width=256 then xp (-256, +256)
-But the x shift values are (-128, 128)
- => can't actually write that to the screen!
-How to correctly deal with shifts beyond 8 (one word)?
-
-Need a canvas that is 2x image width in both axes
-E.g. 256 => 512x512 canvas (128K in MODE 9)
-
-Can unroll a ldm loop, do register shifts, and stm back
-Already have starter code for this in pixel scroller
-Would probably unroll a custom function per shear value
-Initial x shear could be done by preshifting the image 8x
-and blitting this out to the screen
-
-Y shear
----
-Harder as we can't read consecutive words of vertical pixel data
-Couldn't be MODE 9 with interleaved pixels
-Say MODE 13 and do four columns in parallel?
-Read N words from scanlines
-Have 4 column write pointers according to the shift of each column
-Write bytes out to each of those pointers
-
-1. Do it correct
-2. Do it fast
-
-Correct version could just be simple byte read loops in MODE 13.
-As load / stores this is every pixel (byte) touched 6 times.
-As naive lrdb/strb 128x128x6x4c = 393216c > 2 frames (160kc/frame)
-
-Fast version?
-128 pixels ldm/shift/stm say 8 registers = 32 pixels at a time.
-x shift = 4 * (13 + 16 + 13) = 168c per line * 128 = 21504c min.
-
-128 columns read 8x words, write 32 bytes = 32 pixels at a time.
-y shift = 4 * (13 + 32 + 32*4) = 692c per 4 cols * 32 = 22144c min.
-
-In theory 2x 21504 + 22144 = 65152c perfect minimum? < 1 frame.
-
-This then x4 for 256x256 = 260608c > 1 frame.
-But can do 128x128 at 50Hz anyway using sampling technique that
-includes scale. Could maybe get to 180x180 ish in theory?
-
 ---
 I wanna make another acid demo!!
+---
+
+Riffing with Paul
+~~~
+screen[i++] = texture[0x23f5]
+screen[i++] = shade_table[texture[0x23f5] + shade_const]
+screen[i++] = texture[0x23f5] >> (tint_bit)
+screen[i++] = texture[0x23f5] | (tint_bit)
+screen[i++] = texture[0x23f5] & ~(tint_bit)
+
+Store different version of the texture in the top nibble.
+Masking code is altered to mask and shift the correct nibbles.
+
+Scheme 1:
+#define MAT_GRID 1
+#define MAT_REFLECT 2
+#define MAT_REFRACT 4
+#define MAT_STREAKS 8
+#define MAT_SHADOW 128
+
+Scheme 2:
+logical_colour = texture[uv]
+logical_colour = (logical_colour >> a) + b
+
+#if SCENE == SHIP_SCENE
+// https://gradient-blaster.grahambates.com/?points=000@0,022@4,58c@11,fff@15&steps=16&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+    int PaletteData[] = int[](
+	0x000,0x000,0x000,0x011,0x022,0x123,0x134,0x246,
+	0x357,0x469,0x47a,0x58c,0x7ad,0xace,0xdef,0xfff    
+    );
+#else
+    // https://gradient-blaster.grahambates.com/?points=000@0,a61@8,fff@15&steps=16&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+
+    int PaletteData[] = int[](
+    	0x000,0x100,0x110,0x310,0x421,0x530,0x740,0x950,
+        0xa61,0xb84,0xc86,0xda8,0xdb9,0xedb,0xfee,0xfff
+    );
+#endif    
+
+=> Need a cheap fade for the tunnel / distance modifier
+    - Use Paul's shift and add approach?
+        - Can try this in Python easily enough to see what it looks like..
+    - Bake 2x2 dithering into the plot routine.
+        - Hard mask the pixels (not) to be plotted.
+            bic rDest, rDest, #0xf0f0f0f0 etc.
+    - Use two textures interleaved for a darkened version
+    - Use four separate textures - replace the four pointers
+        with tracked add/sub instructions.
+
+TODO:
+- Add Hz debug counter.
+- 

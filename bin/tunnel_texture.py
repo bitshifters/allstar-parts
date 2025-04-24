@@ -132,6 +132,7 @@ def z_invert_func(x, y, param1, param2):
 def main(options):
     tw=options.tex_size or 256  # max u
     th=options.tex_size or 256  # max v
+    bm=options.blue_mask or 0   # blue mask
 
     pixel_data=[]
 
@@ -141,37 +142,77 @@ def main(options):
 
         print 'Image width: {0} height: {1}'.format(png_result[0],png_result[1])
 
+        if options.paul:
+            print "Using Paul's encoding scheme!"
+        else:
+            print 'Blue channel hit mask: 0x{0:02x}'.format(bm)
+
         for row in png_result[2]:
 
             for i in range(0,len(row),8):
                 rgba0 = [row[i+0],row[i+1],row[i+2],row[i+3]]
                 rgba1 = [row[i+4],row[i+5],row[i+6],row[i+7]]
 
-                if rgba0[2] == 255:
-                    u0=1
-                    v0=1
-                else:
-                    u0=rgba0[0] & 0xfe
-                    v0=rgba0[1] & 0xfe
+                if bm != 0:
+                    if rgba0[2] & bm == 0:        # no hits
+                        u0=1
+                        v0=1
+                    else:
+                        u0=rgba0[0] & 0xfe
+                        v0=rgba0[1] & 0xfe
 
-                if rgba1[2] == 255:
-                    u1=1
-                    v1=1
-                else:
-                    u1=rgba1[0] & 0xfe
-                    v1=rgba1[1] & 0xfe
+                    if rgba1[2] & bm == 0:        # no hits
+                        u1=1
+                        v1=1
+                    else:
+                        u1=rgba1[0] & 0xfe
+                        v1=rgba1[1] & 0xfe
+                else:                
+                    if rgba0[2] == 255:     # blue mask
+                        u0=1
+                        v0=1
+                    else:
+                        u0=rgba0[0] & 0xfe
+                        v0=rgba0[1] & 0xfe
+
+                    if rgba1[2] == 255:     # blue mask
+                        u1=1
+                        v1=1
+                    else:
+                        u1=rgba1[0] & 0xfe
+                        v1=rgba1[1] & 0xfe
 
                 pixel_data.append(u0)       # u
                 pixel_data.append(u1)       # u
                 pixel_data.append(v0)       # v
                 pixel_data.append(v1)       # v
 
+                if options.paul:
+                    a0=rgba0[2] & 0xf
+                    b0=rgba0[2] >> 4
+                    a1=rgba1[2] & 0xf
+                    b1=rgba1[2] >> 4
+
+                    max0=(0xf>>a0)+b0
+                    max1=(0xf>>a1)+b1
+
+                    if max0>0xf:
+                        print 'WARNING: Found B value that could overflow (0x{0:02x})'.format(rgba0[2])
+
+                    if max1>0xf:
+                        print 'WARNING: Found B value that could overflow (0x{0:02x})'.format(rgba1[2])
+
+                    pixel_data.append(a0)
+                    pixel_data.append(b0)
+                    pixel_data.append(a1)
+                    pixel_data.append(b1)
+
     else:
         sw=options.sw or 160
         sh=options.sh or 128
         print 'Image width: {0} height: {1}'.format(sw,sh)
 
-        func_name = options.func_name or 'fancy_fun1'
+        func_name = options.func_name or 'fancy_func1'
         param1 = options.param1 or 1.0
         param2 = options.param2 or 1.0
 
@@ -233,5 +274,7 @@ if __name__=='__main__':
     parser.add_argument('--func',dest='func_name',metavar='FUNC',help='use %(metavar)s as [u,v] math function')
     parser.add_argument('--param1',type=float,help='parameter 1 for func')
     parser.add_argument('--param2',type=float,help='parameter 2 for func')
+    parser.add_argument('--blue-mask',type=lambda x: int(x,0),help='specify hit mask for objects')
+    parser.add_argument('--paul',action='store_true',help="Use Paul's encoding scheme (metadata in blue)")
 
     main(parser.parse_args())

@@ -168,7 +168,10 @@ def main(options):
             if options.double_pixels:
                 for p in range(0,pixels_per_byte/2):
                     xs.append(row[x+p])
-                    xs.append(row[x+p])
+                    if options.as_bytes:
+                        xs.append(0)
+                    else:
+                        xs.append(row[x+p])
             else:
                 for p in range(0,pixels_per_byte):
                     xs.append(row[x+p])
@@ -232,6 +235,7 @@ if __name__=='__main__':
     parser.add_argument('--loud',action='store_true',help='display warnings')
     parser.add_argument('--x2',action='store_true',help='source image has 2x dimensions')
     parser.add_argument('--double-pixels',action='store_true',help='double pixels in x')
+    parser.add_argument('--as-bytes',action='store_true',help='store values as bytes regardless of bitdepth')
     parser.add_argument('--mask-colour',dest='mask_colour',default=None,type=lambda x: int(x,0),help='RGBA colour used as mask.')
     parser.add_argument('--use-palette',dest='use_palette',metavar='FILE',help='use palette binary data from %(metavar)s')
     parser.add_argument('input_path',metavar='FILE',help='load PNG data from %(metavar)s')
