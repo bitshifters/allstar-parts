@@ -4,7 +4,7 @@
 
 .equ Rotate_UnrolledCodeLength, 0x4a0              ; 0x4a0 to inline.
 .equ Rotate_Columns,            160
-.equ Rotate_Rows,               128
+.equ Rotate_Rows,               128         ; or 120?
 
 rotate_angle:
     .long 0         ; {s8.16}

@@ -32,6 +32,7 @@ app_init_debug:
 
     bl debug_init
 
+    DEBUG_REGISTER_VAR_EX debug_frame_rate, debug_plot_addr_as_dec4
     DEBUG_REGISTER_VAR vsync_delta
     DEBUG_REGISTER_VAR frame_counter
     DEBUG_REGISTER_VAR scene3d_stats_quads_plotted

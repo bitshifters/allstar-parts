@@ -50,6 +50,17 @@ debug_plot_addr_as_hex8:
     adr r0, debug_temp_string
     b debug_plot_string
 
+; R0=address of value to plot as %04x
+; Trashes R1-R2,R8-R12.
+debug_plot_addr_as_dec4:
+    ldr r0, [r0]
+    adr r1, debug_temp_string
+    mov r2, #Debug_TempLen
+    swi OS_ConvertCardinal4
+
+    adr r0, debug_temp_string
+    b debug_plot_string
+
 ; R0=address of value to plot as vec3
 ; Trashes R1-R3,R8-R12.
 debug_plot_addr_as_vec3:

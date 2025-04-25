@@ -548,4 +548,9 @@ logical_colour = (logical_colour >> a) + b
 
 TODO:
 - Add Hz debug counter.
-- 
+    - 50 * frame_count / vsync_count?
+- Load and run at 0x10000
+    - Change .org
+    - Update link_script.txt
+- Build creates both binaries?
+- Minimal binary for each part.

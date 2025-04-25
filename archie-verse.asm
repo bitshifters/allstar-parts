@@ -184,8 +184,30 @@ main_loop:
     bge exit
     .endif
 
+    .if _DEBUG
+    ; Calculate frame rate = frames / second.
+    ands r0, r0, #0x1f           ; every 32 frames
+    bne .4
+
+    ldr r0, vsync_count
+    ldr r1, vsyncs_since_last_count
+    str r0, vsyncs_since_last_count
+    sub r0, r0, r1              ; number of vsyncs for last N frames.
+    
+    ; Frame rate = frames * 50 / vsyncs
+    mov r1, #50*32              ; every 32 frames
+    mov r2, #-1
+    .5:
+    subs r1, r1, r0
+    add r2, r2, #1
+    bpl .5
+
+    str r2, debug_frame_rate
+    .4:
+    .endif
+
     .if AppConfig_UseSyncTracks
-    ldr r0, frame_counter       ; TODO: frames vs syncs.
+    ldr r0, frame_counter       ; TODO: frames vs syncs ==> secs!
     bl sync_set_time
     .endif
 
@@ -412,6 +434,12 @@ vsync_delta:
 
 .if _DEBUG
 vsyncs_missed:
+    .long 0
+
+vsyncs_since_last_count:
+    .long 0
+
+debug_frame_rate:
     .long 0
 .endif
 

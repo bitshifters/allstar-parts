@@ -4,7 +4,7 @@
 
 .equ UV_Tunnel_CodeSize,        335876  ; 151556
 .equ UV_Tunnel_Columns,         160
-.equ UV_Tunnel_Rows,            128
+.equ UV_Tunnel_Rows,            128     ; or 120?
 
 .equ UV_Tunnel_BlankPixels,     1       ; TODO: Decide at runtime.
 
