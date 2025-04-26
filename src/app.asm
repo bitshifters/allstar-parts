@@ -33,9 +33,11 @@ app_init_debug:
     bl debug_init
 
     DEBUG_REGISTER_VAR_EX debug_frame_rate, debug_plot_addr_as_dec4
-    DEBUG_REGISTER_VAR vsync_delta
+    ; DEBUG_REGISTER_VAR_EX vsync_delta, debug_plot_addr_as_dec4
     DEBUG_REGISTER_VAR frame_counter
+    .if _DEMO_PART==0
     DEBUG_REGISTER_VAR scene3d_stats_quads_plotted
+    .endif
 ;    DEBUG_REGISTER_VAR music_pos
 
     DEBUG_REGISTER_KEY RMKey_Space,      debug_toggle_main_loop_pause,  0
@@ -219,7 +221,7 @@ app_late_init:
 .endif
 
     ; Copy the logo to all of our screen buffers.
-    .if _PART_NUMBER==0
+    .if _DEMO_PART==0
     adr r0, app_logo_p
     ldmia r0, {r0-r2}
     bl app_copy_to_screen
@@ -246,7 +248,7 @@ app_late_init:
     ldr pc, [sp], #4
 ; TODO: Make this more generic or include in sequence?
 
-.if _PART_NUMBER==0
+.if _DEMO_PART==0
 app_logo_p:
     .long temp_logo_no_adr  ; src ptr
     .long 0                 ; offset

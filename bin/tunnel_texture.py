@@ -17,9 +17,9 @@ def tunnel_func(x, y, param1, param2):
     a = math.atan2( y, x )
 
     # magic formulas here
-    if d>0.1:           # TODO: Make centre black.
+    if d>0.1:           
         u = param2 * a / math.pi
-        v = param1 / d      # TODO: Not const. r/tex_size = 32/128 = 0.25
+        v = param1 / d
         w = 1
     else:
         u = 0

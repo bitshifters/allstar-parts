@@ -1,6 +1,6 @@
 ; ============================================================================
 ; DATA Segment.
-; TODO: Only include data needed for corresponding _PART_NUMBER.
+; TODO: Only include data needed for corresponding _DEMO_PART.
 ; ============================================================================
 
 .data
@@ -38,17 +38,26 @@ uv_phong_texture_no_adr:
 .incbin "build/phong128.bin"
 .incbin "build/phong128.bin"
 
+uv_phong_pal_no_adr:
+.incbin "data/raw/phong.pal.bin"
+
 ; Stored as sparse bytes for extended data lookup UV FX.
 .p2align 16
 uv_cloud_texture_no_adr:
 .incbin "build/cloud128.bin"
 .incbin "build/cloud128.bin"
 
-; Stored as sparse bytes for extended data lookup UV FX.
 .p2align 16
 uv_fire_texture_no_adr:
 .incbin "build/fire128.bin"
 .incbin "build/fire128.bin"
+
+.p2align 16
+uv_ship_texture_no_adr:
+.incbin "build/ShipIndex.bin"
+.incbin "build/ShipIndex.bin"
+.incbin "build/ShipIndex.bin"
+.incbin "build/ShipIndex.bin"
 
 ; (u,v) coordinates interleaved, 1 byte each
 ; 1 word = 2 pixels worth
@@ -56,14 +65,11 @@ uv_paul1_map_no_adr:
 .incbin "build/paul1_uv.bin"            ; inside torus
 
 uv_paul2_map_no_adr:
-.incbin "build/face_uv.bin"             ; Blender test
-;.incbin "build/paul2_uv.bin"           ; knot hit test
+;.incbin "build/face_uv.bin"             ; Blender test
+.incbin "build/paul5_uv.bin"           ; knot hit test
 
 uv_paul5_map_no_adr:
 .incbin "build/paul7_uv.bin"            ; ship w/ ext data
-
-uv_phong_pal_no_adr:
-.incbin "data/raw/phong.pal.bin"
 
 uv_tunnel1_map_no_adr:
 .incbin "build/tunnel_uv.bin"           ; regular tunnel

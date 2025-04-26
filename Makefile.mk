@@ -75,7 +75,7 @@ build:
 ./build/assets.txt: build ./build/music.mod ./build/razor-font.bin ./build/tunnel_uv.bin ./build/tunnel2_uv.bin \
 	./build/face_uv.bin ./build/phong128.bin ./build/cloud128.bin ./build/itm128.bin ./build/temp-logo.bin \
 	./build/fine-font.bin ./build/paul1_uv.bin ./build/paul2_uv.bin ./build/paul3_uv.bin  ./build/paul5_uv.bin \
-	./build/paul7_uv.bin ./build/fire128.bin
+	./build/paul7_uv.bin ./build/fire128.bin ./build/ShipIndex.bin
 	echo done > $@
 
 ./build/archie-verse.shri: build ./build/archie-verse.bin
@@ -160,6 +160,9 @@ clean:
 ./build/itm128.bin: ./data/gfx/itm-rot-tex16.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels -p ./build/itmpal.bin $< 9
 
+./build/ShipIndex.bin: ./data/gfx/ShipIndex.png $(PNG2ARC_DEPS)		# index in red
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --as-bytes $< 9
+
 ./build/temp-logo.bin: ./data/gfx/temp-logo-320x48x16.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) -o $@ -p $@.pal $< 9
 
@@ -187,10 +190,10 @@ clean:
 ./build/paul3_uv.bin: ./data/gfx/PaulUV3.png $(UV_TABLE)	 # knot hit test
 	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128 --blue-mask 0x89
 
-./build/paul5_uv.bin: ./data/gfx/PaulUV5.png $(UV_TABLE)	 # ship with extended data
+./build/paul5_uv.bin: ./data/gfx/LUT02.png $(UV_TABLE)	 # ship with extended data
 	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128 --paul
 
-./build/paul7_uv.bin: ./data/gfx/PaulUV7.png $(UV_TABLE)	 # ship with extended data
+./build/paul7_uv.bin: ./data/gfx/LUT02a.png $(UV_TABLE)	 # ship with extended data
 	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128 --paul
 
 ##########################################################################

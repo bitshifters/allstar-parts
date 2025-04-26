@@ -10,13 +10,13 @@
     ;                               RingRadius          CircleRadius       RingSegments   CircleSegments   MeshPtr              Flat inner face?
     call_6      mesh_make_torus,    32.0*MATHS_CONST_1, 16.0*MATHS_CONST_1, 12,            8,              mesh_header_torus,   1
 
-    .if _PART_NUMBER==0
+    .if _DEMO_PART==0
     goto        seq_donut_part
     .endif
-    .if _PART_NUMBER==1
+    .if _DEMO_PART==1
     goto        seq_table_part
     .endif
-    .if _PART_NUMBER==2
+    .if _DEMO_PART==2
     goto        seq_test_part
     .endif
     end_script
@@ -87,17 +87,17 @@ seq_table_part:
 
     ; Test.
     write_addr  uv_tunnel_map_p,      uv_paul2_map_no_adr
-    write_addr  uv_tunnel_texture_p,  uv_fire_texture_no_adr
-    call_0      uv_tunnel_init
-    call_1      palette_set_block,    seq_palette_red_additive
+    write_addr  uv_tunnel_texture_p,  uv_ship_texture_no_adr
+    call_0      uv_tunnel_init_paul
+    call_3      palette_set_gradient, 0, 0, paul_ship_gradient
     write_byte  uv_tunnel_offset_du,    0
-    write_byte  uv_tunnel_offset_dv,    -1
+    write_byte  uv_tunnel_offset_dv,    1
 
     wait_secs   10.0
 
     ; Ship w/ ext data.
     write_addr  uv_tunnel_map_p,      uv_paul5_map_no_adr
-    write_addr  uv_tunnel_texture_p,  uv_cloud_texture_no_adr
+    write_addr  uv_tunnel_texture_p,  uv_ship_texture_no_adr
     call_0      uv_tunnel_init_paul
     call_3      palette_set_gradient, 0, 0, paul_ship_gradient
     write_byte  uv_tunnel_offset_du,    0
