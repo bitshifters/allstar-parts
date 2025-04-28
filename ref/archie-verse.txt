@@ -572,11 +572,16 @@ Runtime RAM savings:
 
 TODO:
 - Add Hz debug counter. - DONE
-- Add Paul's new UV tables and textures.
+- Add Paul's new UV tables and textures. - IN PROGRESS
 - Separate the two parts. - DONE
 - Sort out RAM. - DONE
 - Add configurable texture size at runtime.
 - Compress UV tables to reduce RAM overhead?
+    - Doing U,V deltas increases the compressability.
+    - LZ4 works surprisingly well.
+    - Would have to see if the overall saving was enough to decomp into a scratch buffer..
+        E.g. paul[1-5] comes to ~140 with LZ4 or 260K w/out so would save 60K even with 60K buffer.
+        Depends on how we're transitioning between scenes?
 
 For Megademo:
 - Load and run at 0x10000

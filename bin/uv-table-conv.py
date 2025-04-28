@@ -148,6 +148,11 @@ def main(options):
         else:
             print 'Blue channel hit mask: 0x{0:02x}'.format(bm)
 
+        # Just a test at the moment - store as byte deltas for better compression.
+        last_u=0
+        last_v=0
+        last_ab=0
+
         for row in png_result[2]:
 
             for i in range(0,len(row),8):
@@ -183,10 +188,15 @@ def main(options):
                         u1=rgba1[0] & 0xfe
                         v1=rgba1[1] & 0xfe
 
-                pixel_data.append(u0)       # u0
-                pixel_data.append(v0)       # v0
-                pixel_data.append(u1)       # u1
-                pixel_data.append(v1)       # v1
+                # Uncomment last_u|v to store deltas.
+                pixel_data.append((u0-last_u)&0xff)       # u0
+                # last_u=u0
+                pixel_data.append((v0-last_v)&0xff)       # v0
+                # last_v=v0
+                pixel_data.append((u1-last_u)&0xff)       # u1
+                # last_u=u1
+                pixel_data.append((v1-last_v)&0xff)       # v1
+                # last_v=v1
 
                 if options.paul:
                     a0=rgba0[2] & 0xf
@@ -203,8 +213,10 @@ def main(options):
                     if max1>0xf:
                         print 'WARNING: Found B value that could overflow (0x{0:02x})'.format(rgba1[2])
 
-                    paul_data.append(rgba0[2])
-                    paul_data.append(rgba1[2])
+                    paul_data.append((rgba0[2]-last_ab)&0xff)
+                    # last_ab=rgba0[2]
+                    paul_data.append((rgba1[2]-last_ab)&0xff)
+                    # last_ab=rgba1[2]
 
     else:
         sw=options.sw or 160
