@@ -178,22 +178,22 @@ clean:
 ./build/tunnel2_uv.bin: $(UV_TABLE)
 	$(PYTHON2) $(UV_TABLE) -o $@ --func fancy_func1
 
-./build/face_uv.bin: ./data/gfx/BlenderTest01_small.png $(UV_TABLE)	# face
+./build/face_uv.bin: ./data/uvs/BlenderTest01_small.png $(UV_TABLE)	# face
 	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128
 
-./build/paul1_uv.bin: ./data/gfx/PaulUV1.png $(UV_TABLE)	# inside torus
+./build/paul1_uv.bin: ./data/uvs/PaulUV1.png $(UV_TABLE)	# inside torus
 	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128
 
-./build/paul2_uv.bin: ./data/gfx/PaulUV2.png $(UV_TABLE)	# knot test
+./build/paul2_uv.bin: ./data/uvs/PaulUV2.png $(UV_TABLE)	# knot test
 	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128
 
-./build/paul3_uv.bin: ./data/gfx/PaulUV3.png $(UV_TABLE)	 # knot hit test
+./build/paul3_uv.bin: ./data/uvs/PaulUV3.png $(UV_TABLE)	 # knot hit test
 	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128 --blue-mask 0x89
 
-./build/paul5_uv.bin: ./data/gfx/LUT02.png $(UV_TABLE)	 # ship with extended data
+./build/paul5_uv.bin: ./data/uvs/LUT02.png $(UV_TABLE)	 # ship with extended data
 	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128 --paul
 
-./build/paul7_uv.bin: ./data/gfx/LUT02a.png $(UV_TABLE)	 # ship with extended data
+./build/paul7_uv.bin: ./data/uvs/LUT02a.png $(UV_TABLE)	 # ship with extended data
 	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128 --paul
 
 ##########################################################################
