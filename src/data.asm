@@ -48,27 +48,33 @@ uv_phong_pal_no_adr:
 .incbin "data/raw/phong.pal.bin"
 
 ; Stored as sparse bytes for extended data lookup UV FX.
-uv_cloud_texture_no_adr:
-.incbin "build/cloud128.bin"
+uv_cloud_sparse_texture_no_adr:
+.incbin "build/cloud128.sparse.bin"
 
 uv_fire_texture_no_adr:
 .incbin "build/fire128.bin"
 
-uv_ship_texture_no_adr:
-.incbin "build/ShipIndex.bin"
-.incbin "build/ShipIndex.bin"           ; 8K
+; Stored as sparse bytes for extended data lookup UV FX.
+uv_ship_sparse_texture_no_adr:
+.incbin "build/ShipIndex.sparse.bin"           ; 8K
+.incbin "build/ShipIndex.sparse.bin"           ; 8K
 
 ; (u,v) coordinates interleaved, 1 byte each
 ; 1 word = 2 pixels worth
 uv_paul1_map_no_adr:
-.incbin "build/paul1_uv.bin"            ; inside torus
+.incbin "build/paul1_uv.bin"            ; robot just blue mask?
 
 uv_paul2_map_no_adr:
-;.incbin "build/face_uv.bin"             ; Blender test
-.incbin "build/paul5_uv.bin"           ; knot hit test
+.incbin "build/paul2_uv.ab.bin"          ; ship w/ ext data
+
+uv_paul3_map_no_adr:
+.incbin "build/paul3_uv.bin"            ; inside twisty torus
+
+uv_paul4_map_no_adr:
+.incbin "build/paul4_uv.ab.bin"          ; planet w/ ext data
 
 uv_paul5_map_no_adr:
-.incbin "build/paul7_uv.bin"            ; ship w/ ext data
+.incbin "build/paul5_uv.ab.bin"          ; tunnel w/ ext data
 
 uv_tunnel1_map_no_adr:
 .incbin "build/tunnel_uv.bin"           ; regular tunnel

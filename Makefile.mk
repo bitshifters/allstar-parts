@@ -73,9 +73,9 @@ build:
 	$(MKDIR_P) "./build"
 
 ./build/assets.txt: build ./build/music.mod ./build/razor-font.bin ./build/tunnel_uv.bin ./build/tunnel2_uv.bin \
-	./build/face_uv.bin ./build/phong128.bin ./build/cloud128.bin ./build/itm128.bin ./build/temp-logo.bin \
-	./build/fine-font.bin ./build/paul1_uv.bin ./build/paul2_uv.bin ./build/paul3_uv.bin  ./build/paul5_uv.bin \
-	./build/paul7_uv.bin ./build/fire128.bin ./build/ShipIndex.bin
+	./build/phong128.bin ./build/cloud128.sparse.bin ./build/itm128.bin ./build/temp-logo.bin \
+	./build/fine-font.bin ./build/paul1_uv.bin ./build/paul2_uv.ab.bin ./build/paul3_uv.bin  ./build/paul4_uv.ab.bin \
+	./build/paul5_uv.ab.bin ./build/fire128.bin ./build/ShipIndex.sparse.bin
 	echo done > $@
 
 ./build/archie-verse.shri: build ./build/archie-verse.bin
@@ -151,7 +151,7 @@ clean:
 ./build/phong128.bin: ./data/gfx/phong-x4.png ./data/raw/phong.pal.bin $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --use-palette ./data/raw/phong.pal.bin --double-pixels $< 9
 
-./build/cloud128.bin: ./data/gfx/Elements_22-128x128x16.png $(PNG2ARC_DEPS)
+./build/cloud128.sparse.bin: ./data/gfx/Elements_22-128x128x16.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --as-bytes $< 9
 
 ./build/fire128.bin: ./data/gfx/Elements_02-128x128x16.png $(PNG2ARC_DEPS)
@@ -160,7 +160,7 @@ clean:
 ./build/itm128.bin: ./data/gfx/itm-rot-tex16.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels -p ./build/itmpal.bin $< 9
 
-./build/ShipIndex.bin: ./data/gfx/ShipIndex.png $(PNG2ARC_DEPS)		# index in red
+./build/ShipIndex.sparse.bin: ./data/gfx/ShipIndex.png $(PNG2ARC_DEPS)		# index in red
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --as-bytes $< 9
 
 ./build/temp-logo.bin: ./data/gfx/temp-logo-320x48x16.png $(PNG2ARC_DEPS)
@@ -178,22 +178,19 @@ clean:
 ./build/tunnel2_uv.bin: $(UV_TABLE)
 	$(PYTHON2) $(UV_TABLE) -o $@ --func fancy_func1
 
-./build/face_uv.bin: ./data/uvs/BlenderTest01_small.png $(UV_TABLE)	# face
+./build/paul1_uv.bin: ./data/uvs/LUT01.png $(UV_TABLE)	# robot just blue mask?
 	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128
 
-./build/paul1_uv.bin: ./data/uvs/PaulUV1.png $(UV_TABLE)	# inside torus
-	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128
-
-./build/paul2_uv.bin: ./data/uvs/PaulUV2.png $(UV_TABLE)	# knot test
-	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128
-
-./build/paul3_uv.bin: ./data/uvs/PaulUV3.png $(UV_TABLE)	 # knot hit test
-	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128 --blue-mask 0x89
-
-./build/paul5_uv.bin: ./data/uvs/LUT02.png $(UV_TABLE)	 # ship with extended data
+./build/paul2_uv.ab.bin: ./data/uvs/LUT02.png $(UV_TABLE)	# ship w/ ext data
 	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128 --paul
 
-./build/paul7_uv.bin: ./data/uvs/LUT02a.png $(UV_TABLE)	 # ship with extended data
+./build/paul3_uv.bin: ./data/uvs/LUT03.png $(UV_TABLE)	# inside twisty torus
+	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128
+
+./build/paul4_uv.ab.bin: ./data/uvs/LUT04.png $(UV_TABLE)	# planet w/ ext data
+	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128 --paul
+
+./build/paul5_uv.ab.bin: ./data/uvs/LUT05.png $(UV_TABLE)	# tunnel w/ ext data
 	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128 --paul
 
 ##########################################################################
