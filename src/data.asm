@@ -54,6 +54,12 @@ uv_cloud_sparse_texture_no_adr:
 uv_fire_texture_no_adr:
 .incbin "build/fire128.bin"
 
+uv_bgtest_texture_no_adr:
+.incbin "build/bgtest4.bin"
+
+uv_bgtest_pal_no_adr:
+.incbin "build/bgtest4.pal.bin"
+
 ; Stored as sparse bytes for extended data lookup UV FX.
 uv_ship_sparse_texture_no_adr:
 .incbin "build/ShipIndex.sparse.bin"           ; 8K

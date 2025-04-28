@@ -104,14 +104,42 @@ uv_texture_set_data:
 ;   R3=base register [8, 11]
 ; Trashes: R4
 uv_table_calc_offset:
-    and r2, r0, #0x00fe             ; u0<<1  [0, 127]
-    and r3, r0, #0xfe00             ; v0<<9  [0, 127]
-    mov r2, r2, lsr #1              ; u0
+    .if 1                           ; 128x128
+    and r2, r0, #0x00fe             ; u0<<1  [0, 127]   7 bits
+    and r3, r0, #0xfe00             ; v0<<9  [0, 127]   7 bits
+    mov r2, r2, lsr #1              ; u0 <== wouldn't need this if u stored at bottom of byte
     mov r4, r3, lsl #18             ; bottom 5 bits of v0
-    orr r2, r2, r4, lsr #20         ; v0 | u0
+    orr r2, r2, r4, lsr #20         ; v0 | u0           12 bits
     mov r3, r3, lsr #14             ; top 2 bits of v0
     add r3, r3, #8                  ; [8, 11]
+
+    .else                           ; 64x256
+    and r2, r0, #0x00fc             ; u0<<2  [0, 63]    6 bits
+    and r3, r0, #0xff00             ; v0<<8  [0, 255]   8 bits
+    mov r2, r2, lsr #2              ; u0 <== wouldn't need this if u stored at bottom of byte
+    mov r4, r3, lsl #18             ; bottom 6 bits of v0
+    orr r2, r2, r4, lsr #20         ; v0 | u0           12 bits
+    mov r3, r3, lsr #14             ; top 2 bits of v0
+    add r3, r3, #8                  ; [8, 11]
+
+    .if 0                           ; 256x64
+    and r2, r0, #0x00ff             ; u0<<0  [0, 255]  8 bits
+    and r3, r0, #0xfc00             ; v0<<10 [0, 63]   6 bits
+    mov r2, r2, lsr #0              ; u0 <== wouldn't need this if u stored at bottom of byte
+    mov r4, r3, lsl #18             ; bottom 4 bits of v0
+    orr r2, r2, r4, lsr #20         ; v0 | u0           12 bits
+    mov r3, r3, lsr #14             ; top 2 bits of v0
+    add r3, r3, #8                  ; [8, 11]
+    .endif
+
+    .endif
     mov pc, lr
+
+; Paul stores everything as [0,255] then map to texture size.
+; In this case it means just change the shift values for u and v.
+; Still need a bit to indicate constant colour!!!
+; We only have 14 bits of data so we can pick our flag bit.
+; Somewhere between bits 7-9! [0x80 or 0x100]
 
 uv_table_init:
     ldr r12, uv_table_code_p       ; dest

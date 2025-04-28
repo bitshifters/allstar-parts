@@ -75,7 +75,7 @@ build:
 ./build/assets.txt: build ./build/music.mod ./build/razor-font.bin ./build/tunnel_uv.bin ./build/tunnel2_uv.bin \
 	./build/phong128.bin ./build/cloud128.sparse.bin ./build/itm128.bin ./build/temp-logo.bin \
 	./build/fine-font.bin ./build/paul1_uv.bin ./build/paul2_uv.ab.bin ./build/paul3_uv.bin  ./build/paul4_uv.ab.bin \
-	./build/paul5_uv.ab.bin ./build/fire128.bin ./build/ShipIndex.sparse.bin
+	./build/paul5_uv.ab.bin ./build/fire128.bin ./build/ShipIndex.sparse.bin ./build/bgtest4.bin
 	echo done > $@
 
 ./build/archie-verse.shri: build ./build/archie-verse.bin
@@ -162,6 +162,9 @@ clean:
 
 ./build/ShipIndex.sparse.bin: ./data/gfx/ShipIndex.png $(PNG2ARC_DEPS)		# index in red
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --as-bytes $< 9
+
+./build/bgtest4.bin: ./data/gfx/BGTest4.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels -p ./build/bgtest4.pal.bin $< 9
 
 ./build/temp-logo.bin: ./data/gfx/temp-logo-320x48x16.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) -o $@ -p $@.pal $< 9

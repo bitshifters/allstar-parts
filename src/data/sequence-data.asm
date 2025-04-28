@@ -74,11 +74,11 @@ seq_space_part:
     call_3      fx_set_layer_fns,   1, 0,                          0
     
     ; Robot. TODO: New texture map.
-    call_1      uv_texture_set_data,  uv_fire_texture_no_adr
+    call_1      uv_texture_set_data,  uv_bgtest_texture_no_adr
     write_addr  uv_table_map_p,       uv_paul1_map_no_adr
     call_0      uv_table_init
-    call_1      palette_set_block,    seq_palette_red_additive
-    write_byte  uv_table_offset_du,   1
+    call_1      palette_set_block,    uv_bgtest_pal_no_adr
+    write_byte  uv_table_offset_du,   0
     write_byte  uv_table_offset_dv,   1
 
     wait_secs   10.0
