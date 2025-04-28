@@ -557,6 +557,7 @@ RAM budget
 - Plus MOD :) = current 180K but let's see if we can get that up!
 - Plus code = 32K max (probably 16K)
 - Plus stack + assorted flimflam = 2K
+- 1480K available total?
 
 - Plus modules in memory (QTM + RAM)
 - Plus screen buffers

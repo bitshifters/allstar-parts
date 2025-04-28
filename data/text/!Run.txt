@@ -9,7 +9,7 @@ RMEnsure Arm3Support 0.0 Set CPU$Type ARM2
 RMLOAD <Obey$Dir>.QTM146c_24 { > null: }
 RMLOAD <Obey$Dir>.RMv030 { > null: }
 |
-wimpslot -min 1500K
+wimpslot -min 1400K
 <Obey$Dir>.!RunImage
 |
 RMKILL RasterMan

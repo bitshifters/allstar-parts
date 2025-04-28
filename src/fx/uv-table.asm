@@ -1,12 +1,25 @@
 ; ============================================================================
-; UV tunnel (made into generic UV table map)
+; UV table map effects.
+;
+; Standard format: each word is 2 pixels of packed U,V = v1v0u1u0
+;   where U, V are [0,127] << 1 and screen_colour = texture[v * 128 + u]
+;   if UV_Table_BlankPixels is defined and bottom bit of U or V is set
+;   then the screen_colour = 0
+; Requires texture to be doubled up 0xLL.
+;
+; Extended foramt: follows with another word = b1a1b0a0
+;   where screen_colour = (texture_colour >> a) + b
+; Requires texture to be sparse 0x0L.
+;
+; Propose merging into optional ab bytes (saves 20K per table).
+;
 ; ============================================================================
 
 .equ UV_Table_CodeSize,        335876  ; 151556
 .equ UV_Table_Columns,         160
 .equ UV_Table_Rows,            128     ; or 120?
 
-.equ UV_Table_BlankPixels,     1       ; TODO: Decide at runtime.
+.equ UV_Table_BlankPixels,     1       ; TODO: Decide at runtime?
 
 uv_table_offset_u:
     .byte 0
@@ -238,23 +251,38 @@ uv_table_gen_code:
 uv_table_init_paul:
     ldr r12, uv_table_code_p       ; dest
     ldr r11, uv_table_map_p        ; uv data
+    add r10, r11, #UV_Table_Columns*UV_Table_Rows*2
     ; Fall through!
 
 uv_table_gen_code_paul_scheme:
     str lr, [sp, #-4]!
 
-    mov r10, #UV_Table_Rows        ; rows to plot
+    ; R0=v1v0u1u0
+    ; R1=v3v2u3u2
+    ; R2=temp
+    ; R3=temp
+    ; R4=temp
+    ; R5=b1a1b0a0
+    ; R6=row counter | column counter<<16
+    ; R7=opcode being assembled
+    ; R8=code snippet ptr
+    ; R9=dest register
+    ; R10=Extended data ptr
+    ; R11=UV table ptr
+    ; R12=code dest ptr
+    ; R14=b3a3b2a2
+
+    mov r6, #UV_Table_Rows          ; rows to plot
 .1:
 
-    mov r6, #UV_Table_Columns      ; columns to plot
+    orr r6, r6, #UV_Table_Columns<<16  ; columns to plot
 .3:
     mov r9, #0                      ; dest register
 
 .2:
     ; Load 4 pixels worth of (u,v)
-
-    ldmia r11!, {r0,r5}      ; R0=v1v0u1u0 R5=b1a1b0a0
-    ldmia r11!, {r1,r14}     ; R1=v3v2u3u2 R14=b3a3b2a2
+    ldmia r11!, {r0,r1}      ; R0=v1v0u1u0 R1=v3v2u3u2
+    ldmia r10!, {r5,r14}     ; R5=b1a1b0a0 R14=b3a3b2a2
 
     ; Copy one snippet for 4 pixels = assemble 1 word for writing
 
@@ -413,8 +441,9 @@ uv_table_gen_code_paul_scheme:
     stmia r12!, {r0-r2}
     ; Code size = 56 words + 3 words = 59 words
 
-    subs r6, r6, #32                ; 8 words at a time = 32 chunky pixels.
-    bne .3
+    sub r6, r6, #32<<16            ; 8 words at a time = 32 chunky pixels.
+    cmp r6, #1<<16
+    bgt .3
     ; Code size = 59 words * 5 times = 295 words
 
     ; Write out increment screen ptr to skip a line.
@@ -422,7 +451,7 @@ uv_table_gen_code_paul_scheme:
     str r0, [r12], #4
     ; Code size = 295 words + 1 word = 296 words per row
 
-    subs r10, r10, #1               ; next row
+    subs r6, r6, #1               ; next row
     bne .1
     ; Code size = 296 words * 128 rows = 37888 words
 
@@ -482,8 +511,10 @@ uv_table_code_snippet:
     ; 28c per word * 8 + 27 = 251 * 5 = 1255 * 128 = 160640c
     ; ~7.8c per chunky pixel (160x90 gives approx same count as vanilla version)
 
+    .if 0   ; not used yet!
     and r0, r0, #0x0f               ; either texture select A
     mov r0, r0, lsr #4              ;     or texture select B
     orr r0, r0, r0, lsl #4          ; <= do this once per word, not per byte
     ; 25c per word * 8 + 27 = 227 * 5 = 1135 * 128 = 145280c
     ; ~7.1c per chunky pixel (160x100 gives approx same count as vanilla version)
+    .endif

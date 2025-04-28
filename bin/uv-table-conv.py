@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import png,argparse,sys,math,arc
+import png,argparse,math
 
 ##########################################################################
 ##########################################################################
@@ -135,6 +135,7 @@ def main(options):
     bm=options.blue_mask or 0   # blue mask
 
     pixel_data=[]
+    paul_data=[]
 
     if options.rgb_path is not None:
 
@@ -202,10 +203,10 @@ def main(options):
                     if max1>0xf:
                         print 'WARNING: Found B value that could overflow (0x{0:02x})'.format(rgba1[2])
 
-                    pixel_data.append(a0)
-                    pixel_data.append(b0)
-                    pixel_data.append(a1)
-                    pixel_data.append(b1)
+                    paul_data.append(a0)
+                    paul_data.append(b0)
+                    paul_data.append(a1)
+                    paul_data.append(b1)
 
     else:
         sw=options.sw or 160
@@ -255,6 +256,8 @@ def main(options):
                     pixel_data.append(1)       # v
 
     #assert(len(pixel_data)==sw*sh*2)
+    for x in paul_data:         # TODO: Pythonic way of doing this.
+        pixel_data.append(x)
     save_file(pixel_data,options.output_path)
     print 'Wrote {0} bytes Arc data.'.format(len(pixel_data))
 
