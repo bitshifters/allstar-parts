@@ -546,11 +546,33 @@ logical_colour = (logical_colour >> a) + b
     - Use four separate textures - replace the four pointers
         with tracked add/sub instructions.
 
+RAM budget
+- Assume 9 parts?
+- Each has UV table = 60K max (currently 80K)
+- Each has unique texture = 16K but has to be doubled up = 32K
+- Max = 9*60 = 540K + 9*32 = 288K = 828K
+- Plus unrolled code = 328K
+- Plus sinetable = 64K
+- Plus ZP/loader = 64K
+- Plus MOD :) = current 180K but let's see if we can get that up!
+- Plus code = 32K max (probably 16K)
+- Plus stack + assorted flimflam = 2K
+
+- Plus modules in memory (QTM + RAM)
+- Plus screen buffers
+- Plus RISCOS overhead :S
+
+Runtime RAM savings:
+- Double up texture being used when switching to it (requires double copy to scratch)
+    - 9*16K + 32K scratch = saves 112K
+- Compress UV tables somehow?
+
+
 TODO:
 - Add Hz debug counter. - DONE
 - Add Paul's new UV tables and textures.
-- Separate the two parts.
-- Sort out RAM.
+- Separate the two parts. - DONE
+- Sort out RAM. - DONE
 - Add configurable texture size at runtime.
 - Compress UV tables to reduce RAM overhead?
 
@@ -559,5 +581,5 @@ For Megademo:
     - Change .org
     - Update link_script.txt
 - Build creates both binaries?
-- Minimal binary for each part.
+- Minimal binary for each part. - IN PROGRESS
 - Compress binaries. => Sarah to choose method.

@@ -70,40 +70,40 @@ seq_space_part:
     call_0      rotate_init
 
     ; UV tunnel aka UV table fx.
-    call_3      fx_set_layer_fns,   0, uv_tunnel_tick              uv_tunnel_draw
+    call_3      fx_set_layer_fns,   0, uv_table_tick              uv_table_draw
     call_3      fx_set_layer_fns,   1, 0,                          0
     
     ; Inside torus.
-    write_addr  uv_tunnel_map_p,      uv_paul1_map_no_adr
-    write_addr  uv_tunnel_texture_p,  uv_fire_texture_no_adr
-    call_0      uv_tunnel_init
+    write_addr  uv_table_map_p,      uv_paul1_map_no_adr
+    write_addr  uv_table_texture_p,  uv_fire_texture_no_adr
+    call_0      uv_table_init
     call_1      palette_set_block,    seq_palette_red_additive
-    write_byte  uv_tunnel_offset_du,    1
-    write_byte  uv_tunnel_offset_dv,    0
+    write_byte  uv_table_offset_du,    1
+    write_byte  uv_table_offset_dv,    0
 
     wait_secs   10.0
 
     ; Test.
-    write_addr  uv_tunnel_map_p,      uv_paul2_map_no_adr
-    write_addr  uv_tunnel_texture_p,  uv_ship_texture_no_adr
-    call_0      uv_tunnel_init_paul
+    write_addr  uv_table_map_p,      uv_paul2_map_no_adr
+    write_addr  uv_table_texture_p,  uv_ship_texture_no_adr
+    call_0      uv_table_init_paul
     call_3      palette_set_gradient, 0, 0, paul_ship_gradient
-    write_byte  uv_tunnel_offset_u,    0
-    write_byte  uv_tunnel_offset_v,    0
-    write_byte  uv_tunnel_offset_du,    0
-    write_byte  uv_tunnel_offset_dv,    1
+    write_byte  uv_table_offset_u,    0
+    write_byte  uv_table_offset_v,    0
+    write_byte  uv_table_offset_du,    0
+    write_byte  uv_table_offset_dv,    1
 
     wait_secs   10.0
 
     ; Ship w/ ext data.
-    write_addr  uv_tunnel_map_p,      uv_paul5_map_no_adr
-    write_addr  uv_tunnel_texture_p,  uv_ship_texture_no_adr
-    call_0      uv_tunnel_init_paul
+    write_addr  uv_table_map_p,      uv_paul5_map_no_adr
+    write_addr  uv_table_texture_p,  uv_ship_texture_no_adr
+    call_0      uv_table_init_paul
     call_3      palette_set_gradient, 0, 0, paul_ship_gradient
-    write_byte  uv_tunnel_offset_u,    0
-    write_byte  uv_tunnel_offset_v,    0
-    write_byte  uv_tunnel_offset_du,    0
-    write_byte  uv_tunnel_offset_dv,    1
+    write_byte  uv_table_offset_u,    0
+    write_byte  uv_table_offset_v,    0
+    write_byte  uv_table_offset_du,    0
+    write_byte  uv_table_offset_dv,    1
 
     wait_secs   10.0
 
@@ -114,14 +114,14 @@ seq_space_part:
     wait_secs 10.0
 
     ; Inside out.
-    write_addr  uv_tunnel_texture_p,  uv_phong_texture_no_adr
-    write_addr  uv_tunnel_map_p,      uv_tunnel2_map_no_adr
-    call_0      uv_tunnel_init
+    write_addr  uv_table_texture_p,  uv_phong_texture_no_adr
+    write_addr  uv_table_map_p,      uv_tunnel2_map_no_adr
+    call_0      uv_table_init
 
     call_1      palette_set_block,    uv_phong_pal_no_adr
-    call_3      fx_set_layer_fns,     0, uv_tunnel_tick              uv_tunnel_draw
-    write_byte  uv_tunnel_offset_du,  -1
-    write_byte  uv_tunnel_offset_dv,   1
+    call_3      fx_set_layer_fns,     0, uv_table_tick              uv_table_draw
+    write_byte  uv_table_offset_du,  -1
+    write_byte  uv_table_offset_dv,   1
 
     wait_secs 10.0
 

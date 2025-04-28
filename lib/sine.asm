@@ -2,6 +2,8 @@
 ; Sine and cosine functions.
 ; ============================================================================
 
+; TODO: Make these the same otherwise we're getting different results!!
+
 .if LibSine_MakeSinusTable
 .equ LibSine_TableBits, 14                  ; 16384
 .else

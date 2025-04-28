@@ -19,7 +19,7 @@
 .endif
 
 .ifndef _SMALL_EXE
-.equ _SMALL_EXE,                0
+.equ _SMALL_EXE,                1
 .endif
 
 .equ _SLOW_CPU,                 1       ; ARM2 @ 8MHz. TODO: Set dynamically.

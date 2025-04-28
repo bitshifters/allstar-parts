@@ -2,44 +2,44 @@
 ; UV tunnel (made into generic UV table map)
 ; ============================================================================
 
-.equ UV_Tunnel_CodeSize,        335876  ; 151556
-.equ UV_Tunnel_Columns,         160
-.equ UV_Tunnel_Rows,            128     ; or 120?
+.equ UV_Table_CodeSize,        335876  ; 151556
+.equ UV_Table_Columns,         160
+.equ UV_Table_Rows,            128     ; or 120?
 
-.equ UV_Tunnel_BlankPixels,     1       ; TODO: Decide at runtime.
+.equ UV_Table_BlankPixels,     1       ; TODO: Decide at runtime.
 
-uv_tunnel_offset_u:
+uv_table_offset_u:
     .byte 0
 
-uv_tunnel_offset_v:
+uv_table_offset_v:
     .byte 0
 
-uv_tunnel_offset_du:
+uv_table_offset_du:
     .byte 1
 
-uv_tunnel_offset_dv:
+uv_table_offset_dv:
     .byte 1
 .p2align 2
 
-uv_tunnel_texture_p:
+uv_table_texture_p:
     .long 0
 
-uv_tunnel_map_p:
+uv_table_map_p:
     .long 0
 
-uv_tunnel_code_p:
-    .long uv_tunnel_unrolled_code_no_adr
+uv_table_code_p:
+    .long uv_table_unrolled_code_no_adr
 
 ; ============================================================================
 
 ; R12=screen addr
-uv_tunnel_draw:
+uv_table_draw:
 	str lr, [sp, #-4]!
 
-    ldrb r9, uv_tunnel_offset_u
-    ldrb r1, uv_tunnel_offset_v
+    ldrb r9, uv_table_offset_u
+    ldrb r1, uv_table_offset_v
 
-    ldr r8, uv_tunnel_texture_p ; base of the texture
+    ldr r8, uv_table_texture_p ; base of the texture
 
     add r8, r8, r9              ; add u offset
     add r8, r8, r1, lsl #7      ; add v offset (128 bytes per row)
@@ -48,29 +48,29 @@ uv_tunnel_draw:
     add r10, r9, #4096          ; using offset load, so use registers
     add r11, r10, #4096         ; 4*4096 = 16384 = 128*128
 
-    ldr pc, uv_tunnel_code_p    ; pops return from stack.
+    ldr pc, uv_table_code_p    ; pops return from stack.
 
 ; ============================================================================
 
-uv_tunnel_tick:
-    ldrb r9, uv_tunnel_offset_u
-    ldrb r8, uv_tunnel_offset_du
+uv_table_tick:
+    ldrb r9, uv_table_offset_u
+    ldrb r8, uv_table_offset_du
     add r9, r9, r8
     and r9, r9, #0x7f           ; u [0, 127]
-    strb r9, uv_tunnel_offset_u
+    strb r9, uv_table_offset_u
 
-    ldrb r1, uv_tunnel_offset_v
-    ldrb r2, uv_tunnel_offset_dv
+    ldrb r1, uv_table_offset_v
+    ldrb r2, uv_table_offset_dv
     add r1, r1, r2
     and r1, r1, #0x7f           ; v [0, 127]
-    strb r1, uv_tunnel_offset_v
+    strb r1, uv_table_offset_v
     mov pc, lr
 
 ; ============================================================================
 
-uv_tunnel_init:
-    ldr r12, uv_tunnel_code_p       ; dest
-    ldr r11, uv_tunnel_map_p        ; uv data
+uv_table_init:
+    ldr r12, uv_table_code_p       ; dest
+    ldr r11, uv_table_map_p        ; uv data
     ; Fall through!
 
 ; R11 = pointer to UV map data
@@ -78,13 +78,13 @@ uv_tunnel_init:
 ; u,v [0, 255] => we're going to use half resolution.
 ; R12 = pointer to where unrolled code is written
 ; TODO: Feed in row/column count as params?
-uv_tunnel_gen_code:
+uv_table_gen_code:
     str lr, [sp, #-4]!
 
-    mov r10, #UV_Tunnel_Rows        ; rows to plot
+    mov r10, #UV_Table_Rows        ; rows to plot
 .1:
 
-    mov r6, #UV_Tunnel_Columns      ; columns to plot
+    mov r6, #UV_Table_Columns      ; columns to plot
 .3:
     mov r9, #0                      ; dest register
 
@@ -95,17 +95,17 @@ uv_tunnel_gen_code:
 
     ; Copy one snippet for 4 pixels = assemble 1 word for writing
 
-    adr r8, uv_tunnel_code_snippet
+    adr r8, uv_table_code_snippet
 
     ldr r7, [r8], #4                ; ldrb rX, [rY, #Z]
-    .if UV_Tunnel_BlankPixels
+    .if UV_Table_BlankPixels
     and r2, r0, #0x01               ; u0 invalid bit
     and r3, r0, #0x010000           ; v0 invalid bit
     orrs r14, r2, r3                ; u0 invalid or v0 invalid?
     ldrne r7, [r8, #11*4]           ; mov rX, #0
     .endif
     orr r7, r7, r9, lsl #12         ; dest reg
-    .if UV_Tunnel_BlankPixels
+    .if UV_Table_BlankPixels
     bne .20                         ; Skip pixel
     .endif
 
@@ -122,7 +122,7 @@ uv_tunnel_gen_code:
     str r7, [r12], #4               ; write out instruction 0
 
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
-    .if UV_Tunnel_BlankPixels
+    .if UV_Table_BlankPixels
     and r2, r0, #0x0100             ; u1 invalid bit
     and r3, r0, #0x01000000         ; v1 invalid bit
     orrs r14, r2, r3                ; u1 invalid or v1 invalid?
@@ -148,7 +148,7 @@ uv_tunnel_gen_code:
     str r7, [r12], #4               ; write out instruction 2
 
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
-    .if UV_Tunnel_BlankPixels
+    .if UV_Table_BlankPixels
     and r2, r1, #0x01               ; u2 invalid bit
     and r3, r1, #0x010000           ; v2 invalid bit
     orrs r14, r2, r3                ; u2 invalid or v2 invalid?
@@ -174,7 +174,7 @@ uv_tunnel_gen_code:
     str r7, [r12], #4               ; write out instruction 4
 
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
-    .if UV_Tunnel_BlankPixels
+    .if UV_Table_BlankPixels
     and r2, r1, #0x0100             ; u3 invalid bit
     and r3, r1, #0x01000000         ; v3 invalid bit
     orrs r14, r2, r3                ; u3 invalid or v3 invalid?
@@ -235,18 +235,18 @@ uv_tunnel_gen_code:
 ; u,v [0, 255] => we're going to use half resolution.
 ; R12 = pointer to where unrolled code is written
 ; TODO: Feed in row/column count as params?
-uv_tunnel_init_paul:
-    ldr r12, uv_tunnel_code_p       ; dest
-    ldr r11, uv_tunnel_map_p        ; uv data
+uv_table_init_paul:
+    ldr r12, uv_table_code_p       ; dest
+    ldr r11, uv_table_map_p        ; uv data
     ; Fall through!
 
-uv_tunnel_gen_code_paul_scheme:
+uv_table_gen_code_paul_scheme:
     str lr, [sp, #-4]!
 
-    mov r10, #UV_Tunnel_Rows        ; rows to plot
+    mov r10, #UV_Table_Rows        ; rows to plot
 .1:
 
-    mov r6, #UV_Tunnel_Columns      ; columns to plot
+    mov r6, #UV_Table_Columns      ; columns to plot
 .3:
     mov r9, #0                      ; dest register
 
@@ -258,7 +258,7 @@ uv_tunnel_gen_code_paul_scheme:
 
     ; Copy one snippet for 4 pixels = assemble 1 word for writing
 
-    adr r8, uv_tunnel_code_snippet
+    adr r8, uv_table_code_snippet
 
     ldr r7, [r8], #4                ; ldrb rX, [rY, #Z]
     orr r7, r7, r9, lsl #12         ; dest reg
@@ -437,7 +437,7 @@ uv_tunnel_gen_code_paul_scheme:
 ; NB. Not called directly, copied and patched at runtime.
 ; ============================================================================
 
-uv_tunnel_code_snippet:
+uv_table_code_snippet:
     ldrb r0, [r0, #0]               ; 4c    <= mod imm offset, base reg, dest reg
     ldrb r14, [r0, #0]              ; 4c    <= mod imm offset, base reg
     orr r0, r0, r14, lsl #8         ; 1c    <= mod dest reg
@@ -460,7 +460,7 @@ uv_tunnel_code_snippet:
     ; Return.
     ldr pc, [sp], #4
 
-    .if UV_Tunnel_BlankPixels
+    .if UV_Table_BlankPixels
     ; Blank a pixel.
     mov r0, #0
     mov r14, #0
