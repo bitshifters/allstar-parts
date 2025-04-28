@@ -19,7 +19,7 @@ rotate_sinus_table_p:
     .long sinus_table_no_adr
 
 rotate_texture_p:
-    .long rotate_texture_no_adr
+    .long uv_texture_data_no_adr
 
 ; ============================================================================
 

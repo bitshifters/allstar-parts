@@ -35,38 +35,28 @@ fine_font_no_adr:
 .p2align 16
 rotate_texture_no_adr:
 .incbin "build/itm128.bin"
-.incbin "build/itm128.bin"
 
 rotate_pal_no_adr:
 .incbin "build/itmpal.bin"
 
 ; fx/uv-tunnel.asm
 ; MODE 9 texture, 4 bpp x 2
-.p2align 16
 uv_phong_texture_no_adr:
-.incbin "build/phong128.bin"
 .incbin "build/phong128.bin"
 
 uv_phong_pal_no_adr:
 .incbin "data/raw/phong.pal.bin"
 
 ; Stored as sparse bytes for extended data lookup UV FX.
-.p2align 16
 uv_cloud_texture_no_adr:
 .incbin "build/cloud128.bin"
-.incbin "build/cloud128.bin"
 
-.p2align 16
 uv_fire_texture_no_adr:
 .incbin "build/fire128.bin"
-.incbin "build/fire128.bin"
 
-.p2align 16
 uv_ship_texture_no_adr:
 .incbin "build/ShipIndex.bin"
-.incbin "build/ShipIndex.bin"
-.incbin "build/ShipIndex.bin"
-.incbin "build/ShipIndex.bin"
+.incbin "build/ShipIndex.bin"           ; 8K
 
 ; (u,v) coordinates interleaved, 1 byte each
 ; 1 word = 2 pixels worth

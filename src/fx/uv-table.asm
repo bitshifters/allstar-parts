@@ -19,6 +19,8 @@
 .equ UV_Table_Columns,         160
 .equ UV_Table_Rows,            128     ; or 120?
 
+.equ UV_Texture_Size,           128*128
+
 .equ UV_Table_BlankPixels,     1       ; TODO: Decide at runtime?
 
 uv_table_offset_u:
@@ -35,13 +37,16 @@ uv_table_offset_dv:
 .p2align 2
 
 uv_table_texture_p:
-    .long 0
+    .long uv_texture_data_no_adr
 
 uv_table_map_p:
     .long 0
 
 uv_table_code_p:
     .long uv_table_unrolled_code_no_adr
+
+uv_table_texture_data_p:
+    .long uv_texture_data_no_adr
 
 ; ============================================================================
 
@@ -78,6 +83,18 @@ uv_table_tick:
     and r1, r1, #0x7f           ; v [0, 127]
     strb r1, uv_table_offset_v
     mov pc, lr
+
+; ============================================================================
+
+; Copies 16Kb of texture data to buffer twice (so texture lookup can wrap in V).
+; R0=src ptr.
+uv_texture_set_data:
+    ldr r1, uv_table_texture_data_p
+    str r1, uv_table_texture_p
+    stmfd sp!, {r0,lr}
+    bl mem_copy_16K_fast
+    ldmfd sp!, {r0,lr}
+    b mem_copy_16K_fast
 
 ; ============================================================================
 

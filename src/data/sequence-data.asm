@@ -74,48 +74,49 @@ seq_space_part:
     call_3      fx_set_layer_fns,   1, 0,                          0
     
     ; Inside torus.
-    write_addr  uv_table_map_p,      uv_paul1_map_no_adr
-    write_addr  uv_table_texture_p,  uv_fire_texture_no_adr
+    call_1      uv_texture_set_data,  uv_fire_texture_no_adr
+    write_addr  uv_table_map_p,       uv_paul1_map_no_adr
     call_0      uv_table_init
     call_1      palette_set_block,    seq_palette_red_additive
-    write_byte  uv_table_offset_du,    1
-    write_byte  uv_table_offset_dv,    0
+    write_byte  uv_table_offset_du,   1
+    write_byte  uv_table_offset_dv,   0
 
     wait_secs   10.0
 
     ; Test.
-    write_addr  uv_table_map_p,      uv_paul2_map_no_adr
-    write_addr  uv_table_texture_p,  uv_ship_texture_no_adr
+    call_1      uv_texture_set_data,  uv_ship_texture_no_adr
+    write_addr  uv_table_map_p,       uv_paul2_map_no_adr
     call_0      uv_table_init_paul
     call_3      palette_set_gradient, 0, 0, paul_ship_gradient
     write_byte  uv_table_offset_u,    0
     write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,    0
-    write_byte  uv_table_offset_dv,    1
+    write_byte  uv_table_offset_du,   0
+    write_byte  uv_table_offset_dv,   1
 
     wait_secs   10.0
 
     ; Ship w/ ext data.
-    write_addr  uv_table_map_p,      uv_paul5_map_no_adr
-    write_addr  uv_table_texture_p,  uv_ship_texture_no_adr
+    call_1      uv_texture_set_data,  uv_ship_texture_no_adr
+    write_addr  uv_table_map_p,       uv_paul5_map_no_adr
     call_0      uv_table_init_paul
     call_3      palette_set_gradient, 0, 0, paul_ship_gradient
     write_byte  uv_table_offset_u,    0
     write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,    0
-    write_byte  uv_table_offset_dv,    1
+    write_byte  uv_table_offset_du,   0
+    write_byte  uv_table_offset_dv,   1
 
     wait_secs   10.0
 
     ; Rotate & scale.
-    call_1      palette_set_block,  rotate_pal_no_adr
-    call_3      fx_set_layer_fns,   0, rotate_tick,                rotate_draw
+    call_1      palette_set_block,      rotate_pal_no_adr
+    call_1      uv_texture_set_data,    rotate_texture_no_adr
+    call_3      fx_set_layer_fns, 0,    rotate_tick,                rotate_draw
 
     wait_secs 10.0
 
     ; Inside out.
-    write_addr  uv_table_texture_p,  uv_phong_texture_no_adr
-    write_addr  uv_table_map_p,      uv_tunnel2_map_no_adr
+    call_1      uv_texture_set_data,  uv_phong_texture_no_adr
+    write_addr  uv_table_map_p,       uv_tunnel2_map_no_adr
     call_0      uv_table_init
 
     call_1      palette_set_block,    uv_phong_pal_no_adr
