@@ -465,7 +465,7 @@ app_copy_to_screen:
 .endif
 .if _DEMO_PART==_PART_SPACE
 .include "src/fx/rotate.asm"
-.include "src/fx/uv-tunnel.asm"
+.include "src/fx/uv-table.asm"
 .endif
 .if AppConfig_UseRasterMan
 .include "src/rasters.asm"
