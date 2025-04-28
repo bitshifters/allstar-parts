@@ -203,10 +203,8 @@ def main(options):
                     if max1>0xf:
                         print 'WARNING: Found B value that could overflow (0x{0:02x})'.format(rgba1[2])
 
-                    paul_data.append(a0)
-                    paul_data.append(b0)
-                    paul_data.append(a1)
-                    paul_data.append(b1)
+                    paul_data.append(rgba0[2])
+                    paul_data.append(rgba1[2])
 
     else:
         sw=options.sw or 160

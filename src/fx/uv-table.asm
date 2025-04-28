@@ -262,15 +262,15 @@ uv_table_gen_code_paul_scheme:
     ; R2=temp
     ; R3=temp
     ; R4=temp
-    ; R5=b1a1b0a0
+    ; R5=b3a3b2a2b1a1b0a0
     ; R6=row counter | column counter<<16
     ; R7=opcode being assembled
     ; R8=code snippet ptr
     ; R9=dest register
-    ; R10=Extended data ptr
+    ; R10=extended data ptr
     ; R11=UV table ptr
     ; R12=code dest ptr
-    ; R14=b3a3b2a2
+    ; R14=free :)
 
     mov r6, #UV_Table_Rows          ; rows to plot
 .1:
@@ -281,8 +281,9 @@ uv_table_gen_code_paul_scheme:
 
 .2:
     ; Load 4 pixels worth of (u,v)
-    ldmia r11!, {r0,r1}      ; R0=v1v0u1u0 R1=v3v2u3u2
-    ldmia r10!, {r5,r14}     ; R5=b1a1b0a0 R14=b3a3b2a2
+    ldmia r11!, {r0,r1}             ; R0=v1v0u1u0 R1=v3v2u3u2
+    ldr r5, [r10], #4               ; R5= 3 2 1 0
+                                    ;    babababa  
 
     ; Copy one snippet for 4 pixels = assemble 1 word for writing
 
@@ -314,12 +315,12 @@ uv_table_gen_code_paul_scheme:
     str r7, [r12], #4               ; write out additional instruction 1a
     .201:
 
-    ands r2, r5, #0x00000f00         ; b0 << 8
+    ands r2, r5, #0x000000f0         ; b0 << 4
     beq .202
     ldr r7, [r8, #14*4]             ; additional op add (logical_colour >> a) + b
     orr r7, r7, r9, lsl #12         ; dest reg
     orr r7, r7, r9, lsl #16         ; base reg
-    orr r7, r7, r2, lsr #8          ; b0
+    orr r7, r7, r2, lsr #4          ; b0
     str r7, [r12], #4               ; write out additional instruction 1a
     .202:
 
@@ -337,17 +338,17 @@ uv_table_gen_code_paul_scheme:
     str r7, [r12], #4               ; write out instruction 1
 
     ; Write out optional a/b operations for R14.
-    ands r2, r5, #0x000f0000         ; a1
+    ands r2, r5, #0x00000f00        ; a1 << 8
     beq .211
     ldr r7, [r8, #14*4]             ; additional op shift (logical_colour >> a)
-    orr r7, r7, r2, lsr #16-7       ; shift amount in bits 7-11
+    orr r7, r7, r2, lsr #8-7        ; shift amount in bits 7-11
     str r7, [r12], #4               ; write out additional instruction 1a
     .211:
 
-    ands r2, r5, #0x0f000000         ; b1 << 24
+    ands r2, r5, #0x0000f000        ; b1 << 12
     beq .212
     ldr r7, [r8, #15*4]             ; additional op add (logical_colour >> a) + b
-    orr r7, r7, r2, lsr #24         ; b1
+    orr r7, r7, r2, lsr #12         ; b1
     str r7, [r12], #4               ; write out additional instruction 1a
     .212:
 
@@ -370,17 +371,17 @@ uv_table_gen_code_paul_scheme:
     str r7, [r12], #4               ; write out instruction 3
 
     ; Write out optional a/b operations for R14.
-    ands r2, r14, #0x0000000f        ; a2
+    ands r2, r5, #0x000f0000        ; a2 << 16
     beq .221
     ldr r7, [r8, #12*4]             ; additional op shift (logical_colour >> a)
-    orr r7, r7, r2, lsl #7          ; shift amount in bits 7-11
+    orr r7, r7, r2, lsr #16-7       ; shift amount in bits 7-11
     str r7, [r12], #4               ; write out additional instruction 1a
     .221:
 
-    ands r2, r14, #0x00000f00        ; b2 << 8
+    ands r2, r5, #0x00f00000        ; b2 << 20
     beq .222
     ldr r7, [r8, #13*4]             ; additional op add (logical_colour >> a) + b
-    orr r7, r7, r2, lsr #8          ; b2
+    orr r7, r7, r2, lsr #20         ; b2
     str r7, [r12], #4               ; write out additional instruction 1a
     .222:
 
@@ -403,17 +404,17 @@ uv_table_gen_code_paul_scheme:
     str r7, [r12], #4               ; write out instruction 5
 
     ; Write out optional a/b operations for R14.
-    ands r2, r14, #0x000f0000        ; a3
+    ands r2, r5, #0x0f000000        ; a3 << 24
     beq .231
     ldr r7, [r8, #10*4]             ; additional op shift (logical_colour >> a)
-    orr r7, r7, r2, lsr #16-7       ; shift amount in bits 7-11
+    orr r7, r7, r2, lsr #24-7       ; shift amount in bits 7-11
     str r7, [r12], #4               ; write out additional instruction 1a
     .231:
 
-    ands r2, r14, #0x0f000000        ; b3 << 24
+    ands r2, r5, #0xf0000000        ; b3 << 28
     beq .232
     ldr r7, [r8, #11*4]             ; additional op add (logical_colour >> a) + b
-    orr r7, r7, r2, lsr #24         ; b3
+    orr r7, r7, r2, lsr #28         ; b3
     str r7, [r12], #4               ; write out additional instruction 1a
     .232:
 
