@@ -8,17 +8,28 @@
 
 ; ===========================================================================
 
+.if _DEMO_PART==_PART_TEST
 ; fx/sine-scroller.asm
 razor_font_no_adr:
 .incbin "build/razor-font.bin"              ; TODO: Remove if not used!
+.endif
 
 ; ===========================================================================
 
+.if _DEMO_PART==_PART_DONUT
 ; fx/scene-3d.asm
 .include "src/data/three-dee/3d-meshes.asm" ; TODO: Remove what's not used!
 
+temp_logo_no_adr:
+.incbin "build/temp-logo.bin"
+
+fine_font_no_adr:
+.incbin "build/fine-font.bin"
+.endif
+
 ; ===========================================================================
 
+.if _DEMO_PART==_PART_SPACE
 ; fx/rotate.asm
 ; MODE 9 texture, 4 bpp x 2
 .p2align 16
@@ -28,8 +39,6 @@ rotate_texture_no_adr:
 
 rotate_pal_no_adr:
 .incbin "build/itmpal.bin"
-
-; ============================================================================
 
 ; fx/uv-tunnel.asm
 ; MODE 9 texture, 4 bpp x 2
@@ -76,16 +85,7 @@ uv_tunnel1_map_no_adr:
 
 uv_tunnel2_map_no_adr:
 .incbin "build/tunnel2_uv.bin"          ; inside out tunnel
-
-; ============================================================================
-
-temp_logo_no_adr:
-.incbin "build/temp-logo.bin"
-
-; ============================================================================
-
-fine_font_no_adr:
-.incbin "build/fine-font.bin"
+.endif
 
 ; ============================================================================
 ; Library data.
@@ -138,12 +138,16 @@ music_mod_no_adr:
 .incbin "data/music/particles_15.002"
 .else
 
-;.incbin "data/music/changing-waves.mod"
-;.incbin "data/music/maze-funky-delicious.mod"
-;.incbin "data/music/mikroreise.mod"    ; requires all the RAM!!
-;.incbin "data/music/Revision_house_06.mod"
-;.incbin "data/music/archieklang_smp_rhino2.mod"
+; TODO: Move MOD to Makefile.
+.if _DEMO_PART==_PART_SPACE
+.incbin "data/music/unused/Revision_house_06.mod"
+.endif
+.if _DEMO_PART==_PART_DONUT
+.incbin "data/music/ne7-hammer_on.mod"
+.endif
+.if _DEMO_PART==_PART_TEST
 .incbin "build/music.mod"
+.endif
 
 .endif
 .endif

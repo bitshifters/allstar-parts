@@ -2,21 +2,32 @@
 ; Archie-Verse: a Acorn Archimedes demo/trackmo framework.
 ; ============================================================================
 
+.equ _PART_DONUT,               0
+.equ _PART_SPACE,               1
+.equ _PART_TEST,                2
+
 ; ============================================================================
 ; Defines for a specific build.
 ; ============================================================================
 
-.equ _DEBUG,                    1
-.equ _SMALL_EXE,                0       ; TODO: Configure from Makefile?
-.equ _SLOW_CPU,                 1       ; ARM2 @ 8MHz. TODO: Set dynamically.
-.equ _DEMO_PART,                1       ; 0=donut, 1=tables, 2=test
+.ifndef _DEMO_PART
+.equ _DEMO_PART,                _PART_SPACE       ; 0=donut, 1=tables, 2=test
+.endif
 
+.ifndef _DEBUG
+.equ _DEBUG,                    1
+.endif
+
+.ifndef _SMALL_EXE
+.equ _SMALL_EXE,                0
+.endif
+
+.equ _SLOW_CPU,                 1       ; ARM2 @ 8MHz. TODO: Set dynamically.
 .equ _LOG_SAMPLES,              (_SMALL_EXE && 0)
 
 .equ _DEBUG_RASTERS,            (_DEBUG && 1)
-.equ _DEBUG_SHOW,               (_DEBUG && 1)
-.equ _CHECK_FRAME_DROP,         (!_DEBUG && 1)  ; only works for 50Hz
-.equ _SYNC_EDITOR,              (_DEBUG && 1)   ; sync driven by external editor.
+.equ _CHECK_FRAME_DROP,         (!_DEBUG && 0)  ; only works for 50Hz
+.equ _SYNC_EDITOR,              (_DEBUG && 0)   ; sync driven by external editor.
 
 .equ DebugDefault_PlayPause,    1		; play
 .equ DebugDefault_ShowRasters,  0

@@ -35,7 +35,7 @@ app_init_debug:
     DEBUG_REGISTER_VAR_EX debug_frame_rate, debug_plot_addr_as_dec4
     ; DEBUG_REGISTER_VAR_EX vsync_delta, debug_plot_addr_as_dec4
     DEBUG_REGISTER_VAR frame_counter
-    .if _DEMO_PART==0
+    .if _DEMO_PART==_PART_DONUT
     DEBUG_REGISTER_VAR scene3d_stats_quads_plotted
     .endif
 ;    DEBUG_REGISTER_VAR music_pos
@@ -221,7 +221,7 @@ app_late_init:
 .endif
 
     ; Copy the logo to all of our screen buffers.
-    .if _DEMO_PART==0
+    .if _DEMO_PART==_PART_DONUT
     adr r0, app_logo_p
     ldmia r0, {r0-r2}
     bl app_copy_to_screen
@@ -248,7 +248,7 @@ app_late_init:
     ldr pc, [sp], #4
 ; TODO: Make this more generic or include in sequence?
 
-.if _DEMO_PART==0
+.if _DEMO_PART==_PART_DONUT
 app_logo_p:
     .long temp_logo_no_adr  ; src ptr
     .long 0                 ; offset
@@ -456,24 +456,32 @@ app_copy_to_screen:
 ; FX code modules.
 ; ============================================================================
 
+.if _DEMO_PART==_PART_TEST
 .include "src/fx/sine-scroller.asm"
+.endif
+.if _DEMO_PART==_PART_DONUT
 .include "src/fx/scene-3d.asm"
+.include "src/fx/tipsy-scroller.asm"
+.endif
+.if _DEMO_PART==_PART_SPACE
 .include "src/fx/rotate.asm"
 .include "src/fx/uv-tunnel.asm"
+.endif
 .if AppConfig_UseRasterMan
 .include "src/rasters.asm"
 .endif
-.include "src/fx/tipsy-scroller.asm"
 
 ; ============================================================================
-; Support library code modules used by the FX sequence.
+; Additional library code modules used by the FX sequence.
 ; ============================================================================
 
 .if _DEBUG || _CHECK_FRAME_DROP || 1
 .include "lib/palette.asm"
 .endif
 .include "lib/screen.asm"
+.if _DEMO_PART==_PART_DONUT
 .include "lib/mesh.asm"
+.endif
 
 ; ============================================================================
 ; ArchieKlang generated code.

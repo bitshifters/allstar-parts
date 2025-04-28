@@ -7,13 +7,13 @@
 .equ LibConfig_ShowInitProgress,        1
 
 .equ LibConfig_IncludeMem,              1
-.equ LibConfig_IncludeSqrt,             1
+.equ LibConfig_IncludeSqrt,             _DEMO_PART==_PART_DONUT
 .equ LibConfig_IncludeLine,             0
-.equ LibConfig_IncludeTriangle,         1
+.equ LibConfig_IncludeTriangle,         _DEMO_PART==_PART_DONUT
 .equ LibConfig_IncludePolygon,          0
-.equ LibConfig_IncludeDivide,           1
-.equ LibConfig_IncludeVector,           1
-.equ LibConfig_IncludeMatrix,           1
+.equ LibConfig_IncludeDivide,           _DEMO_PART==_PART_DONUT
+.equ LibConfig_IncludeVector,           _DEMO_PART==_PART_DONUT
+.equ LibConfig_IncludeMatrix,           _DEMO_PART==_PART_DONUT
 .equ LibConfig_IncludeCircles,          0
 .equ LibConfig_IncludeSprites,          0
 .equ LibConfig_IncludeMathVar,          1

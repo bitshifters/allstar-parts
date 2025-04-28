@@ -3,26 +3,17 @@
 ; NB. First tick of the script happens at init before music is started etc.
 ; ============================================================================
 
+; TODO: Put these in separate sequence files?
+
+; ============================================================================
+
+.if _DEMO_PART==_PART_DONUT
+seq_donut_part:
+
     ; Init FX modules.
-    call_0      sine_scroller_init
     call_0      scene3d_init
-    call_0      rotate_init
     ;                               RingRadius          CircleRadius       RingSegments   CircleSegments   MeshPtr              Flat inner face?
     call_6      mesh_make_torus,    32.0*MATHS_CONST_1, 16.0*MATHS_CONST_1, 12,            8,              mesh_header_torus,   1
-
-    .if _DEMO_PART==0
-    goto        seq_donut_part
-    .endif
-    .if _DEMO_PART==1
-    goto        seq_table_part
-    .endif
-    .if _DEMO_PART==2
-    goto        seq_test_part
-    .endif
-    end_script
-
-
-seq_donut_part:
 
     write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, 0.0
 
@@ -68,8 +59,15 @@ light_func_y:
 
 light_func_z:
     math_const  0.0
+.endif
 
-seq_table_part:
+; ============================================================================
+
+.if _DEMO_PART==_PART_SPACE
+seq_space_part:
+
+    ; Init FX modules.
+    call_0      rotate_init
 
     ; UV tunnel aka UV table fx.
     call_3      fx_set_layer_fns,   0, uv_tunnel_tick              uv_tunnel_draw
@@ -127,11 +125,18 @@ seq_table_part:
 
     wait_secs 10.0
 
-    yield       seq_table_part  ; yield = wait 1; goto <label>
+    yield       seq_space_part  ; yield = wait 1; goto <label>
     end_script
+.endif
 
+; ============================================================================
 
+.if _DEMO_PART==_PART_TEST
 seq_test_part:
+
+    ; Init FX modules.
+    call_0      sine_scroller_init
+
     ; Screen setup.
     ; NB. Use write_addr palette_array_p, seq_palette_red_additive if setting per frame.
 
@@ -144,7 +149,7 @@ seq_test_part:
     call_3      fx_set_layer_fns,   2, sine_scroller_tick,         sine_scroller_draw
 
     end_script
-
+.endif
 
 ; ============================================================================
 ; Sequence tasks can be forked and self-terminate on completion.

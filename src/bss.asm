@@ -6,11 +6,15 @@
 
 ; ============================================================================
 
+.if _DEMO_PART==_PART_TEST
 ; fx/sine-scroller.asm
 sine_wave_table_no_adr:
     .skip SineScroller_TableSize*4
+.endif
 
 ; ============================================================================
+
+.if _DEMO_PART==_PART_DONUT
 
 ; fx/scene-3d.asm
 mesh_torus_verts_no_adr:
@@ -40,10 +44,14 @@ transformed_verts_no_adr:
 projected_verts_no_adr:
     .skip OBJ_MAX_VERTS * VECTOR2_SIZE
 
+.endif
+
 ; ============================================================================
 
+.if _DEMO_PART==_PART_SPACE
 uv_tunnel_unrolled_code_no_adr:
     .skip UV_Tunnel_CodeSize
+.endif
 
 ; ============================================================================
 
@@ -67,6 +75,7 @@ stack_base_no_adr:
 ; Palette buffers.
 ; ============================================================================
 
+; TODO: Check if we need VIDC buffer?
 vidc_buffers_no_adr:
     .skip VideoConfig_ScreenBanks * 16 * 4
 

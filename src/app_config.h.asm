@@ -10,11 +10,13 @@
 .equ AppConfig_UseSyncTracks,           0       ; currently Luapod could also be Rocket.
 .equ AppConfig_UseQtmEmbedded,          0
 .equ AppConfig_UseArchieKlang,          (_SMALL_EXE && 0)
-.equ AppConfig_UseRasterMan,            _DEMO_PART==2     ; removes event / IRQ handler.
+.equ AppConfig_UseRasterMan,            _DEMO_PART==_PART_TEST     ; removes event / IRQ handler.
 
 ; ============================================================================
 ; Sequence config.
 ; ============================================================================
+
+; TODO: Update for _DEMO_PARTs
 
 .equ SeqConfig_EnableLoop,              0
 .equ SeqConfig_MaxPatterns,             18          ; inc. 2.5 patterns at 12 ticks/row.
@@ -72,7 +74,7 @@
 .endif
 
 ; Clear screen (clipping)
-.if _DEMO_PART==0                     ; donut
+.if _DEMO_PART==_PART_DONUT             ; donut
 .equ Cls_FirstLine,                     48              ; inclusive
 .equ Cls_LastLine,                      255-8           ; inclusive
 .else
