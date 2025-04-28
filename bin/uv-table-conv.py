@@ -183,10 +183,10 @@ def main(options):
                         u1=rgba1[0] & 0xfe
                         v1=rgba1[1] & 0xfe
 
-                pixel_data.append(u0)       # u
-                pixel_data.append(u1)       # u
-                pixel_data.append(v0)       # v
-                pixel_data.append(v1)       # v
+                pixel_data.append(u0)       # u0
+                pixel_data.append(v0)       # v0
+                pixel_data.append(u1)       # u1
+                pixel_data.append(v1)       # v1
 
                 if options.paul:
                     a0=rgba0[2] & 0xf
@@ -228,30 +228,30 @@ def main(options):
 
                 [u0, v0, w0] = eval(func_name)(x, y, param1, param2)
 
+                if w0 != 0:
+                    pixel_data.append(int(256.0*u0) & 0xfe)       # u0
+                else:
+                    pixel_data.append(1)       # u0
+                    
+                if w0 != 0:
+                    pixel_data.append((int(256.0*v0) % th) & 0xfe)        # v0
+                else:
+                    pixel_data.append(1)       # v0
+
                 x = -1.0 + 2.0*(i+1)/sw
                 y = -aspect + 2.0*aspect*float(j)/float(sh)
 
                 [u1, v1, w1] = eval(func_name)(x, y, param1, param2)
 
-                if w0 != 0:
-                    pixel_data.append(int(256.0*u0) & 0xfe)       # u
-                else:
-                    pixel_data.append(1)       # u
-                    
                 if w1 != 0:
-                    pixel_data.append(int(256.0*u1) & 0xfe)       # u
+                    pixel_data.append(int(256.0*u1) & 0xfe)       # u1
                 else:
-                    pixel_data.append(1)       # u
-
-                if w0 != 0:
-                    pixel_data.append((int(256.0*v0) % th) & 0xfe)        # v
-                else:
-                    pixel_data.append(1)       # v
+                    pixel_data.append(1)       # u1
 
                 if w1 != 0:
-                    pixel_data.append((int(256.0*v1) % th) & 0xfe)        # v
+                    pixel_data.append((int(256.0*v1) % th) & 0xfe)        # v1
                 else:
-                    pixel_data.append(1)       # v
+                    pixel_data.append(1)       # v1
 
     #assert(len(pixel_data)==sw*sh*2)
     for x in paul_data:         # TODO: Pythonic way of doing this.

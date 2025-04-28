@@ -545,19 +545,20 @@ logical_colour = (logical_colour >> a) + b
     - Use two textures interleaved for a darkened version
     - Use four separate textures - replace the four pointers
         with tracked add/sub instructions.
+    ==> Paul might make the tunnel FX anyway...
 
 RAM budget
 - Assume 9 parts?
-- Each has UV table = 60K max (currently 80K)
+- Each has UV table = 60K max (currently 80K) 
 - Each has unique texture = 16K but has to be doubled up = 32K
-- Max = 9*60 = 540K + 9*32 = 288K = 828K
+- Max = 9*60 = 540K + 9*16 = 144K = 684K
 - Plus unrolled code = 328K
-- Plus sinetable = 64K
+- Plus sinetable = 64K (could be shrunk or just use smaller 32K table?)
+- Plus runtime texture space = 32K
 - Plus ZP/loader = 64K
-- Plus MOD :) = current 180K but let's see if we can get that up!
-- Plus code = 32K max (probably 16K)
-- Plus stack + assorted flimflam = 2K
-- 1480K available total?
+- Plus MOD :) = current 196K but let's see if we can get that up!
+- Plus code + stack = 32K max (probably 16K)
+- 1400K available total (can be stretched for onetime execution)
 
 - Plus modules in memory (QTM + RAM)
 - Plus screen buffers

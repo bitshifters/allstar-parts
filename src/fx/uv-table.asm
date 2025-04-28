@@ -1,4 +1,5 @@
 ; ============================================================================
+;
 ; UV table map effects.
 ;
 ; Standard format: each word is 2 pixels of packed U,V = v1v0u1u0
@@ -11,8 +12,6 @@
 ;   where screen_colour = (texture_colour >> a) + b
 ; Requires texture to be sparse 0x0L.
 ;
-; Propose merging into optional ab bytes (saves 20K per table).
-;
 ; ============================================================================
 
 .equ UV_Table_CodeSize,        335876  ; 151556
@@ -21,7 +20,7 @@
 
 .equ UV_Texture_Size,           128*128
 
-.equ UV_Table_BlankPixels,     1       ; TODO: Decide at runtime?
+.equ UV_Table_BlankPixels,     1       ; TODO: Set const colour not just black.
 
 uv_table_offset_u:
     .byte 0
@@ -121,7 +120,7 @@ uv_table_gen_code:
 .2:
     ; Load 4 pixels worth of (u,v)
 
-    ldmia r11!, {r0-r1}             ; R0=v1v0u1u0 R1=v3v2u3u2
+    ldmia r11!, {r0-r1}             ; R0=v1u1v0u0 R1=v3u3v2u2
 
     ; Copy one snippet for 4 pixels = assemble 1 word for writing
 
@@ -129,8 +128,8 @@ uv_table_gen_code:
 
     ldr r7, [r8], #4                ; ldrb rX, [rY, #Z]
     .if UV_Table_BlankPixels
-    and r2, r0, #0x01               ; u0 invalid bit
-    and r3, r0, #0x010000           ; v0 invalid bit
+    and r2, r0, #0x0001             ; u0 invalid bit
+    and r3, r0, #0x0100             ; v0 invalid bit
     orrs r14, r2, r3                ; u0 invalid or v0 invalid?
     ldrne r7, [r8, #11*4]           ; mov rX, #0
     .endif
@@ -139,13 +138,13 @@ uv_table_gen_code:
     bne .20                         ; Skip pixel
     .endif
 
-    and r2, r0, #0xfe               ; u0<<1  [0, 127]
-    and r3, r0, #0xfe0000           ; v0<<17 [0, 127]
-    mov r4, r3, lsl #10             ; bottom 5 bits of v0
-    mov r2, r2, lsr #1
+    and r2, r0, #0x00fe             ; u0<<1  [0, 127]
+    and r3, r0, #0xfe00             ; v0<<9  [0, 127]
+    mov r4, r3, lsl #18             ; bottom 5 bits of v0
+    mov r2, r2, lsr #1              ; u0
     orr r2, r2, r4, lsr #20         ; v0 | u0
     orr r7, r7, r2                  ; offset [0, 4095]
-    mov r3, r3, lsr #22             ; top 2 bits of v0
+    mov r3, r3, lsr #14             ; top 2 bits of v0
     add r3, r3, #8                  ; [8, 11]
     orr r7, r7, r3, lsl #16         ; base reg
     .20:
@@ -153,17 +152,17 @@ uv_table_gen_code:
 
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
     .if UV_Table_BlankPixels
-    and r2, r0, #0x0100             ; u1 invalid bit
+    and r2, r0, #0x00010000         ; u1 invalid bit
     and r3, r0, #0x01000000         ; v1 invalid bit
     orrs r14, r2, r3                ; u1 invalid or v1 invalid?
     ldrne r7, [r8, #11*4]           ; mov r14, #0
     bne .21                         ; Skip pixel
     .endif
 
-    and r2, r0, #0xfe00             ; u1<<9  [0, 127]
+    and r2, r0, #0x00fe0000         ; u1<<17 [0, 127]
     and r3, r0, #0xfe000000         ; v1<<25 [0, 127]
     mov r4, r3, lsl #2              ; bottom 5 bits of v1
-    mov r2, r2, lsr #9
+    mov r2, r2, lsr #17             ; u1
     orr r2, r2, r4, lsr #20         ; v1 | u1
     orr r7, r7, r2                  ; offset [0, 4095]
     mov r3, r3, lsr #30             ; top 2 bits of v1
@@ -179,20 +178,20 @@ uv_table_gen_code:
 
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
     .if UV_Table_BlankPixels
-    and r2, r1, #0x01               ; u2 invalid bit
-    and r3, r1, #0x010000           ; v2 invalid bit
+    and r2, r1, #0x0001             ; u2 invalid bit
+    and r3, r1, #0x0100             ; v2 invalid bit
     orrs r14, r2, r3                ; u2 invalid or v2 invalid?
-    ldrne r7, [r8, #9*4]           ; mov r14, #0
+    ldrne r7, [r8, #9*4]            ; mov r14, #0
     bne .22                         ; Skip pixel
     .endif
 
-    and r2, r1, #0xfe               ; u2<<1  [0, 127]
-    and r3, r1, #0xfe0000           ; v2<<17 [0, 127]
-    mov r4, r3, lsl #10             ; bottom 5 bits of v2
-    mov r2, r2, lsr #1
+    and r2, r1, #0x00fe             ; u2<<1  [0, 127]
+    and r3, r1, #0xfe00             ; v2<<9  [0, 127]
+    mov r4, r3, lsl #18             ; bottom 5 bits of v2
+    mov r2, r2, lsr #1              ; u2
     orr r2, r2, r4, lsr #20         ; v2 | u2
     orr r7, r7, r2                  ; offset [0, 4095]
-    mov r3, r3, lsr #22             ; top 2 bits of v2
+    mov r3, r3, lsr #14             ; top 2 bits of v2
     add r3, r3, #8                  ; [8, 11]
     orr r7, r7, r3, lsl #16         ; base reg
     .22:
@@ -205,17 +204,17 @@ uv_table_gen_code:
 
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
     .if UV_Table_BlankPixels
-    and r2, r1, #0x0100             ; u3 invalid bit
+    and r2, r1, #0x00010000         ; u3 invalid bit
     and r3, r1, #0x01000000         ; v3 invalid bit
     orrs r14, r2, r3                ; u3 invalid or v3 invalid?
     ldrne r7, [r8, #7*4]            ; mov r14, #0
     bne .23                         ; Skip pixel
     .endif
     
-    and r2, r1, #0xfe00             ; u3<<9  [0, 127]
+    and r2, r1, #0x00fe0000         ; u3<<17 [0, 127]
     and r3, r1, #0xfe000000         ; v3<<25 [0, 127]
     mov r4, r3, lsl #2              ; bottom 5 bits of v3
-    mov r2, r2, lsr #9
+    mov r2, r2, lsr #17             ; u3
     orr r2, r2, r4, lsr #20         ; v3 | u3
     orr r7, r7, r2                  ; offset [0, 4095]
     mov r3, r3, lsr #30             ; top 2 bits of v3
@@ -298,7 +297,11 @@ uv_table_gen_code_paul_scheme:
 
 .2:
     ; Load 4 pixels worth of (u,v)
-    ldmia r11!, {r0,r1}             ; R0=v1v0u1u0 R1=v3v2u3u2
+
+    ldmia r11!, {r0-r1}             ; R0=v1u1v0u0 R1=v3u3v2u2
+
+    ; And the extended data.
+
     ldr r5, [r10], #4               ; R5= 3 2 1 0
                                     ;    babababa  
 
@@ -309,13 +312,13 @@ uv_table_gen_code_paul_scheme:
     ldr r7, [r8], #4                ; ldrb rX, [rY, #Z]
     orr r7, r7, r9, lsl #12         ; dest reg
 
-    and r2, r0, #0xfe               ; u0<<1  [0, 127]
-    and r3, r0, #0xfe0000           ; v0<<17 [0, 127]
-    mov r4, r3, lsl #10             ; bottom 5 bits of v0
-    mov r2, r2, lsr #1
+    and r2, r0, #0x00fe             ; u0<<1  [0, 127]
+    and r3, r0, #0xfe00             ; v0<<9  [0, 127]
+    mov r4, r3, lsl #18             ; bottom 5 bits of v0
+    mov r2, r2, lsr #1              ; u0
     orr r2, r2, r4, lsr #20         ; v0 | u0
     orr r7, r7, r2                  ; offset [0, 4095]
-    mov r3, r3, lsr #22             ; top 2 bits of v0
+    mov r3, r3, lsr #14             ; top 2 bits of v0
     add r3, r3, #8                  ; [8, 11]
     orr r7, r7, r3, lsl #16         ; base reg
     .20:
@@ -342,10 +345,10 @@ uv_table_gen_code_paul_scheme:
     .202:
 
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
-    and r2, r0, #0xfe00             ; u1<<9  [0, 127]
+    and r2, r0, #0x00fe0000         ; u1<<17 [0, 127]
     and r3, r0, #0xfe000000         ; v1<<25 [0, 127]
     mov r4, r3, lsl #2              ; bottom 5 bits of v1
-    mov r2, r2, lsr #9
+    mov r2, r2, lsr #17             ; u1
     orr r2, r2, r4, lsr #20         ; v1 | u1
     orr r7, r7, r2                  ; offset [0, 4095]
     mov r3, r3, lsr #30             ; top 2 bits of v1
@@ -375,13 +378,13 @@ uv_table_gen_code_paul_scheme:
     str r7, [r12], #4               ; write out instruction 2
 
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
-    and r2, r1, #0xfe               ; u2<<1  [0, 127]
-    and r3, r1, #0xfe0000           ; v2<<17 [0, 127]
-    mov r4, r3, lsl #10             ; bottom 5 bits of v2
-    mov r2, r2, lsr #1
+    and r2, r1, #0x00fe             ; u2<<1  [0, 127]
+    and r3, r1, #0xfe00             ; v2<<9  [0, 127]
+    mov r4, r3, lsl #18             ; bottom 5 bits of v2
+    mov r2, r2, lsr #1              ; u2
     orr r2, r2, r4, lsr #20         ; v2 | u2
     orr r7, r7, r2                  ; offset [0, 4095]
-    mov r3, r3, lsr #22             ; top 2 bits of v2
+    mov r3, r3, lsr #14             ; top 2 bits of v2
     add r3, r3, #8                  ; [8, 11]
     orr r7, r7, r3, lsl #16         ; base reg
     .22:
@@ -408,10 +411,10 @@ uv_table_gen_code_paul_scheme:
     str r7, [r12], #4               ; write out instruction 4
 
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
-    and r2, r1, #0xfe00             ; u3<<9  [0, 127]
+    and r2, r1, #0x00fe0000         ; u3<<17 [0, 127]
     and r3, r1, #0xfe000000         ; v3<<25 [0, 127]
     mov r4, r3, lsl #2              ; bottom 5 bits of v3
-    mov r2, r2, lsr #9
+    mov r2, r2, lsr #17             ; u3
     orr r2, r2, r4, lsr #20         ; v3 | u3
     orr r7, r7, r2                  ; offset [0, 4095]
     mov r3, r3, lsr #30             ; top 2 bits of v3
