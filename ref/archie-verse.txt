@@ -548,9 +548,16 @@ logical_colour = (logical_colour >> a) + b
 
 TODO:
 - Add Hz debug counter. - DONE
+- Add Paul's new UV tables and textures.
+- Separate the two parts.
+- Sort out RAM.
+- Add configurable texture size at runtime.
+- Compress UV tables to reduce RAM overhead?
+
+For Megademo:
 - Load and run at 0x10000
     - Change .org
     - Update link_script.txt
 - Build creates both binaries?
 - Minimal binary for each part.
-- Compress binaries.
+- Compress binaries. => Sarah to choose method.

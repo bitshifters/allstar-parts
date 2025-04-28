@@ -90,6 +90,8 @@ seq_table_part:
     write_addr  uv_tunnel_texture_p,  uv_ship_texture_no_adr
     call_0      uv_tunnel_init_paul
     call_3      palette_set_gradient, 0, 0, paul_ship_gradient
+    write_byte  uv_tunnel_offset_u,    0
+    write_byte  uv_tunnel_offset_v,    0
     write_byte  uv_tunnel_offset_du,    0
     write_byte  uv_tunnel_offset_dv,    1
 
@@ -100,6 +102,8 @@ seq_table_part:
     write_addr  uv_tunnel_texture_p,  uv_ship_texture_no_adr
     call_0      uv_tunnel_init_paul
     call_3      palette_set_gradient, 0, 0, paul_ship_gradient
+    write_byte  uv_tunnel_offset_u,    0
+    write_byte  uv_tunnel_offset_v,    0
     write_byte  uv_tunnel_offset_du,    0
     write_byte  uv_tunnel_offset_dv,    1
 
