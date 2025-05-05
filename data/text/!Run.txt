@@ -10,7 +10,9 @@ RMLOAD <Obey$Dir>.QTM146c_24 { > null: }
 RMLOAD <Obey$Dir>.RMv030 { > null: }
 |
 wimpslot -min 1400K
-<Obey$Dir>.!RunImage
+|
+Load <Obey$Dir>.!RunImage 10000
+Go 10000
 |
 RMKILL RasterMan
 RMKILL QTMTracker

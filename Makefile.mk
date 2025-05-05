@@ -49,12 +49,31 @@ $(FOLDER): build ./build/archie-verse.bin ./build/!run.txt ./build/icon.bin
 	$(COPY) .\build\icon.bin "$(FOLDER)\!Sprites,ff9"
 	$(COPY) ".\data\riscos\RMv030,ffa" "$(FOLDER)"
 	$(COPY) ".\data\riscos\QTM146c_24,ffa" "$(FOLDER)"
-	$(COPY) .\build\archie-verse.bin "$(FOLDER)\!RunImage,ff8"
+	$(COPY) .\build\archie-verse.bin "$(FOLDER)\!RunImage,ffd"
 
-.PHONY:seq
-seq: ./build/seq.bin
-	$(COPY) .\build\seq.bin  "$(FOLDER)\Seq,ffd"
-	$(COPY) "$(FOLDER)\Seq,ffd" "$(HOSTFS)\$(FOLDER)"
+build:
+	$(MKDIR_P) "./build"
+
+##########################################################################
+##########################################################################
+
+./build/assets.txt: build ./build/music.mod ./build/razor-font.bin ./build/tunnel_uv.bin ./build/tunnel2_uv.bin \
+	./build/phong128.bin ./build/cloud128.sparse.bin ./build/itm128.bin ./build/temp-logo.bin \
+	./build/fine-font.bin ./build/paul1_uv.bin ./build/paul2_uv.ab.bin ./build/paul3_uv.bin  ./build/paul4_uv.ab.bin \
+	./build/paul5_uv.ab.bin ./build/fire128.bin ./build/ShipIndex.sparse.bin ./build/bgtest4.bin
+	echo done > $@
+
+##########################################################################
+##########################################################################
+
+./build/archie-verse.bin: build ./build/archie-verse.o link_script.txt
+	$(VLINK) -T link_script3.txt -b rawbin1 -o $@ build/archie-verse.o -Mbuild/linker.txt
+
+./build/archie-verse.o: build archie-verse.asm ./build/assets.txt
+	$(VASM) -L build/compile.txt -m250 -Fvobj -opt-adr -o build/archie-verse.o archie-verse.asm
+
+##########################################################################
+##########################################################################
 
 .PHONY:compress
 compress: shrink
@@ -69,20 +88,19 @@ shrink: build ./build/!run.txt ./build/loader.bin ./build/icon.bin
 	$(COPY) .\build\icon.bin "$(FOLDER)\!Sprites,ff9"
 	$(COPY) .\build\loader.bin "$(FOLDER)\!Run,ff8"
 
-build:
-	$(MKDIR_P) "./build"
-
-./build/assets.txt: build ./build/music.mod ./build/razor-font.bin ./build/tunnel_uv.bin ./build/tunnel2_uv.bin \
-	./build/phong128.bin ./build/cloud128.sparse.bin ./build/itm128.bin ./build/temp-logo.bin \
-	./build/fine-font.bin ./build/paul1_uv.bin ./build/paul2_uv.ab.bin ./build/paul3_uv.bin  ./build/paul4_uv.ab.bin \
-	./build/paul5_uv.ab.bin ./build/fire128.bin ./build/ShipIndex.sparse.bin ./build/bgtest4.bin
-	echo done > $@
-
 ./build/archie-verse.shri: build ./build/archie-verse.bin
 	$(SHRINKLER) -b -d -p -z -3 ./build/archie-verse.bin $@
 
 ./build/loader.bin: build ./src/loader.asm ./build/archie-verse.shri
 	$(VASM) -L build\loader.txt -m250 -Fbin -opt-adr -D_USE_SHRINKLER=1 -o $@ ./src/loader.asm
+
+##########################################################################
+##########################################################################
+
+.PHONY:seq
+seq: ./build/seq.bin
+	$(COPY) .\build\seq.bin  "$(FOLDER)\Seq,ffd"
+	$(COPY) "$(FOLDER)\Seq,ffd" "$(HOSTFS)\$(FOLDER)"
 
 ./build/seq.bin: build ./build/seq.o link_script2.txt
 	$(VLINK) -T link_script2.txt -b rawbin1 -o $@ build/seq.o -Mbuild/linker2.txt
@@ -90,18 +108,14 @@ build:
 ./build/seq.o: build archie-verse.asm ./src/sequence-data.asm  ./build/assets.txt
 	$(VASM) -L build/compile.txt -m250 -Fvobj -opt-adr -o build/seq.o archie-verse.asm
 
-./build/archie-verse.bin: build ./build/archie-verse.o link_script.txt
-	$(VLINK) -T link_script.txt -b rawbin1 -o $@ build/archie-verse.o -Mbuild/linker.txt
+##########################################################################
+##########################################################################
 
 ./build/dot_gen_code_a.bin: ./src/dot_plot_generated.asm
 	$(VASM) -L build/dot_a.txt -m250 -Fbin -opt-adr -o $@ $<
 
 ./build/dot_gen_code_b.bin: ./src/dot_plot_generated_b.asm
 	$(VASM) -L build/dot_b.txt -m250 -Fbin -opt-adr -o $@ $<
-
-.PHONY:./build/archie-verse.o
-./build/archie-verse.o: build archie-verse.asm ./build/assets.txt
-	$(VASM) -L build/compile.txt -m250 -Fvobj -opt-adr -o build/archie-verse.o archie-verse.asm
 
 ##########################################################################
 ##########################################################################

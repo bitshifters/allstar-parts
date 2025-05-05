@@ -549,12 +549,12 @@ logical_colour = (logical_colour >> a) + b
 
 RAM budget
 - Assume 9 parts?
-- Each has UV table = 60K max (currently 80K) 
-- Each has unique texture = 16K but has to be doubled up = 32K
+- Each has UV table = 60K max
+- Each has unique texture = 16K
 - Max = 9*60 = 540K + 9*16 = 144K = 684K
 - Plus unrolled code = 328K
 - Plus sinetable = 64K (could be shrunk or just use smaller 32K table?)
-- Plus runtime texture space = 32K
+- Plus runtime texture space = 32K (2x16K for wrap in V)
 - Plus ZP/loader = 64K
 - Plus MOD :) = current 196K but let's see if we can get that up!
 - Plus code + stack = 32K max (probably 16K)
