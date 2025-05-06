@@ -66,7 +66,28 @@ build:
 ##########################################################################
 ##########################################################################
 
-./build/archie-verse.bin: build ./build/archie-verse.o link_script.txt
+.PHONY:parts
+parts: build ./build/!run.txt ./build/donut.bin ./build/space.bin
+	$(COPY) .\build\donut.bin "$(FOLDER)\donut,ffd"
+	$(COPY) .\build\space.bin "$(FOLDER)\space,ffd"
+	$(COPY) "$(FOLDER)\*.*" "$(HOSTFS)\$(FOLDER)\*.*"
+
+./build/donut.bin: build ./build/donut.o link_script3.txt
+	$(VLINK) -T link_script3.txt -b rawbin1 -o $@ build/donut.o -Mbuild/linker.txt
+
+./build/space.bin: build ./build/space.o link_script3.txt
+	$(VLINK) -T link_script3.txt -b rawbin1 -o $@ build/space.o -Mbuild/linker.txt
+
+./build/donut.o: build archie-verse.asm ./build/assets.txt
+	$(VASM) -L build/compile.txt -m250 -Fvobj -opt-adr -D_DEMO_PART=0 -D_DEBUG=0 -D_SMALL_EXE=1 -o build/donut.o archie-verse.asm
+
+./build/space.o: build archie-verse.asm ./build/assets.txt
+	$(VASM) -L build/compile.txt -m250 -Fvobj -opt-adr -D_DEMO_PART=1 -D_DEBUG=0 -D_SMALL_EXE=1 -o build/space.o archie-verse.asm
+
+##########################################################################
+##########################################################################
+
+./build/archie-verse.bin: build ./build/archie-verse.o link_script3.txt
 	$(VLINK) -T link_script3.txt -b rawbin1 -o $@ build/archie-verse.o -Mbuild/linker.txt
 
 ./build/archie-verse.o: build archie-verse.asm ./build/assets.txt
