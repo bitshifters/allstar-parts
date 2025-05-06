@@ -576,17 +576,23 @@ TODO:
 - Separate the two parts. - DONE
 - Sort out RAM. - DONE
 - Add configurable texture size at runtime.
+    - Pass through UV's in conversion, don't munge them.
+    - Set texture dims in script
+    - Update code gen to accomodate texture dim calc.
+
 - Compress UV tables to reduce RAM overhead?
     - Doing U,V deltas increases the compressability.
     - LZ4 works surprisingly well.
     - Would have to see if the overall saving was enough to decomp into a scratch buffer..
         E.g. paul[1-5] comes to ~140 with LZ4 or 260K w/out so would save 60K even with 60K buffer.
         Depends on how we're transitioning between scenes?
+    - Could do a RLE type scheme, but might be better to use a generic compressor
+     (otherwise the decompress and codegen gets complicated)
 
 For Megademo:
-- Load and run at 0x10000
+- Load and run at 0x10000 - DONE
     - Change .org
     - Update link_script.txt
-- Build creates both binaries?
+- Build creates both binaries? - DONE
 - Minimal binary for each part. - IN PROGRESS
 - Compress binaries. => Sarah to choose method.

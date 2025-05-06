@@ -1,3 +1,8 @@
+##########################################################################
+# ARCHIE-VERSE MAKEFILE
+# Sort of platform independent but not really. :S
+##########################################################################
+
 ifeq ($(OS),Windows_NT)
 RM_RF:=-cmd /c rd /s /q
 MKDIR_P:=-cmd /c mkdir
@@ -20,7 +25,6 @@ SHRINKLER?=shrinkler
 PYTHON3?=python
 DOS2UNIX?=dos2unix
 endif
-# TODO: Add Lua code and table gen to dependencies.
 
 SPLITMOD=./bin/SplitMod.exe
 AKP2ARC=./bin/akp2arc.py
@@ -29,11 +33,13 @@ PNG2ARC_FONT=./bin/png2arc_font.py
 PNG2ARC_SPRITE=./bin/png2arc_sprite.py
 PNG2ARC_DEPS:=./bin/png2arc.py ./bin/arc.py ./bin/png2arc_font.py ./bin/png2arc_sprite.py
 UV_TABLE=./bin/uv-table-conv.py
+UV_SHADER=./bin/uv-shader-conv.py
 FOLDER=!Verse
 HOSTFS=../arculator/hostfs
 # TODO: Need a copy command that copes with forward slash directory separator. (Maybe MSYS cp?)
 
 ##########################################################################
+# MAKE RISCOS FOLDER AND DEPLOY
 ##########################################################################
 
 .PHONY:deploy
@@ -55,15 +61,29 @@ build:
 	$(MKDIR_P) "./build"
 
 ##########################################################################
+# ASSET LIST
 ##########################################################################
 
 ./build/assets.txt: build ./build/music.mod ./build/razor-font.bin ./build/tunnel_uv.bin ./build/tunnel2_uv.bin \
-	./build/phong128.bin ./build/cloud128.sparse.bin ./build/itm128.bin ./build/temp-logo.bin \
+	./build/phong128.bin ./build/cloud128.bin ./build/itm128.bin ./build/temp-logo.bin \
 	./build/fine-font.bin ./build/paul1_uv.bin ./build/paul2_uv.ab.bin ./build/paul3_uv.bin  ./build/paul4_uv.ab.bin \
-	./build/paul5_uv.ab.bin ./build/fire128.bin ./build/ShipIndex.sparse.bin ./build/bgtest4.bin
+	./build/paul5_uv.ab.bin ./build/fire128.bin ./build/ShipIndex.bin ./build/bgtest4.bin \
+	./build/paul6_uv.ab.bin ./build/paul7_uv.ab.bin ./build/FlameIndex.bin ./build/CloudIndex.bin \
+	./build/DiskIndex.bin
 	echo done > $@
 
 ##########################################################################
+# CODE
+##########################################################################
+
+./build/archie-verse.bin: build ./build/archie-verse.o link_script3.txt
+	$(VLINK) -T link_script3.txt -b rawbin1 -o $@ build/archie-verse.o -Mbuild/linker.txt
+
+./build/archie-verse.o: build archie-verse.asm ./build/assets.txt
+	$(VASM) -L build/compile.txt -m250 -Fvobj -opt-adr -o build/archie-verse.o archie-verse.asm
+
+##########################################################################
+# SEPARATE DEMO PARTS
 ##########################################################################
 
 .PHONY:parts
@@ -85,15 +105,7 @@ parts: build ./build/!run.txt ./build/donut.bin ./build/space.bin
 	$(VASM) -L build/compile.txt -m250 -Fvobj -opt-adr -D_DEMO_PART=1 -D_DEBUG=0 -D_SMALL_EXE=1 -o build/space.o archie-verse.asm
 
 ##########################################################################
-##########################################################################
-
-./build/archie-verse.bin: build ./build/archie-verse.o link_script3.txt
-	$(VLINK) -T link_script3.txt -b rawbin1 -o $@ build/archie-verse.o -Mbuild/linker.txt
-
-./build/archie-verse.o: build archie-verse.asm ./build/assets.txt
-	$(VASM) -L build/compile.txt -m250 -Fvobj -opt-adr -o build/archie-verse.o archie-verse.asm
-
-##########################################################################
+# COMPRESSED / FINAL BUILD
 ##########################################################################
 
 .PHONY:compress
@@ -116,6 +128,7 @@ shrink: build ./build/!run.txt ./build/loader.bin ./build/icon.bin
 	$(VASM) -L build\loader.txt -m250 -Fbin -opt-adr -D_USE_SHRINKLER=1 -o $@ ./src/loader.asm
 
 ##########################################################################
+# SEQUENCE TARGET
 ##########################################################################
 
 .PHONY:seq
@@ -130,15 +143,7 @@ seq: ./build/seq.bin
 	$(VASM) -L build/compile.txt -m250 -Fvobj -opt-adr -o build/seq.o archie-verse.asm
 
 ##########################################################################
-##########################################################################
-
-./build/dot_gen_code_a.bin: ./src/dot_plot_generated.asm
-	$(VASM) -L build/dot_a.txt -m250 -Fbin -opt-adr -o $@ $<
-
-./build/dot_gen_code_b.bin: ./src/dot_plot_generated_b.asm
-	$(VASM) -L build/dot_b.txt -m250 -Fbin -opt-adr -o $@ $<
-
-##########################################################################
+# CLEAN
 ##########################################################################
 
 .PHONY:clean
@@ -147,6 +152,129 @@ clean:
 	$(RM_RF) "$(FOLDER)"
 
 ##########################################################################
+# CRACKTRO ASSETS
+##########################################################################
+
+./build/razor-font.bin: ./data/font/Charset_1Bitplan.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC_FONT) -o $@ --glyph-dim 16 15 --max-glyphs 60 --store-as-byte-cols --map-to-ascii ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-./!\"$%&:;'()=*+?,^@ $< 9
+
+##########################################################################
+# SPACE ASSETS (TEXTURES)
+##########################################################################
+
+./build/phong128.bin: ./data/gfx/phong-x4.png ./data/raw/phong.pal.bin $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --use-palette ./data/raw/phong.pal.bin --double-pixels $< 9
+
+./build/cloud128.bin: ./data/gfx/Elements_22-128x128x16.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels $< 9
+
+./build/fire128.bin: ./data/gfx/Fire2.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels $< 9
+
+./build/itm128.bin: ./data/gfx/itm-rot-tex16.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels -p ./build/itmpal.bin $< 9
+
+./build/ShipIndex.bin: ./data/gfx/ShipIndex.png $(PNG2ARC_DEPS)		# index in red
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels $< 9
+
+./build/bgtest4.bin: ./data/gfx/BGTest4.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels -p ./build/bgtest4.pal.bin $< 9
+
+./build/FlameIndex.bin: ./data/gfx/FlameIndex.png $(PNG2ARC_DEPS)		# index in red
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels $< 9
+
+./build/DiskIndex.bin: ./data/gfx/DiskIndex.png $(PNG2ARC_DEPS)		# index in red
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels $< 9
+
+./build/CloudIndex.bin: ./data/gfx/CloudIndex.png $(PNG2ARC_DEPS)		# index in red
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels $< 9
+
+##########################################################################
+# SPACE ASSETS (UV MAPS)
+##########################################################################
+
+./build/tunnel_uv.bin: $(UV_TABLE)
+	$(PYTHON2) $(UV_TABLE) -o $@ --func tunnel_func --param1 0.25 --square-aspect
+
+./build/tunnel2_uv.bin: $(UV_TABLE)
+	$(PYTHON2) $(UV_TABLE) -o $@ --func fancy_func1
+
+./build/paul1_uv.bin: ./data/uvs/LUT01.png $(UV_SHADER)	# robot just blue mask?
+	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
+
+./build/paul2_uv.ab.bin: ./data/uvs/LUT02.png $(UV_SHADER)	# ship w/ ext data
+	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
+
+./build/paul3_uv.bin: ./data/uvs/LUT03.png $(UV_SHADER)	# inside twisty torus
+	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
+
+./build/paul4_uv.ab.bin: ./data/uvs/LUT04.png $(UV_SHADER)	# planet w/ ext data
+	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
+
+./build/paul5_uv.ab.bin: ./data/uvs/LUT05.png $(UV_SHADER)	# tunnel w/ ext data
+	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
+
+./build/paul6_uv.ab.bin: ./data/uvs/LUT06.png $(UV_SHADER)	# black hole w/ ext data
+	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
+
+./build/paul7_uv.ab.bin: ./data/uvs/LUT07.png $(UV_SHADER)	# reactor core w/ ext data
+	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
+
+##########################################################################
+# DONUT ASSETS
+##########################################################################
+
+./build/temp-logo.bin: ./data/gfx/temp-logo-320x48x16.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC) -o $@ -p $@.pal $< 9
+
+./build/fine-font.bin: ./data/font/Fine.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC_FONT) -o $@ --glyph-dim 8 8 --max-glyphs 96 $< 9
+
+##########################################################################
+# MUSIC ASSETS
+##########################################################################
+
+./src/gen/arcmusic.asm: ./data/akp/Rhino2.mod.txt
+	$(PYTHON3) $(AKP2ARC) $< -o $@
+
+./build/music.mod.trk: ./build/music.mod
+	$(SPLITMOD) $(subst /,\\,$+)
+
+./build/music.mod: ./data/music/django/maze-funky-delicious.mod
+	$(COPY) $(subst /,\\,$+) $(subst /,\\,$@)
+
+##########################################################################
+# RISCOS ASSETS
+##########################################################################
+
+./build/icon.bin: ./data/gfx/aklang_icon16.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC_SPRITE) --name !aklang -o $@ $< 9
+
+./build/!run.txt: ./data/text/!run.txt
+	$(DOS2UNIX) -n $< $@
+
+##########################################################################
+# RULES
+##########################################################################
+
+# Rule to convert PNG files, assumes MODE 9.
+%.bin : %.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC) -o $@ -p $@.pal $< 9
+
+# Rule to LZ4 compress bin files.
+%.lz4 : %.bin
+	$(LZ4) --best -f $< $@
+
+# Rule to Shrinkler compress bin files.
+%.shri : %.bin
+	$(SHRINKLER) -d -b -p -z $< $@
+
+# Rule to copy MOD files.
+%.bin : %.mod
+	$(COPY) $(subst /,\\,$+) $(subst /,\\,$@)
+
+##########################################################################
+# UNUSED / LEGACY ASSETS
 ##########################################################################
 
 ./build/logo.lz4: ./build/logo.bin
@@ -155,9 +283,6 @@ clean:
 
 ./build/big-font.bin: ./data/font/font-big-finalFINAL.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC_FONT) -o $@ --glyph-dim 16 16 $< 9
-
-./build/icon.bin: ./data/gfx/aklang_icon16.png $(PNG2ARC_DEPS)
-	$(PYTHON2) $(PNG2ARC_SPRITE) --name !aklang -o $@ $< 9
 
 ./build/bs-logo.bin: ./data/gfx/BITSHIFERS-logo-anaglyph.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) -o $@ -p $@.pal $< 9
@@ -180,93 +305,12 @@ clean:
 ./build/greetz2.bin: ./data/gfx/greetz_2_alt.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ $< 4
 
-./build/razor-font.bin: ./data/font/Charset_1Bitplan.png $(PNG2ARC_DEPS)
-	$(PYTHON2) $(PNG2ARC_FONT) -o $@ --glyph-dim 16 15 --max-glyphs 60 --store-as-byte-cols --map-to-ascii ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-./!\"$%&:;'()=*+?,^@ $< 9
-
-./build/phong128.bin: ./data/gfx/phong-x4.png ./data/raw/phong.pal.bin $(PNG2ARC_DEPS)
-	$(PYTHON2) $(PNG2ARC) --loud -o $@ --use-palette ./data/raw/phong.pal.bin --double-pixels $< 9
-
-./build/cloud128.sparse.bin: ./data/gfx/Elements_22-128x128x16.png $(PNG2ARC_DEPS)
-	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --as-bytes $< 9
-
-./build/fire128.bin: ./data/gfx/Elements_02-128x128x16.png $(PNG2ARC_DEPS)
-	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels $< 9
-
-./build/itm128.bin: ./data/gfx/itm-rot-tex16.png $(PNG2ARC_DEPS)
-	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels -p ./build/itmpal.bin $< 9
-
-./build/ShipIndex.sparse.bin: ./data/gfx/ShipIndex.png $(PNG2ARC_DEPS)		# index in red
-	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --as-bytes $< 9
-
-./build/bgtest4.bin: ./data/gfx/BGTest4.png $(PNG2ARC_DEPS)
-	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels -p ./build/bgtest4.pal.bin $< 9
-
-./build/temp-logo.bin: ./data/gfx/temp-logo-320x48x16.png $(PNG2ARC_DEPS)
-	$(PYTHON2) $(PNG2ARC) -o $@ -p $@.pal $< 9
-
-./build/fine-font.bin: ./data/font/Fine.png $(PNG2ARC_DEPS)
-	$(PYTHON2) $(PNG2ARC_FONT) -o $@ --glyph-dim 8 8 --max-glyphs 96 $< 9
-
 ##########################################################################
+# CODE GEN (UNUSED)
 ##########################################################################
 
-./build/tunnel_uv.bin: $(UV_TABLE)
-	$(PYTHON2) $(UV_TABLE) -o $@ --func tunnel_func --param1 0.25 --square-aspect
+./build/dot_gen_code_a.bin: ./src/dot_plot_generated.asm
+	$(VASM) -L build/dot_a.txt -m250 -Fbin -opt-adr -o $@ $<
 
-./build/tunnel2_uv.bin: $(UV_TABLE)
-	$(PYTHON2) $(UV_TABLE) -o $@ --func fancy_func1
-
-./build/paul1_uv.bin: ./data/uvs/LUT01.png $(UV_TABLE)	# robot just blue mask?
-	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128
-
-./build/paul2_uv.ab.bin: ./data/uvs/LUT02.png $(UV_TABLE)	# ship w/ ext data
-	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128 --paul
-
-./build/paul3_uv.bin: ./data/uvs/LUT03.png $(UV_TABLE)	# inside twisty torus
-	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128
-
-./build/paul4_uv.ab.bin: ./data/uvs/LUT04.png $(UV_TABLE)	# planet w/ ext data
-	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128 --paul
-
-./build/paul5_uv.ab.bin: ./data/uvs/LUT05.png $(UV_TABLE)	# tunnel w/ ext data
-	$(PYTHON2) $(UV_TABLE) -o $@ --rgb $< --tex-size 128 --paul
-
-##########################################################################
-##########################################################################
-
-./src/gen/arcmusic.asm: ./data/akp/Rhino2.mod.txt
-	$(PYTHON3) $(AKP2ARC) $< -o $@
-
-./build/music.mod.trk: ./build/music.mod
-	$(SPLITMOD) $(subst /,\\,$+)
-
-./build/music.mod: ./data/music/django/maze-funky-delicious.mod
-	$(COPY) $(subst /,\\,$+) $(subst /,\\,$@)
-
-##########################################################################
-##########################################################################
-
-./build/!run.txt: ./data/text/!run.txt
-	$(DOS2UNIX) -n $< $@
-
-##########################################################################
-##########################################################################
-
-# Rule to convert PNG files, assumes MODE 9.
-%.bin : %.png $(PNG2ARC_DEPS)
-	$(PYTHON2) $(PNG2ARC) -o $@ -p $@.pal $< 9
-
-# Rule to LZ4 compress bin files.
-%.lz4 : %.bin
-	$(LZ4) --best -f $< $@
-
-# Rule to Shrinkler compress bin files.
-%.shri : %.bin
-	$(SHRINKLER) -d -b -p -z $< $@
-
-# Rule to copy MOD files.
-%.bin : %.mod
-	$(COPY) $(subst /,\\,$+) $(subst /,\\,$@)
-
-##########################################################################
-##########################################################################
+./build/dot_gen_code_b.bin: ./src/dot_plot_generated_b.asm
+	$(VASM) -L build/dot_b.txt -m250 -Fbin -opt-adr -o $@ $<

@@ -1,0 +1,114 @@
+#!/usr/bin/python
+import png,argparse,math
+
+##########################################################################
+##########################################################################
+
+def save_file(data,path):
+    if path is not None:
+        with open(path,'wb') as f:
+            f.write(''.join([chr(x) for x in data]))
+
+##########################################################################
+##########################################################################
+
+
+def main(options):
+    tw=options.tex_size or 256  # max u
+    th=options.tex_size or 256  # max v
+
+    uv_data=[]
+    shader_data=[]
+
+    found_shader_data=False
+
+    png_result=png.Reader(filename=options.rgb_path).asRGBA8()
+
+    print 'Image width: {0} height: {1}'.format(png_result[0],png_result[1])
+
+    for row in png_result[2]:
+        for i in range(0,len(row),8):
+            rgba0 = [row[i+0],row[i+1],row[i+2],row[i+3]]
+            rgba1 = [row[i+4],row[i+5],row[i+6],row[i+7]]
+
+            u0=rgba0[0]
+            v0=rgba0[1]
+            u1=rgba1[0]
+            v1=rgba1[1]
+
+            uv_data.append(u0&0xfe)       # u0
+            uv_data.append(v0&0xfe)       # v0
+            uv_data.append(u1&0xfe)       # u1
+            uv_data.append(v1&0xfe)       # v1
+
+            if not found_shader_data and (rgba0[2]!=0 or rgba1[2]!=0):
+                print 'Found shader data in Blue channel.'
+                found_shader_data=True
+
+    if found_shader_data:
+        png_result=png.Reader(filename=options.rgb_path).asRGBA8()
+        blue_mask=False
+
+        for row in png_result[2]:
+            for i in range(0,len(row),8):
+                rgba0 = [row[i+0],row[i+1],row[i+2],row[i+3]]
+                rgba1 = [row[i+4],row[i+5],row[i+6],row[i+7]]
+
+                # Special case for Blue=0xff (blue mask = black):
+
+                if not blue_mask and (rgba0[2]==0xff or rgba1[2]==0xff):
+                    print 'Found special case blue mask (deprecated).'
+                    blue_mask=True
+
+                if blue_mask:
+                    b0=0
+                    b1=0
+                    if rgba0[2]==0xff:
+                        a0=4
+                    else:
+                        a0=0
+                    if rgba1[2]==0xff:
+                        a1=4
+                    else:
+                        a1=0
+                else:
+                    a0=rgba0[2] & 0xf
+                    b0=rgba0[2] >> 4
+                    a1=rgba1[2] & 0xf
+                    b1=rgba1[2] >> 4
+
+                max0=(0xf>>a0)+b0
+                max1=(0xf>>a1)+b1
+
+                if max0>0xf:
+                    print 'WARNING: Found B value that could overflow (0x{0:02x})'.format(rgba0[2])
+
+                if max1>0xf:
+                    print 'WARNING: Found B value that could overflow (0x{0:02x})'.format(rgba1[2])
+
+                # NB. Sparse texture shift of +4 needs thinking about vs optimisations to reduce code.
+
+                shader_data.append((b0<<4)|(a0+4))  # for sparse texture data
+                shader_data.append((b1<<4)|(a1+4))
+
+
+    for x in shader_data:         # TODO: Pythonic way of doing this.
+        uv_data.append(x)
+
+    save_file(uv_data,options.output_path)
+    print 'Wrote {0} bytes Arc data.'.format(len(uv_data))
+
+
+##########################################################################
+##########################################################################
+
+if __name__=='__main__':
+    parser=argparse.ArgumentParser()
+
+    parser.add_argument('-o',dest='output_path',metavar='FILE',help='output ARC data to %(metavar)s')
+    parser.add_argument('--sw',type=int,help='screen width')
+    parser.add_argument('--sh',type=int,help='screen height')
+    parser.add_argument('--tex-size',type=int,help='size of the texture')
+    parser.add_argument('rgb_path',metavar='FILE',help='use %(metavar)s RGB png as [u,v] map')
+
+    main(parser.parse_args())

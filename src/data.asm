@@ -49,7 +49,7 @@ uv_phong_pal_no_adr:
 
 ; Stored as sparse bytes for extended data lookup UV FX.
 uv_cloud_sparse_texture_no_adr:
-.incbin "build/cloud128.sparse.bin"
+.incbin "build/cloud128.bin"
 
 uv_fire_texture_no_adr:
 .incbin "build/fire128.bin"
@@ -62,8 +62,8 @@ uv_bgtest_pal_no_adr:
 
 ; Stored as sparse bytes for extended data lookup UV FX.
 uv_ship_sparse_texture_no_adr:
-.incbin "build/ShipIndex.sparse.bin"           ; 8K
-.incbin "build/ShipIndex.sparse.bin"           ; 8K
+.incbin "build/ShipIndex.bin"           ; 8K
+.incbin "build/ShipIndex.bin"           ; 8K
 
 ; (u,v) coordinates interleaved, 1 byte each
 ; 1 word = 2 pixels worth

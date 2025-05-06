@@ -290,13 +290,13 @@ uv_table_gen_code:
 ; u,v [0, 255] => we're going to use half resolution.
 ; R12 = pointer to where unrolled code is written
 ; TODO: Feed in row/column count as params?
-uv_table_init_paul:
+uv_table_init_shader:
     ldr r12, uv_table_code_p       ; dest
     ldr r11, uv_table_map_p        ; uv data
     add r10, r11, #UV_Table_Columns*UV_Table_Rows*2
     ; Fall through!
 
-uv_table_gen_code_paul_scheme:
+uv_table_gen_shader_code:
     str lr, [sp, #-4]!
 
     ; R0=v1v0u1u0
@@ -312,10 +312,12 @@ uv_table_gen_code_paul_scheme:
     ; R10=extended data ptr
     ; R11=UV table ptr
     ; R12=code dest ptr
-    ; R14=free :)
+    ; R14=LR
 
     mov r6, #UV_Table_Rows          ; rows to plot
 .1:
+
+    ; TODO: Create a jump table of entry points for each line.
 
     orr r6, r6, #UV_Table_Columns<<16  ; columns to plot
 .3:
@@ -335,25 +337,21 @@ uv_table_gen_code_paul_scheme:
 
     adr r8, uv_table_code_snippet
 
+    ; Write out texture load for pixel 0 in word.
+
     ldr r7, [r8], #4                ; ldrb rX, [rY, #Z]
     orr r7, r7, r9, lsl #12         ; dest reg
 
-    and r2, r0, #0x00fe             ; u0<<1  [0, 127]
-    and r3, r0, #0xfe00             ; v0<<9  [0, 127]
-    mov r4, r3, lsl #18             ; bottom 5 bits of v0
-    mov r2, r2, lsr #1              ; u0
-    orr r2, r2, r4, lsr #20         ; v0 | u0
+    ; R0=0000v0u0
+    bl uv_table_calc_offset
     orr r7, r7, r2                  ; offset [0, 4095]
-    mov r3, r3, lsr #14             ; top 2 bits of v0
-    add r3, r3, #8                  ; [8, 11]
     orr r7, r7, r3, lsl #16         ; base reg
     .20:
     str r7, [r12], #4               ; write out instruction 0
 
     ; Write out optional a/b operations for Rdest.
-    ; TODO: Skip instructions if values are 0.
-    ands r2, r5, #0x0000000f         ; a0
-    beq .201
+    ands r2, r5, #0x0000000f        ; a0
+    beq .201                        ; <== NB always FALSE as a+=4 in the script.
     ldr r7, [r8, #13*4]             ; additional op shift (logical_colour >> a)
     orr r7, r7, r9, lsl #12         ; dest reg
     orr r7, r7, r9                  ; base reg
@@ -370,22 +368,20 @@ uv_table_gen_code_paul_scheme:
     str r7, [r12], #4               ; write out additional instruction 1a
     .202:
 
+    ; Write out texture load for pixel 1 in word.
+
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
-    and r2, r0, #0x00fe0000         ; u1<<17 [0, 127]
-    and r3, r0, #0xfe000000         ; v1<<25 [0, 127]
-    mov r4, r3, lsl #2              ; bottom 5 bits of v1
-    mov r2, r2, lsr #17             ; u1
-    orr r2, r2, r4, lsr #20         ; v1 | u1
+
+    mov r0, r0, lsr #16             ; R0=0000v1u1
+    bl uv_table_calc_offset
     orr r7, r7, r2                  ; offset [0, 4095]
-    mov r3, r3, lsr #30             ; top 2 bits of v1
-    add r3, r3, #8                  ; [8, 11]
     orr r7, r7, r3, lsl #16         ; base reg
     .21:
     str r7, [r12], #4               ; write out instruction 1
 
     ; Write out optional a/b operations for R14.
     ands r2, r5, #0x00000f00        ; a1 << 8
-    beq .211
+    beq .211                        ; <== NB always FALSE as a+=4 in the script.
     ldr r7, [r8, #14*4]             ; additional op shift (logical_colour >> a)
     orr r7, r7, r2, lsr #8-7        ; shift amount in bits 7-11
     str r7, [r12], #4               ; write out additional instruction 1a
@@ -403,22 +399,20 @@ uv_table_gen_code_paul_scheme:
     orr r7, r7, r9, lsl #16         ; base reg
     str r7, [r12], #4               ; write out instruction 2
 
+    ; Write out texture load for pixel 2 in word.
+
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
-    and r2, r1, #0x00fe             ; u2<<1  [0, 127]
-    and r3, r1, #0xfe00             ; v2<<9  [0, 127]
-    mov r4, r3, lsl #18             ; bottom 5 bits of v2
-    mov r2, r2, lsr #1              ; u2
-    orr r2, r2, r4, lsr #20         ; v2 | u2
+
+    mov r0, r1                      ; R0=0000v2u2
+    bl uv_table_calc_offset
     orr r7, r7, r2                  ; offset [0, 4095]
-    mov r3, r3, lsr #14             ; top 2 bits of v2
-    add r3, r3, #8                  ; [8, 11]
     orr r7, r7, r3, lsl #16         ; base reg
     .22:
     str r7, [r12], #4               ; write out instruction 3
 
     ; Write out optional a/b operations for R14.
     ands r2, r5, #0x000f0000        ; a2 << 16
-    beq .221
+    beq .221                        ; <== NB always FALSE as a+=4 in the script.
     ldr r7, [r8, #12*4]             ; additional op shift (logical_colour >> a)
     orr r7, r7, r2, lsr #16-7       ; shift amount in bits 7-11
     str r7, [r12], #4               ; write out additional instruction 1a
@@ -436,22 +430,20 @@ uv_table_gen_code_paul_scheme:
     orr r7, r7, r9, lsl #16         ; base reg
     str r7, [r12], #4               ; write out instruction 4
 
+    ; Write out texture load for pixel 3 in word.
+
     ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
-    and r2, r1, #0x00fe0000         ; u3<<17 [0, 127]
-    and r3, r1, #0xfe000000         ; v3<<25 [0, 127]
-    mov r4, r3, lsl #2              ; bottom 5 bits of v3
-    mov r2, r2, lsr #17             ; u3
-    orr r2, r2, r4, lsr #20         ; v3 | u3
+
+    mov r0, r1, lsr #16             ; R0=0000v3u3  
+    bl uv_table_calc_offset
     orr r7, r7, r2                  ; offset [0, 4095]
-    mov r3, r3, lsr #30             ; top 2 bits of v3
-    add r3, r3, #8                  ; [8, 11]
     orr r7, r7, r3, lsl #16         ; base reg
     .23:
     str r7, [r12], #4               ; write out instruction 5
 
     ; Write out optional a/b operations for R14.
     ands r2, r5, #0x0f000000        ; a3 << 24
-    beq .231
+    beq .231                        ; <== NB always FALSE as a+=4 in the script.
     ldr r7, [r8, #10*4]             ; additional op shift (logical_colour >> a)
     orr r7, r7, r2, lsr #24-7       ; shift amount in bits 7-11
     str r7, [r12], #4               ; write out additional instruction 1a
