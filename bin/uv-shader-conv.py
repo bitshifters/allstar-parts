@@ -36,10 +36,12 @@ def main(options):
             u1=rgba1[0]
             v1=rgba1[1]
 
-            uv_data.append(u0&0xfe)       # u0
-            uv_data.append(v0&0xfe)       # v0
-            uv_data.append(u1&0xfe)       # u1
-            uv_data.append(v1&0xfe)       # v1
+            # TODO: Pass through UVs.
+
+            uv_data.append(u0)       # u0
+            uv_data.append(v0)       # v0
+            uv_data.append(u1)       # u1
+            uv_data.append(v1)       # v1
 
             if not found_shader_data and (rgba0[2]!=0 or rgba1[2]!=0):
                 print 'Found shader data in Blue channel.'

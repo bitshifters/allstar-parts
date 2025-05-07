@@ -86,7 +86,7 @@ seq_space_part:
     ; Ship w/ ext data.
     call_1      uv_texture_set_data,  uv_ship_sparse_texture_no_adr
     write_addr  uv_table_map_p,       uv_paul2_map_no_adr
-    call_0      uv_table_init_shader
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_64
     call_3      palette_set_gradient, 0, 0, paul_ship_gradient
     write_byte  uv_table_offset_u,    0
     write_byte  uv_table_offset_v,    0
@@ -110,9 +110,9 @@ seq_space_part:
     ; Planet.
     call_1      uv_texture_set_data,  uv_ship_sparse_texture_no_adr
     write_addr  uv_table_map_p,       uv_paul4_map_no_adr
-    call_0      uv_table_init_shader
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_64
     call_3      palette_set_gradient, 0, 0, paul_ship_gradient
-    write_byte  uv_table_offset_u,    64
+    write_byte  uv_table_offset_u,    0
     write_byte  uv_table_offset_v,    0
     write_byte  uv_table_offset_du,   0
     write_byte  uv_table_offset_dv,   1
@@ -122,7 +122,7 @@ seq_space_part:
     ; Tunnel.
     call_1      uv_texture_set_data,  uv_cloud_sparse_texture_no_adr
     write_addr  uv_table_map_p,       uv_paul5_map_no_adr
-    call_0      uv_table_init_shader
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
     call_1      palette_set_block,    seq_palette_blue_cyan_ramp
     write_byte  uv_table_offset_u,    0
     write_byte  uv_table_offset_v,    0

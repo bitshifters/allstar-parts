@@ -79,6 +79,7 @@ build:
 ./build/archie-verse.bin: build ./build/archie-verse.o link_script3.txt
 	$(VLINK) -T link_script3.txt -b rawbin1 -o $@ build/archie-verse.o -Mbuild/linker.txt
 
+.PHONY:./build/archie-verse.o	# always build as we don't have submodule dependencies...
 ./build/archie-verse.o: build archie-verse.asm ./build/assets.txt
 	$(VASM) -L build/compile.txt -m250 -Fvobj -opt-adr -o build/archie-verse.o archie-verse.asm
 
