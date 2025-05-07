@@ -73,21 +73,23 @@ seq_space_part:
     call_3      fx_set_layer_fns,   0, uv_table_tick              uv_table_draw
     call_3      fx_set_layer_fns,   1, 0,                          0
     
-    ; Robot. TODO: New texture map.
+    ; Robot.
     call_1      uv_texture_set_data,  uv_bgtest_texture_no_adr
     write_addr  uv_table_map_p,       uv_paul1_map_no_adr
-    call_0      uv_table_init
+    call_1      uv_table_init_shader, UV_Table_TexDim_64_256
     call_1      palette_set_block,    uv_bgtest_pal_no_adr
+    write_byte  uv_table_offset_u,    0
+    write_byte  uv_table_offset_v,    0
     write_byte  uv_table_offset_du,   0
     write_byte  uv_table_offset_dv,   1
 
     wait_secs 5.0
 
     ; Ship w/ ext data.
-    call_1      uv_texture_set_data,  uv_ship_sparse_texture_no_adr
+    call_1      uv_texture_set_data,  uv_ship_texture_no_adr
     write_addr  uv_table_map_p,       uv_paul2_map_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_64
-    call_3      palette_set_gradient, 0, 0, paul_ship_gradient
+    call_3      palette_set_gradient, 0, 0, gradient_ship
     write_byte  uv_table_offset_u,    0
     write_byte  uv_table_offset_v,    0
     write_byte  uv_table_offset_du,   0
@@ -108,10 +110,10 @@ seq_space_part:
     wait_secs 5.0
 
     ; Planet.
-    call_1      uv_texture_set_data,  uv_ship_sparse_texture_no_adr
+    call_1      uv_texture_set_data,  uv_ship_texture_no_adr
     write_addr  uv_table_map_p,       uv_paul4_map_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_64
-    call_3      palette_set_gradient, 0, 0, paul_ship_gradient
+    call_3      palette_set_gradient, 0, 0, gradient_space
     write_byte  uv_table_offset_u,    0
     write_byte  uv_table_offset_v,    0
     write_byte  uv_table_offset_du,   0
@@ -120,10 +122,34 @@ seq_space_part:
     wait_secs 5.0
 
     ; Tunnel.
-    call_1      uv_texture_set_data,  uv_cloud_sparse_texture_no_adr
+    call_1      uv_texture_set_data,  uv_cloud_texture_no_adr
     write_addr  uv_table_map_p,       uv_paul5_map_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
-    call_1      palette_set_block,    seq_palette_blue_cyan_ramp
+    call_3      palette_set_gradient, 0, 0, gradient_ship
+    write_byte  uv_table_offset_u,    0
+    write_byte  uv_table_offset_v,    0
+    write_byte  uv_table_offset_du,   0
+    write_byte  uv_table_offset_dv,   1
+
+    wait_secs 5.0
+
+    ; Black hole.
+    call_1      uv_texture_set_data,  uv_disk_texture_no_adr
+    write_addr  uv_table_map_p,       uv_paul6_map_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
+    call_3      palette_set_gradient, 0, 0, gradient_black_hole
+    write_byte  uv_table_offset_u,    0
+    write_byte  uv_table_offset_v,    0
+    write_byte  uv_table_offset_du,   0
+    write_byte  uv_table_offset_dv,   1
+
+    wait_secs 5.0
+
+    ; Reactor core.
+    call_1      uv_texture_set_data,  uv_disk_texture_no_adr
+    write_addr  uv_table_map_p,       uv_paul7_map_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
+    call_3      palette_set_gradient, 0, 0, gradient_ship
     write_byte  uv_table_offset_u,    0
     write_byte  uv_table_offset_v,    0
     write_byte  uv_table_offset_du,   0
@@ -136,7 +162,7 @@ seq_space_part:
     call_1      uv_texture_set_data,    rotate_texture_no_adr
     call_3      fx_set_layer_fns, 0,    rotate_tick,                rotate_draw
 
-    wait_secs 10.0
+    wait_secs 5.0
 
     ; Inside out.
     call_1      uv_texture_set_data,  uv_phong_texture_no_adr
@@ -148,7 +174,7 @@ seq_space_part:
     write_byte  uv_table_offset_du,  -1
     write_byte  uv_table_offset_dv,   1
 
-    wait_secs 10.0
+    wait_secs 5.0
 
     yield       seq_space_part  ; yield = wait 1; goto <label>
     end_script
@@ -363,14 +389,14 @@ seq_palette_all_white:
 ; Or use https://gradient-blaster.grahambates.com/ by Gigabates to generate nice palettes!
 ; ============================================================================
 
-gradient_pal:
-.long	0xff0,0xff3,0xfd5,0xec6,0xec7,0xeb8,0xda9,0xc9a,0xc8b,0xb7b,0xa6c,0x95d,0x84d,0x73e,0x52f,0x00f
+gradient_ship:
+.long   0x000,0x000,0x000,0x011,0x022,0x123,0x134,0x246,0x357,0x469,0x47a,0x58c,0x7ad,0xace,0xdef,0xfff
 
-paul_ship_gradient:
-.long 	0x000,0x000,0x000,0x011,0x022,0x123,0x134,0x246,0x357,0x469,0x47a,0x58c,0x7ad,0xace,0xdef,0xfff    
+gradient_space:
+.long   0x000,0x000,0x000,0x011,0x022,0x232,0x343,0x553,0x773,0x984,0xaa4,0xdb5,0xdc7,0xeeb,0xfed,0xfff
 
-paul_other_gradient:
-.long 	0x000,0x100,0x110,0x310,0x421,0x530,0x740,0x950,0xa61,0xb84,0xc86,0xda8,0xdb9,0xedb,0xfee,0xfff
+gradient_black_hole:
+.long   0x000,0x012,0x113,0x324,0x435,0x944,0xa65,0xc87,0xda8,0xdda,0xeeb,0xffd,0xefe,0xfff,0xeff,0xfff
 
 
 ; ============================================================================

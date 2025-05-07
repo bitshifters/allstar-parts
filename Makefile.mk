@@ -65,9 +65,9 @@ build:
 ##########################################################################
 
 ./build/assets.txt: build ./build/music.mod ./build/razor-font.bin ./build/tunnel_uv.bin ./build/tunnel2_uv.bin \
-	./build/phong128.bin ./build/cloud128.bin ./build/itm128.bin ./build/temp-logo.bin \
+	./build/phong128.bin ./build/itm128.bin ./build/temp-logo.bin \
 	./build/fine-font.bin ./build/paul1_uv.bin ./build/paul2_uv.ab.bin ./build/paul3_uv.bin  ./build/paul4_uv.ab.bin \
-	./build/paul5_uv.ab.bin ./build/fire128.bin ./build/ShipIndex.bin ./build/bgtest4.bin \
+	./build/paul5_uv.ab.bin ./build/Fire2.bin ./build/ShipIndex.bin ./build/bgtest4.bin \
 	./build/paul6_uv.ab.bin ./build/paul7_uv.ab.bin ./build/FlameIndex.bin ./build/CloudIndex.bin \
 	./build/DiskIndex.bin
 	echo done > $@
@@ -166,10 +166,7 @@ clean:
 ./build/phong128.bin: ./data/gfx/phong-x4.png ./data/raw/phong.pal.bin $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --use-palette ./data/raw/phong.pal.bin --double-pixels $< 9
 
-./build/cloud128.bin: ./data/gfx/Elements_22-128x128x16.png $(PNG2ARC_DEPS)
-	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels $< 9
-
-./build/fire128.bin: ./data/gfx/Fire2.png $(PNG2ARC_DEPS)
+./build/Fire2.bin: ./data/gfx/Fire2.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels $< 9
 
 ./build/itm128.bin: ./data/gfx/itm-rot-tex16.png $(PNG2ARC_DEPS)

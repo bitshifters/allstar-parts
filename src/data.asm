@@ -48,11 +48,17 @@ uv_phong_pal_no_adr:
 .incbin "data/raw/phong.pal.bin"
 
 ; Stored as sparse bytes for extended data lookup UV FX.
-uv_cloud_sparse_texture_no_adr:
-.incbin "build/cloud128.bin"
+uv_cloud_texture_no_adr:
+.incbin "build/CloudIndex.bin"
+
+uv_disk_texture_no_adr:
+.incbin "build/DiskIndex.bin"
 
 uv_fire_texture_no_adr:
-.incbin "build/fire128.bin"
+.incbin "build/Fire2.bin"
+
+uv_flame_texture_no_adr:
+.incbin "build/FlameIndex.bin"
 
 uv_bgtest_texture_no_adr:
 .incbin "build/bgtest4.bin"
@@ -61,26 +67,32 @@ uv_bgtest_pal_no_adr:
 .incbin "build/bgtest4.pal.bin"
 
 ; Stored as sparse bytes for extended data lookup UV FX.
-uv_ship_sparse_texture_no_adr:
+uv_ship_texture_no_adr:
 .incbin "build/ShipIndex.bin"           ; 8K
 .incbin "build/ShipIndex.bin"           ; 8K
 
 ; (u,v) coordinates interleaved, 1 byte each
 ; 1 word = 2 pixels worth
 uv_paul1_map_no_adr:
-.incbin "build/paul1_uv.bin"            ; robot just blue mask?
+.incbin "build/paul1_uv.bin"             ; robot just blue mask?
 
 uv_paul2_map_no_adr:
-.incbin "build/paul2_uv.ab.bin"          ; ship w/ ext data
+.incbin "build/paul2_uv.ab.bin"          ; ship w/ shader
 
 uv_paul3_map_no_adr:
-.incbin "build/paul3_uv.bin"            ; inside twisty torus
+.incbin "build/paul3_uv.bin"             ; inside twisty torus
 
 uv_paul4_map_no_adr:
-.incbin "build/paul4_uv.ab.bin"          ; planet w/ ext data
+.incbin "build/paul4_uv.ab.bin"          ; planet w/ shader
 
 uv_paul5_map_no_adr:
-.incbin "build/paul5_uv.ab.bin"          ; tunnel w/ ext data
+.incbin "build/paul5_uv.ab.bin"          ; tunnel w/ shader
+
+uv_paul6_map_no_adr:
+.incbin "build/paul6_uv.ab.bin"          ; black hole w/ shader
+
+uv_paul7_map_no_adr:
+.incbin "build/paul7_uv.ab.bin"          ; reactor core w/ shader
 
 uv_tunnel1_map_no_adr:
 .incbin "build/tunnel_uv.bin"           ; regular tunnel
