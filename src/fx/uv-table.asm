@@ -136,19 +136,51 @@ uv_table_tex_dim_128_64:            ; 128x64
 ; Calculate the byte offset into a texture from the UV parameters.
 ; Params:
 ;   R0=0000VvUu
-; Returns:
+;   R5=000000ba
+; No longer returns!
 ;   R2=byte offset   [0, 4096]
 ;   R3=base register [8, 11]
 ; Trashes: R4
 ; ============================================================================
 
 uv_table_calc_offset:
+    ; NB. v---- these instructions get overwritten at runtime!
     and r2, r0, #0x007f             ; u0<<0  [0, 127]   7 bits
     and r3, r0, #0x7f00             ; v0<<8  [0, 127]   7 bits
     mov r4, r3, lsl #12+7           ; bottom 5 bits of v0
     orr r2, r2, r4, lsr #20         ; v0 | u0           12 bits
     mov r3, r3, lsr #6+7            ; top 2 bits of v0
     add r3, r3, #8                  ; [8, 11]
+    ; NB. ^---- these instructions get overwritten at runtime!
+
+    ; Write out pixel read instruction.
+    ldr r7, [r8], #4                ; ldrb rX, [rY, #Z]
+    orr r7, r7, r9, lsl #12         ; dest reg
+    orr r7, r7, r2                  ; offset [0, 4095]
+    orr r7, r7, r3, lsl #16         ; base reg
+    str r7, [r12], #4               ; write out instruction 0
+
+    ; Write out optional a/b operations for Rdest.
+    ands r2, r5, #0x0000000f        ; a0
+    beq .201                        ; <== NB always FALSE as a+=4 in the script.
+    ldr r7, [r8]                    ; additional op shift (logical_colour >> a)
+    orr r7, r7, r9, lsl #12         ; dest reg
+    orr r7, r7, r9                  ; base reg
+    orr r7, r7, r2, lsl #7          ; shift amount in bits 7-11
+    str r7, [r12], #4               ; write out additional instruction 1a
+    .201:
+    add r8, r8, #4
+
+    ands r2, r5, #0x000000f0        ; b0 << 4
+    beq .202
+    ldr r7, [r8]                    ; additional op add (logical_colour >> a) + b
+    orr r7, r7, r9, lsl #12         ; dest reg
+    orr r7, r7, r9, lsl #16         ; base reg
+    orr r7, r7, r2, lsr #4          ; b0
+    str r7, [r12], #4               ; write out additional instruction 1a
+    .202:
+    add r8, r8, #4
+
     mov pc, lr
 
 ; Generate plot code from UV data alone.
@@ -226,7 +258,10 @@ uv_table_gen_shader_code:
     ldrne r5, [r10], #4             ; R5= 3 2 1 0
                                     ;    babababa
 
-    ; TODO: Don't pay shift penalty if there's no shading!
+    ; Shift of zero (a=0) means 'just LUT', expect b=0.
+    ; Shift of >=4 means 'const colour', b is the colour index.
+
+    ; TODO: Don't pay shift penalty if there's no shading for this word!
     moveq r5, #0x04
     orreq r5, r5, r5, lsl #8
     orreq r5, r5, r5, lsl #16
@@ -235,145 +270,69 @@ uv_table_gen_shader_code:
 
     adr r8, uv_table_code_new_snippet
 
-    ; Write out texture load for pixel 0 in word.
+    ; Write out texture load & shade for pixel 0 in word.
 
     ; R0=0000v0u0
     bl uv_table_calc_offset
 
-    ldr r7, [r8], #4                ; ldrb rX, [rY, #Z]
-    orr r7, r7, r9, lsl #12         ; dest reg
-    orr r7, r7, r2                  ; offset [0, 4095]
-    orr r7, r7, r3, lsl #16         ; base reg
-    str r7, [r12], #4               ; write out instruction 0
+    ; Write out texture load & shade for pixel 1 in word.
 
-    ; Write out optional a/b operations for Rdest.
-    ands r2, r5, #0x0000000f        ; a0
-    beq .201                        ; <== NB always FALSE as a+=4 in the script.
-    ldr r7, [r8]                    ; additional op shift (logical_colour >> a)
-    orr r7, r7, r9, lsl #12         ; dest reg
-    orr r7, r7, r9                  ; base reg
-    orr r7, r7, r2, lsl #7          ; shift amount in bits 7-11
-    str r7, [r12], #4               ; write out additional instruction 1a
-    .201:
-    add r8, r8, #4
-
-    ands r2, r5, #0x000000f0        ; b0 << 4
-    beq .202
-    ldr r7, [r8]                    ; additional op add (logical_colour >> a) + b
-    orr r7, r7, r9, lsl #12         ; dest reg
-    orr r7, r7, r9, lsl #16         ; base reg
-    orr r7, r7, r2, lsr #4          ; b0
-    str r7, [r12], #4               ; write out additional instruction 1a
-    .202:
-    add r8, r8, #4
-
-    ; Write out texture load for pixel 1 in word.
-
-    mov r5, r5, lsr #8
+    mov r5, r5, lsr #8              ; R5=00bababa
     mov r0, r0, lsr #16             ; R0=0000v1u1
+    str r9, [sp, #-4]!
+    mov r9, #14                     ; dest=R14
     bl uv_table_calc_offset
+    ldr r9, [sp], #4
 
-    ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
-    orr r7, r7, r2                  ; offset [0, 4095]
-    orr r7, r7, r3, lsl #16         ; base reg
-    str r7, [r12], #4               ; write out instruction 1
-
-    ; Write out optional a/b operations for R14.
-    ands r2, r5, #0x0000000f        ; a1
-    beq .211                        ; <== NB always FALSE as a+=4 in the script.
-    ldr r7, [r8]                    ; additional op shift (logical_colour >> a)
-    orr r7, r7, r2, lsl #7          ; shift amount in bits 7-11
-    str r7, [r12], #4               ; write out additional instruction 1a
-    .211:
-    add r8, r8, #4
-
-    ands r2, r5, #0x000000f0        ; b1 << 4
-    beq .212
-    ldr r7, [r8]                    ; additional op add (logical_colour >> a) + b
-    orr r7, r7, r2, lsr #4          ; b1
-    str r7, [r12], #4               ; write out additional instruction 1a
-    .212:
-    add r8, r8, #4
+    ; Merge texture pixel into screen word.
 
     ldr r7, [r8], #4                ; orr r0, r0, r14, lsl #8
     orr r7, r7, r9, lsl #12         ; dest reg
     orr r7, r7, r9, lsl #16         ; base reg
     str r7, [r12], #4               ; write out instruction 2
 
-    ; Write out texture load for pixel 2 in word.
+    ; Write out texture load & shade for pixel 2 in word.
 
-    mov r5, r5, lsr #8
+    mov r5, r5, lsr #8              ; R5=0000baba
     mov r0, r1                      ; R0=0000v2u2
+    str r9, [sp, #-4]!
+    mov r9, #14                     ; dest=R14
     bl uv_table_calc_offset
+    ldr r9, [sp], #4
 
-    ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
-    orr r7, r7, r2                  ; offset [0, 4095]
-    orr r7, r7, r3, lsl #16         ; base reg
-    str r7, [r12], #4               ; write out instruction 3
-
-    ; Write out optional a/b operations for R14.
-    ands r2, r5, #0x0000000f        ; a2
-    beq .221                        ; <== NB always FALSE as a+=4 in the script.
-    ldr r7, [r8]                    ; additional op shift (logical_colour >> a)
-    orr r7, r7, r2, lsl #7          ; shift amount in bits 7-11
-    str r7, [r12], #4               ; write out additional instruction 1a
-    .221:
-    add r8, r8, #4
-
-    ands r2, r5, #0x000000f0        ; b2 << 4
-    beq .222
-    ldr r7, [r8]                    ; additional op add (logical_colour >> a) + b
-    orr r7, r7, r2, lsr #4          ; b2
-    str r7, [r12], #4               ; write out additional instruction 1a
-    .222:
-    add r8, r8, #4
+    ; Merge texture pixel into screen word.
 
     ldr r7, [r8], #4                ; orr r0, r0, r14, lsl #16
     orr r7, r7, r9, lsl #12         ; dest reg
     orr r7, r7, r9, lsl #16         ; base reg
     str r7, [r12], #4               ; write out instruction 4
 
-    ; Write out texture load for pixel 3 in word.
+    ; Write out texture load & shade for pixel 3 in word.
 
-    mov r5, r5, lsr #8
+    mov r5, r5, lsr #8              ; R5=000000ba
     mov r0, r1, lsr #16             ; R0=0000v3u3  
+    str r9, [sp, #-4]!
+    mov r9, #14                     ; dest=R14
     bl uv_table_calc_offset
+    ldr r9, [sp], #4
 
-    ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
-    orr r7, r7, r2                  ; offset [0, 4095]
-    orr r7, r7, r3, lsl #16         ; base reg
-    str r7, [r12], #4               ; write out instruction 5
-
-    ; Write out optional a/b operations for R14.
-    ands r2, r5, #0x0000000f        ; a3
-    beq .231                        ; <== NB always FALSE as a+=4 in the script.
-    ldr r7, [r8]                    ; additional op shift (logical_colour >> a)
-    orr r7, r7, r2, lsl #7          ; shift amount in bits 7-11
-    str r7, [r12], #4               ; write out additional instruction 1a
-    .231:
-    add r8, r8, #4
-
-    ands r2, r5, #0x000000f0        ; b3 << 4
-    beq .232
-    ldr r7, [r8]                    ; additional op add (logical_colour >> a) + b
-    orr r7, r7, r2, lsr #4          ; b3
-    str r7, [r12], #4               ; write out additional instruction 1a
-    .232:
-    add r8, r8, #4
+    ; Merge texture pixel into screen word.
 
     ldr r7, [r8], #4                ; orr r0, r0, r14, lsl #24
     orr r7, r7, r9, lsl #12         ; dest reg
     orr r7, r7, r9, lsl #16         ; base reg
     str r7, [r12], #4               ; write out instruction 6
 
-    ; Write out full word ORR.
+    ; Write out full word ORR to double-up pixels.
+
     ldr r7, [r8], #4                ; orr r0, r0, r0, lsl #4
     orr r7, r7, r9, lsl #12         ; dest reg
     orr r7, r7, r9, lsl #16         ; base reg
     orr r7, r7, r9                  ; src reg
     str r7, [r12], #4               ; write out full word shift
 
-    ; Do this 8 times for R0-7
+    ; Do this 8 times for R0-7.
+
     add r9, r9, #1
     cmp r9, #8
     bne .2
@@ -381,7 +340,8 @@ uv_table_gen_shader_code:
     ;           = 16 words x 8 times = 335876 bytes (!)
 
     ; Write out plot snippet.
-    ldmia r8!, {r0-r2}
+
+    ldmia r8!,  {r0-r2}
     stmia r12!, {r0-r2}
     ; Code size = 56 words + 3 words = 59 words
 
@@ -391,6 +351,7 @@ uv_table_gen_shader_code:
     ; Code size = 59 words * 5 times = 295 words
 
     ; Write out increment screen ptr to skip a line.
+
     ldr r0, [r8], #4
     str r0, [r12], #4
     ; Code size = 295 words + 1 word = 296 words per row
@@ -400,6 +361,7 @@ uv_table_gen_shader_code:
     ; Code size = 296 words * 128 rows = 37888 words
 
     ; Write out rts.
+
     ldr r0, [r8], #4
     str r0, [r12], #4
     ; Code size = 37889 words = 151556 bytes = 148K + 4 bytes!

@@ -79,6 +79,22 @@ def main(options):
                     a1=rgba1[2] & 0xf
                     b1=rgba1[2] >> 4
 
+                # NB. Shift of zero (a=0) means 'just LUT' and expect add of zero (b=0).
+
+                if a0==0 and b0!=0:
+                    print 'WARNING: Found B value that has add without shift (0x{0:02x})'.format(rgba0[2])
+
+                if a1==0 and b1!=0:
+                    print 'WARNING: Found B value that has add without shift (0x{0:02x})'.format(rgba1[2])
+
+                # NB. Shift of a>=4 means 'const colour' and b is the colour.
+
+                if a0>5:    # should be 4
+                    print 'WARNING: Found B value that has unexpected shift (0x{0:02x})'.format(rgba0[2])
+
+                if a1>5:    # should be 4
+                    print 'WARNING: Found B value that has unexpected shift (0x{0:02x})'.format(rgba1[2])
+
                 max0=(0xf>>a0)+b0
                 max1=(0xf>>a1)+b1
 
