@@ -269,6 +269,7 @@ uv_table_gen_shader_code:
 
     ; Write out texture load for pixel 1 in word.
 
+    mov r5, r5, lsr #8
     mov r0, r0, lsr #16             ; R0=0000v1u1
     bl uv_table_calc_offset
 
@@ -278,18 +279,18 @@ uv_table_gen_shader_code:
     str r7, [r12], #4               ; write out instruction 1
 
     ; Write out optional a/b operations for R14.
-    ands r2, r5, #0x00000f00        ; a1 << 8
+    ands r2, r5, #0x0000000f        ; a1
     beq .211                        ; <== NB always FALSE as a+=4 in the script.
     ldr r7, [r8]                    ; additional op shift (logical_colour >> a)
-    orr r7, r7, r2, lsr #8-7        ; shift amount in bits 7-11
+    orr r7, r7, r2, lsl #7          ; shift amount in bits 7-11
     str r7, [r12], #4               ; write out additional instruction 1a
     .211:
     add r8, r8, #4
 
-    ands r2, r5, #0x0000f000        ; b1 << 12
+    ands r2, r5, #0x000000f0        ; b1 << 4
     beq .212
     ldr r7, [r8]                    ; additional op add (logical_colour >> a) + b
-    orr r7, r7, r2, lsr #12         ; b1
+    orr r7, r7, r2, lsr #4          ; b1
     str r7, [r12], #4               ; write out additional instruction 1a
     .212:
     add r8, r8, #4
@@ -301,6 +302,7 @@ uv_table_gen_shader_code:
 
     ; Write out texture load for pixel 2 in word.
 
+    mov r5, r5, lsr #8
     mov r0, r1                      ; R0=0000v2u2
     bl uv_table_calc_offset
 
@@ -310,18 +312,18 @@ uv_table_gen_shader_code:
     str r7, [r12], #4               ; write out instruction 3
 
     ; Write out optional a/b operations for R14.
-    ands r2, r5, #0x000f0000        ; a2 << 16
+    ands r2, r5, #0x0000000f        ; a2
     beq .221                        ; <== NB always FALSE as a+=4 in the script.
     ldr r7, [r8]                    ; additional op shift (logical_colour >> a)
-    orr r7, r7, r2, lsr #16-7       ; shift amount in bits 7-11
+    orr r7, r7, r2, lsl #7          ; shift amount in bits 7-11
     str r7, [r12], #4               ; write out additional instruction 1a
     .221:
     add r8, r8, #4
 
-    ands r2, r5, #0x00f00000        ; b2 << 20
+    ands r2, r5, #0x000000f0        ; b2 << 4
     beq .222
     ldr r7, [r8]                    ; additional op add (logical_colour >> a) + b
-    orr r7, r7, r2, lsr #20         ; b2
+    orr r7, r7, r2, lsr #4          ; b2
     str r7, [r12], #4               ; write out additional instruction 1a
     .222:
     add r8, r8, #4
@@ -333,6 +335,7 @@ uv_table_gen_shader_code:
 
     ; Write out texture load for pixel 3 in word.
 
+    mov r5, r5, lsr #8
     mov r0, r1, lsr #16             ; R0=0000v3u3  
     bl uv_table_calc_offset
 
@@ -342,18 +345,18 @@ uv_table_gen_shader_code:
     str r7, [r12], #4               ; write out instruction 5
 
     ; Write out optional a/b operations for R14.
-    ands r2, r5, #0x0f000000        ; a3 << 24
+    ands r2, r5, #0x0000000f        ; a3
     beq .231                        ; <== NB always FALSE as a+=4 in the script.
     ldr r7, [r8]                    ; additional op shift (logical_colour >> a)
-    orr r7, r7, r2, lsr #24-7       ; shift amount in bits 7-11
+    orr r7, r7, r2, lsl #7          ; shift amount in bits 7-11
     str r7, [r12], #4               ; write out additional instruction 1a
     .231:
     add r8, r8, #4
 
-    ands r2, r5, #0xf0000000        ; b3 << 28
+    ands r2, r5, #0x000000f0        ; b3 << 4
     beq .232
     ldr r7, [r8]                    ; additional op add (logical_colour >> a) + b
-    orr r7, r7, r2, lsr #28         ; b3
+    orr r7, r7, r2, lsr #4          ; b3
     str r7, [r12], #4               ; write out additional instruction 1a
     .232:
     add r8, r8, #4
