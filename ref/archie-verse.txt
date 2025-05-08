@@ -572,14 +572,14 @@ Runtime RAM savings:
 
 TODO:
 - Add Hz debug counter. - DONE
-- Add Paul's new UV tables and textures. - IN PROGRESS
+- Add Paul's new UV tables and textures. - DONE
 - Separate the two parts. - DONE
 - Sort out RAM. - DONE
-- Add configurable texture size at runtime.
-    - Pass through UV's in conversion, don't munge them.
-    - Set texture dims in script
-    - Update code gen to accomodate texture dim calc.
-- Sort out time in script as ARM2 runs much slower than ARM250!!
+- Add configurable texture size at runtime. - DONE
+    - Pass through UV's in conversion, don't munge them. - DONE
+    - Set texture dims in script - DONE
+    - Update code gen to accomodate texture dim calc. - DONE
+- Sort out time in script as ARM2 runs much slower than ARM250!! :|
 
 - Compress UV tables to reduce RAM overhead?
     - Doing U,V deltas increases the compressability.

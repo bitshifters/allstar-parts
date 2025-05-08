@@ -89,10 +89,16 @@ def main(options):
 
                 # NB. Shift of a>=4 means 'const colour' and b is the colour.
 
-                if a0>5:    # should be 4
+                if a0==5:   # hack for old asset
+                    a0=4
+                
+                if a1==5:   # hack for old asset
+                    a1=4
+
+                if a0>4:
                     print 'WARNING: Found B value that has unexpected shift (0x{0:02x})'.format(rgba0[2])
 
-                if a1>5:    # should be 4
+                if a1>4:
                     print 'WARNING: Found B value that has unexpected shift (0x{0:02x})'.format(rgba1[2])
 
                 max0=(0xf>>a0)+b0
@@ -104,10 +110,10 @@ def main(options):
                 if max1>0xf:
                     print 'WARNING: Found B value that could overflow (0x{0:02x})'.format(rgba1[2])
 
-                # NB. Sparse texture shift of +4 needs thinking about vs optimisations to reduce code.
+                # NB. Sparse texture shift of +4 now done in runtime code gen.
 
-                shader_data.append((b0<<4)|(a0+4))  # for sparse texture data
-                shader_data.append((b1<<4)|(a1+4))
+                shader_data.append((b0<<4)|a0)
+                shader_data.append((b1<<4)|a1)
 
 
     for x in shader_data:         # TODO: Pythonic way of doing this.

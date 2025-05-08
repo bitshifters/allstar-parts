@@ -107,29 +107,33 @@ uv_texture_set_data:
 uv_table_tex_dim_128_128:           ; 128x128
     and r2, r0, #0x007f             ; u0<<0  [0, 127]   7 bits
     and r3, r0, #0x7f00             ; v0<<8  [0, 127]   7 bits
-    mov r4, r3, lsl #12+7           ; bottom 5 bits of v0
-    orr r2, r2, r4, lsr #20         ; v0 | u0           12 bits
+    mov r3, r3, lsl #12+7           ; bottom 5 bits of v0
+    orr r2, r2, r3, lsr #20         ; v0 | u0           12 bits
+    and r3, r0, #0x7f00             ; v0<<8  [0, 127]   7 bits
     mov r3, r3, lsr #6+7            ; top 2 bits of v0
 
 uv_table_tex_dim_64_256:            ; 64x256
     and r2, r0, #0x003f             ; u0     [0, 63]    6 bits
     and r3, r0, #0xff00             ; v0<<8  [0, 255]   8 bits
-    mov r4, r3, lsl #12+6           ; bottom 6 bits of v0
-    orr r2, r2, r4, lsr #20         ; v0 | u0           12 bits
+    mov r3, r3, lsl #12+6           ; bottom 6 bits of v0
+    orr r2, r2, r3, lsr #20         ; v0 | u0           12 bits
+    and r3, r0, #0xff00             ; v0<<8  [0, 255]   8 bits
     mov r3, r3, lsr #6+8            ; top 2 bits of v0
 
 uv_table_tex_dim_256_64:            ; 256x64
     and r2, r0, #0x00ff             ; u0<<0  [0, 255]  8 bits
     and r3, r0, #0x3f00             ; v0<<8  [0, 63]   6 bits
-    mov r4, r3, lsl #12+8           ; bottom 4 bits of v0
-    orr r2, r2, r4, lsr #20         ; v0 | u0          12 bits
+    mov r3, r3, lsl #12+8           ; bottom 4 bits of v0
+    orr r2, r2, r3, lsr #20         ; v0 | u0          12 bits
+    and r3, r0, #0x3f00             ; v0<<8  [0, 63]   6 bits
     mov r3, r3, lsr #6+6            ; top 2 bits of v0
 
 uv_table_tex_dim_128_64:            ; 128x64
     and r2, r0, #0x007f             ; u0<<0  [0, 127]  7 bits
     and r3, r0, #0x3f00             ; v0<<8  [0, 63]   6 bits
-    mov r4, r3, lsl #12+7           ; bottom 5 bits of v0
-    orr r2, r2, r4, lsr #20         ; v0 | u0          12 bits
+    mov r3, r3, lsl #12+7           ; bottom 5 bits of v0
+    orr r2, r2, r3, lsr #20         ; v0 | u0          12 bits
+    and r3, r0, #0x3f00             ; v0<<8  [0, 63]   6 bits
     mov r3, r3, lsr #6+7            ; top 1 bits of v0
 
 ; ============================================================================
@@ -147,40 +151,74 @@ uv_table_calc_offset:
     ; NB. v---- these instructions get overwritten at runtime!
     and r2, r0, #0x007f             ; u0<<0  [0, 127]   7 bits
     and r3, r0, #0x7f00             ; v0<<8  [0, 127]   7 bits
-    mov r4, r3, lsl #12+7           ; bottom 5 bits of v0
-    orr r2, r2, r4, lsr #20         ; v0 | u0           12 bits
+    mov r3, r3, lsl #12+7           ; bottom 5 bits of v0
+    orr r2, r2, r3, lsr #20         ; v0 | u0           12 bits
+    and r3, r0, #0x7f00             ; v0<<8  [0, 127]   7 bits
     mov r3, r3, lsr #6+7            ; top 2 bits of v0
     add r3, r3, #8                  ; [8, 11]
     ; NB. ^---- these instructions get overwritten at runtime!
 
+    ; Shift value: a=0 (just LUT) a={1,3} (shading) a=4 (const colour)
+    tst r5, #4                      ; test const bit
+    bne .1                          ; const colour
+
+    ; Read pixel from LUT.
+
     ; Write out pixel read instruction.
-    ldr r7, [r8], #4                ; ldrb rX, [rY, #Z]
+    ldr r7, [r8, #4]                ; ldrb rX, [rY, #Z]
     orr r7, r7, r9, lsl #12         ; dest reg
     orr r7, r7, r2                  ; offset [0, 4095]
     orr r7, r7, r3, lsl #16         ; base reg
     str r7, [r12], #4               ; write out instruction 0
 
-    ; Write out optional a/b operations for Rdest.
-    ands r2, r5, #0x0000000f        ; a0
-    beq .201                        ; <== NB always FALSE as a+=4 in the script.
-    ldr r7, [r8]                    ; additional op shift (logical_colour >> a)
+    and r2, r5, #0x0000000f         ; a0
+
+    ; If there is shading in this word then shift must be used.
+    cmp r4, #0
+    bne .200
+
+    cmp r2, #0
+    beq .201                        ; no shift
+
+    .200:
+    ldr r7, [r8, #8]                ; additional op shift (logical_colour >> a)
     orr r7, r7, r9, lsl #12         ; dest reg
     orr r7, r7, r9                  ; base reg
+    add r2, r2, #4                  ; turn double pixel byte into single pixel
     orr r7, r7, r2, lsl #7          ; shift amount in bits 7-11
     str r7, [r12], #4               ; write out additional instruction 1a
     .201:
-    add r8, r8, #4
 
-    ands r2, r5, #0x000000f0        ; b0 << 4
+    ands r3, r5, #0x000000f0        ; b0 << 4
     beq .202
-    ldr r7, [r8]                    ; additional op add (logical_colour >> a) + b
+    ldr r7, [r8, #12]               ; additional op add (logical_colour >> a) + b
     orr r7, r7, r9, lsl #12         ; dest reg
     orr r7, r7, r9, lsl #16         ; base reg
-    orr r7, r7, r2, lsr #4          ; b0
+    orr r7, r7, r3, lsr #4          ; b0
     str r7, [r12], #4               ; write out additional instruction 1a
     .202:
-    add r8, r8, #4
+    b .3                            ; skip texture read and shade
 
+    .1:
+
+    ; Constant colour then use mov #imm.
+    
+    and r3, r5, #0x000000f0         ; b0 << 4
+
+    ; Write out mov #imm const instruction.
+
+    ldr r7, [r8, #0]                ; mov rX, #Y
+    orr r7, r7, r9, lsl #12         ; dest reg
+
+    ; If no shading in this word then use double pixels.
+    cmp r4, #0
+    orreq r3, r3, r3, lsl #4        ; no shading.
+    orr r7, r7, r3, lsr #4          ; b0
+
+    str r7, [r12], #4               ; write out instruction 0
+
+    .3:
+    add r8, r8, #16
     mov pc, lr
 
 ; Generate plot code from UV data alone.
@@ -218,26 +256,27 @@ uv_table_gen_shader_code:
     ; Super hackballs! :)
     adr r2, uv_table_calc_offset    ; dest
     adr r1, uv_table_tex_dim_128_128
-    add r1, r1, r0, lsl #4          ; enum*5*4
-    add r1, r1, r0, lsl #2          ; enum*5*4
-    ldmia r1, {r3-r7}               ; copy 5 instrutions
-    stmia r2, {r3-r7}
+    add r1, r1, r0, lsl #4          ; enum*6*4
+    add r1, r1, r0, lsl #3          ; enum*6*4
+    ldmia r1, {r3-r8}               ; copy 6 instrutions
+    stmia r2, {r3-r8}
 
     ; R0=v1v0u1u0
     ; R1=v3v2u3u2
     ; R2=temp
     ; R3=temp
-    ; R4=temp
+    ; R4=shading flag
     ; R5=b3a3b2a2b1a1b0a0
     ; R6=row counter | column counter<<16
     ; R7=opcode being assembled
     ; R8=code snippet ptr
     ; R9=dest register
-    ; R10=extended data ptr
+    ; R10=shader data ptr
     ; R11=UV table ptr
     ; R12=code dest ptr
     ; R14=LR
 
+    mov r5, #0
     mov r6, #UV_Table_Rows          ; rows to plot
 .1:
 
@@ -261,10 +300,15 @@ uv_table_gen_shader_code:
     ; Shift of zero (a=0) means 'just LUT', expect b=0.
     ; Shift of >=4 means 'const colour', b is the colour index.
 
-    ; TODO: Don't pay shift penalty if there's no shading for this word!
-    moveq r5, #0x04
-    orreq r5, r5, r5, lsl #8
-    orreq r5, r5, r5, lsl #16
+    ; So R5=0x00000000 means no shading in this word.
+    ; Or R5=0x04040404 means word is const colour = no shading.
+    ; So shading mask is 0x03030303 if any shift bits set then have shading.
+    ; If any shading in word then all shift 0's have to be taken.
+
+    mov r4, #0x03
+    orr r4, r4, r4, lsl #8
+    orr r4, r4, r4, lsl #16         ; shading mask=0x03030303
+    and r4, r5, r4                  ; any shading in word?
 
     ; Copy one snippet for 4 pixels = assemble 1 word for writing
 
@@ -323,13 +367,20 @@ uv_table_gen_shader_code:
     orr r7, r7, r9, lsl #16         ; base reg
     str r7, [r12], #4               ; write out instruction 6
 
+    ; If no shading in this word then use double-pixels.
+
+    cmp r4, #0
+    beq .290
+
     ; Write out full word ORR to double-up pixels.
 
-    ldr r7, [r8], #4                ; orr r0, r0, r0, lsl #4
+    ldr r7, [r8]                    ; orr r0, r0, r0, lsl #4
     orr r7, r7, r9, lsl #12         ; dest reg
     orr r7, r7, r9, lsl #16         ; base reg
     orr r7, r7, r9                  ; src reg
     str r7, [r12], #4               ; write out full word shift
+    .290:
+    add r8, r8, #4
 
     ; Do this 8 times for R0-7.
 
@@ -373,20 +424,24 @@ uv_table_gen_shader_code:
 ; ============================================================================
 
 uv_table_code_new_snippet:
+    mov r0, #0                      ; 1c    <= mod base reg, imm value
     ldrb r0, [r0, #0]               ; 4c    <= mod imm offset, base reg, dest reg
     mov r0, r0, lsr #0              ; 1c    <= mod dest reg, shift value (optional)
     add r0, r0, #0                  ; 1c    <= mod dest reg, additional value (optional)
 
+    mov r0, #0                      ; 1c    <= mod base reg, imm value
     ldrb r14, [r0, #0]              ; 4c    <= mod imm offset, base reg
     mov r14, r14, lsr #0            ; 1c    (optional)
     add r14, r14, #0                ; 1c    (optional)
     orr r0, r0, r14, lsl #8         ; 1c    <= mod dest reg
 
+    mov r0, #0                      ; 1c    <= mod base reg, imm value
     ldrb r14, [r0, #0]              ; 4c    <= mod imm offset, base reg
     mov r14, r14, lsr #0            ; 1c    (optional)
     add r14, r14, #0                ; 1c    (optional)
     orr r0, r0, r14, lsl #16        ; 1c    <= mod dest reg
 
+    mov r0, #0                      ; 1c    <= mod base reg, imm value
     ldrb r14, [r0, #0]              ; 4c    <= mod imm offset, base reg
     mov r14, r14, lsr #0            ; 1c    (optional)
     add r14, r14, #0                ; 1c    (optional)
