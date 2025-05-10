@@ -135,23 +135,13 @@ def main(options):
     bm=options.blue_mask or 0   # blue mask
 
     pixel_data=[]
-    paul_data=[]
 
     if options.rgb_path is not None:
 
         png_result=png.Reader(filename=options.rgb_path).asRGBA8()
 
         print 'Image width: {0} height: {1}'.format(png_result[0],png_result[1])
-
-        if options.paul:
-            print "Using Paul's encoding scheme!"
-        else:
-            print 'Blue channel hit mask: 0x{0:02x}'.format(bm)
-
-        # Just a test at the moment - store as byte deltas for better compression.
-        last_u=0
-        last_v=0
-        last_ab=0
+        print 'Blue channel hit mask: 0x{0:02x}'.format(bm)
 
         for row in png_result[2]:
 
@@ -188,35 +178,10 @@ def main(options):
                         u1=rgba1[0] & 0xfe
                         v1=rgba1[1] & 0xfe
 
-                # Uncomment last_u|v to store deltas.
-                pixel_data.append((u0-last_u)&0xff)       # u0
-                # last_u=u0
-                pixel_data.append((v0-last_v)&0xff)       # v0
-                # last_v=v0
-                pixel_data.append((u1-last_u)&0xff)       # u1
-                # last_u=u1
-                pixel_data.append((v1-last_v)&0xff)       # v1
-                # last_v=v1
-
-                if options.paul:
-                    a0=rgba0[2] & 0xf
-                    b0=rgba0[2] >> 4
-                    a1=rgba1[2] & 0xf
-                    b1=rgba1[2] >> 4
-
-                    max0=(0xf>>a0)+b0
-                    max1=(0xf>>a1)+b1
-
-                    if max0>0xf:
-                        print 'WARNING: Found B value that could overflow (0x{0:02x})'.format(rgba0[2])
-
-                    if max1>0xf:
-                        print 'WARNING: Found B value that could overflow (0x{0:02x})'.format(rgba1[2])
-
-                    paul_data.append((rgba0[2]-last_ab)&0xff)
-                    # last_ab=rgba0[2]
-                    paul_data.append((rgba1[2]-last_ab)&0xff)
-                    # last_ab=rgba1[2]
+                pixel_data.append(u0)       # u0
+                pixel_data.append(v0)       # v0
+                pixel_data.append(u1)       # u1
+                pixel_data.append(v1)       # v1
 
     else:
         sw=options.sw or 160
@@ -265,9 +230,47 @@ def main(options):
                 else:
                     pixel_data.append(1)       # v1
 
+    if options.new:
+        print "Using new encoding scheme!"
+
+        u_data=[]
+        v_data=[]
+        shading_data=[]
+        has_shading=False
+
+        for i in range(0,len(pixel_data),4):
+            u0=pixel_data[i+0]
+            v0=pixel_data[i+1]
+            u1=pixel_data[i+2]
+            v1=pixel_data[i+3]
+
+            u_data.append(u0>>1)
+            u_data.append(u1>>1)
+            v_data.append(v0>>1)
+            v_data.append(v1>>1)
+
+            if u0==1 and v0==1:
+                has_shading=True
+                ab0=0x04         # const black
+            else:
+                ab0=0x00
+
+            if u1==1 and v1==1:
+                has_shading=True
+                ab1=0x04         # const black
+            else:
+                ab1=0x00
+
+            shading_data.append(ab0)
+            shading_data.append(ab1)
+
+        pixel_data=[]
+        pixel_data.extend(u_data)
+        pixel_data.extend(v_data)
+        if has_shading:
+            pixel_data.extend(shading_data)
+
     #assert(len(pixel_data)==sw*sh*2)
-    for x in paul_data:         # TODO: Pythonic way of doing this.
-        pixel_data.append(x)
     save_file(pixel_data,options.output_path)
     print 'Wrote {0} bytes Arc data.'.format(len(pixel_data))
 
@@ -288,6 +291,6 @@ if __name__=='__main__':
     parser.add_argument('--param1',type=float,help='parameter 1 for func')
     parser.add_argument('--param2',type=float,help='parameter 2 for func')
     parser.add_argument('--blue-mask',type=lambda x: int(x,0),help='specify hit mask for objects')
-    parser.add_argument('--paul',action='store_true',help="Use Paul's encoding scheme (metadata in blue)")
+    parser.add_argument('--new',action='store_true',help="Use newer UVS ordering scheme (separate streams)")
 
     main(parser.parse_args())

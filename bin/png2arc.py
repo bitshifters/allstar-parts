@@ -122,6 +122,11 @@ def main(options):
         print>>sys.stderr,'FATAL: too many colours: %d'%len(palette)
         sys.exit(1)
 
+    if options.is_index:
+        palette=[]
+        for i in range(16):
+            palette.append([i, i, i, 255])
+
     if options.use_palette is not None:
         # Open palette binary file.
         palette_file = open(options.use_palette, 'rb')
@@ -238,6 +243,7 @@ if __name__=='__main__':
     parser.add_argument('--as-bytes',action='store_true',help='store values as bytes regardless of bitdepth')
     parser.add_argument('--mask-colour',dest='mask_colour',default=None,type=lambda x: int(x,0),help='RGBA colour used as mask.')
     parser.add_argument('--use-palette',dest='use_palette',metavar='FILE',help='use palette binary data from %(metavar)s')
+    parser.add_argument('--is-index',action='store_true',help='source image uses index values in RGB')
     parser.add_argument('input_path',metavar='FILE',help='load PNG data from %(metavar)s')
     parser.add_argument('mode',type=int,help='screen mode')
     main(parser.parse_args())

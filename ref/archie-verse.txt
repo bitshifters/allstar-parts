@@ -580,6 +580,9 @@ TODO:
     - Set texture dims in script - DONE
     - Update code gen to accomodate texture dim calc. - DONE
 - Sort out time in script as ARM2 runs much slower than ARM250!! :|
+- Fix index textures to properly pass through... (DiskIndex bug)
+- Export new U,V,S format from old UV table Python script.
+- Test decompressing LZ4 UV tables at runtime.
 
 - Compress UV tables to reduce RAM overhead?
     - Doing U,V deltas increases the compressability.

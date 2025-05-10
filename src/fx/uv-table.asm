@@ -18,6 +18,8 @@
 .equ UV_Table_Columns,              160
 .equ UV_Table_Rows,                 128     ; or 120?
 
+.equ UV_Table_Size,                 UV_Table_Columns*UV_Table_Rows
+
 .equ UV_Texture_MaxSize,            128*128
 
 .equ UV_Table_TexDim_128_128,       0
@@ -106,35 +108,35 @@ uv_texture_set_data:
 
 uv_table_tex_dim_128_128:           ; 128x128
     and r2, r0, #0x007f             ; u0<<0  [0, 127]   7 bits
-    and r3, r0, #0x7f00             ; v0<<8  [0, 127]   7 bits
-    mov r3, r3, lsl #12+7           ; bottom 5 bits of v0
+    and r3, r1, #0x007f             ; v0<<0  [0, 127]   7 bits
+    mov r3, r3, lsl #20+7           ; bottom 5 bits of v0
     orr r2, r2, r3, lsr #20         ; v0 | u0           12 bits
-    and r3, r0, #0x7f00             ; v0<<8  [0, 127]   7 bits
-    mov r3, r3, lsr #6+7            ; top 2 bits of v0
+    and r3, r1, #0x007f             ; v0<<8  [0, 127]   7 bits
+    mov r3, r3, lsr #5              ; top 2 bits of v0
 
 uv_table_tex_dim_64_256:            ; 64x256
-    and r2, r0, #0x003f             ; u0     [0, 63]    6 bits
-    and r3, r0, #0xff00             ; v0<<8  [0, 255]   8 bits
-    mov r3, r3, lsl #12+6           ; bottom 6 bits of v0
+    and r2, r0, #0x003f             ; u0<<0  [0, 63]    6 bits
+    and r3, r1, #0x00ff             ; v0<<0  [0, 255]   8 bits
+    mov r3, r3, lsl #20+6           ; bottom 6 bits of v0
     orr r2, r2, r3, lsr #20         ; v0 | u0           12 bits
-    and r3, r0, #0xff00             ; v0<<8  [0, 255]   8 bits
-    mov r3, r3, lsr #6+8            ; top 2 bits of v0
+    and r3, r1, #0x00ff             ; v0<<0  [0, 255]   8 bits
+    mov r3, r3, lsr #6              ; top 2 bits of v0
 
 uv_table_tex_dim_256_64:            ; 256x64
     and r2, r0, #0x00ff             ; u0<<0  [0, 255]  8 bits
-    and r3, r0, #0x3f00             ; v0<<8  [0, 63]   6 bits
-    mov r3, r3, lsl #12+8           ; bottom 4 bits of v0
+    and r3, r1, #0x003f             ; v0<<0  [0, 63]   6 bits
+    mov r3, r3, lsl #20+8           ; bottom 4 bits of v0
     orr r2, r2, r3, lsr #20         ; v0 | u0          12 bits
-    and r3, r0, #0x3f00             ; v0<<8  [0, 63]   6 bits
-    mov r3, r3, lsr #6+6            ; top 2 bits of v0
+    and r3, r1, #0x003f             ; v0<<8  [0, 63]   6 bits
+    mov r3, r3, lsr #4              ; top 2 bits of v0
 
 uv_table_tex_dim_128_64:            ; 128x64
     and r2, r0, #0x007f             ; u0<<0  [0, 127]  7 bits
-    and r3, r0, #0x3f00             ; v0<<8  [0, 63]   6 bits
-    mov r3, r3, lsl #12+7           ; bottom 5 bits of v0
+    and r3, r1, #0x003f             ; v0<<0  [0, 63]   6 bits
+    mov r3, r3, lsl #20+7           ; bottom 5 bits of v0
     orr r2, r2, r3, lsr #20         ; v0 | u0          12 bits
-    and r3, r0, #0x3f00             ; v0<<8  [0, 63]   6 bits
-    mov r3, r3, lsr #6+7            ; top 1 bits of v0
+    and r3, r1, #0x003f             ; v0<<0  [0, 63]   6 bits
+    mov r3, r3, lsr #5              ; top 1 bits of v0
 
 ; ============================================================================
 ; Calculate the byte offset into a texture from the UV parameters.
@@ -150,11 +152,11 @@ uv_table_tex_dim_128_64:            ; 128x64
 uv_table_calc_offset:
     ; NB. v---- these instructions get overwritten at runtime!
     and r2, r0, #0x007f             ; u0<<0  [0, 127]   7 bits
-    and r3, r0, #0x7f00             ; v0<<8  [0, 127]   7 bits
-    mov r3, r3, lsl #12+7           ; bottom 5 bits of v0
+    and r3, r1, #0x007f             ; v0<<0  [0, 127]   7 bits
+    mov r3, r3, lsl #20+7           ; bottom 5 bits of v0
     orr r2, r2, r3, lsr #20         ; v0 | u0           12 bits
-    and r3, r0, #0x7f00             ; v0<<8  [0, 127]   7 bits
-    mov r3, r3, lsr #6+7            ; top 2 bits of v0
+    and r3, r1, #0x007f             ; v0<<0  [0, 127]   7 bits
+    mov r3, r3, lsr #5              ; top 2 bits of v0
     add r3, r3, #8                  ; [8, 11]
     ; NB. ^---- these instructions get overwritten at runtime!
 
@@ -171,6 +173,7 @@ uv_table_calc_offset:
     orr r7, r7, r3, lsl #16         ; base reg
     str r7, [r12], #4               ; write out instruction 0
 
+    ; Write out optional shading operations.
     and r2, r5, #0x0000000f         ; a0
 
     ; If there is shading in this word then shift must be used.
@@ -219,6 +222,9 @@ uv_table_calc_offset:
 
     .3:
     add r8, r8, #16
+    mov r5, r5, lsr #8              ; R5=00bababa
+    mov r0, r0, lsr #8              ; R0=000000u1
+    mov r1, r1, lsr #8              ; R1=000000v1
     mov pc, lr
 
 ; Generate plot code from UV data alone.
@@ -245,7 +251,7 @@ uv_table_init_shader:
 
     ldr r12, uv_table_code_p       ; dest
     ldr r11, uv_table_map_p        ; uv data
-    add r10, r11, #UV_Table_Columns*UV_Table_Rows*2 ; shader data
+    add r10, r11, #UV_Table_Size*2 ; shader data
     ; Fall through!
 
 uv_table_gen_shader_code:
@@ -289,7 +295,10 @@ uv_table_gen_shader_code:
 .2:
     ; Load 4 pixels worth of (u,v)
 
-    ldmia r11!, {r0-r1}             ; R0=v1u1v0u0 R1=v3u3v2u2
+    ldr r0, [r11]                   ; R0=u3u2u1u0
+    add r11, r11, #UV_Table_Size
+    ldr r1, [r11], #4               ; R1=v3v2v1v0
+    sub r11, r11, #UV_Table_Size
 
     ; And the shader data (if it exists)
 
@@ -312,17 +321,16 @@ uv_table_gen_shader_code:
 
     ; Copy one snippet for 4 pixels = assemble 1 word for writing
 
-    adr r8, uv_table_code_new_snippet
+    adr r8, uv_table_code_snippet
 
     ; Write out texture load & shade for pixel 0 in word.
 
-    ; R0=0000v0u0
+    ; R0=000000u0
+    ; R1=000000v0
     bl uv_table_calc_offset
 
     ; Write out texture load & shade for pixel 1 in word.
 
-    mov r5, r5, lsr #8              ; R5=00bababa
-    mov r0, r0, lsr #16             ; R0=0000v1u1
     str r9, [sp, #-4]!
     mov r9, #14                     ; dest=R14
     bl uv_table_calc_offset
@@ -337,8 +345,6 @@ uv_table_gen_shader_code:
 
     ; Write out texture load & shade for pixel 2 in word.
 
-    mov r5, r5, lsr #8              ; R5=0000baba
-    mov r0, r1                      ; R0=0000v2u2
     str r9, [sp, #-4]!
     mov r9, #14                     ; dest=R14
     bl uv_table_calc_offset
@@ -353,8 +359,6 @@ uv_table_gen_shader_code:
 
     ; Write out texture load & shade for pixel 3 in word.
 
-    mov r5, r5, lsr #8              ; R5=000000ba
-    mov r0, r1, lsr #16             ; R0=0000v3u3  
     str r9, [sp, #-4]!
     mov r9, #14                     ; dest=R14
     bl uv_table_calc_offset
@@ -423,7 +427,7 @@ uv_table_gen_shader_code:
 ; NB. Not called directly, copied and patched at runtime.
 ; ============================================================================
 
-uv_table_code_new_snippet:
+uv_table_code_snippet:
     mov r0, #0                      ; 1c    <= mod base reg, imm value
     ldrb r0, [r0, #0]               ; 4c    <= mod imm offset, base reg, dest reg
     mov r0, r0, lsr #0              ; 1c    <= mod dest reg, shift value (optional)
@@ -462,205 +466,3 @@ uv_table_code_new_snippet:
 
 ; ============================================================================
 ; ============================================================================
-
-
-
-
-
-; ============================================================================
-; Previous code path.
-; ============================================================================
-
-.if 0
-; R11 = pointer to UV map data
-; Each word is 2 pixels of packed U,V  = v1v0u1u0
-; u,v [0, 255] => we're going to use half resolution.
-; R12 = pointer to where unrolled code is written
-; TODO: Feed in row/column count as params?
-; TODO: Combine code paths ideally?
-uv_table_gen_code:
-    str lr, [sp, #-4]!
-
-    mov r10, #UV_Table_Rows        ; rows to plot
-.1:
-
-    mov r6, #UV_Table_Columns      ; columns to plot
-.3:
-    mov r9, #0                      ; dest register
-
-.2:
-    ; Load 4 pixels worth of (u,v)
-
-    ldmia r11!, {r0-r1}             ; R0=v1u1v0u0 R1=v3u3v2u2
-
-    ; Copy one snippet for 4 pixels = assemble 1 word for writing
-
-    adr r8, uv_table_code_snippet
-
-    ldr r7, [r8], #4                ; ldrb rX, [rY, #Z]
-    .if UV_Table_BlankPixels
-    and r2, r0, #0x0001             ; u0 invalid bit
-    and r3, r0, #0x0100             ; v0 invalid bit
-    orrs r14, r2, r3                ; u0 invalid or v0 invalid?
-    ldrne r7, [r8, #11*4]           ; mov rX, #0
-    .endif
-    orr r7, r7, r9, lsl #12         ; dest reg
-    .if UV_Table_BlankPixels
-    bne .20                         ; Skip pixel
-    .endif
-
-    ; R0=0000v0u0
-    bl uv_table_calc_offset
-    orr r7, r7, r2                  ; offset [0, 4095]
-    orr r7, r7, r3, lsl #16         ; base reg
-    .20:
-    str r7, [r12], #4               ; write out instruction 0
-
-    ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
-    .if UV_Table_BlankPixels
-    and r2, r0, #0x00010000         ; u1 invalid bit
-    and r3, r0, #0x01000000         ; v1 invalid bit
-    orrs r14, r2, r3                ; u1 invalid or v1 invalid?
-    ldrne r7, [r8, #11*4]           ; mov r14, #0
-    bne .21                         ; Skip pixel
-    .endif
-
-    mov r0, r0, lsr #16             ; R0=0000v1u1
-    bl uv_table_calc_offset
-    orr r7, r7, r2                  ; offset [0, 4095]
-    orr r7, r7, r3, lsl #16         ; base reg
-    .21:
-    str r7, [r12], #4               ; write out instruction 1
-
-    ldr r7, [r8], #4                ; orr r0, r0, r14, lsl #8
-    orr r7, r7, r9, lsl #12         ; dest reg
-    orr r7, r7, r9, lsl #16         ; base reg
-    str r7, [r12], #4               ; write out instruction 2
-
-    ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
-    .if UV_Table_BlankPixels
-    and r2, r1, #0x0001             ; u2 invalid bit
-    and r3, r1, #0x0100             ; v2 invalid bit
-    orrs r14, r2, r3                ; u2 invalid or v2 invalid?
-    ldrne r7, [r8, #9*4]            ; mov r14, #0
-    bne .22                         ; Skip pixel
-    .endif
-
-    mov r0, r1                      ; R0=0000v2u2
-    bl uv_table_calc_offset
-    orr r7, r7, r2                  ; offset [0, 4095]
-    orr r7, r7, r3, lsl #16         ; base reg
-    .22:
-    str r7, [r12], #4               ; write out instruction 3
-
-    ldr r7, [r8], #4                ; orr r0, r0, r14, lsl #16
-    orr r7, r7, r9, lsl #12         ; dest reg
-    orr r7, r7, r9, lsl #16         ; base reg
-    str r7, [r12], #4               ; write out instruction 4
-
-    ldr r7, [r8], #4                ; ldrb r14, [rY, #Z]
-    .if UV_Table_BlankPixels
-    and r2, r1, #0x00010000         ; u3 invalid bit
-    and r3, r1, #0x01000000         ; v3 invalid bit
-    orrs r14, r2, r3                ; u3 invalid or v3 invalid?
-    ldrne r7, [r8, #7*4]            ; mov r14, #0
-    bne .23                         ; Skip pixel
-    .endif
-
-    mov r0, r1, lsr #16             ; R0=0000v3u3  
-    bl uv_table_calc_offset
-    orr r7, r7, r2                  ; offset [0, 4095]
-    orr r7, r7, r3, lsl #16         ; base reg
-    .23:
-    str r7, [r12], #4               ; write out instruction 5
-
-    ldr r7, [r8], #4                ; orr r0, r0, r14, lsl #24
-    orr r7, r7, r9, lsl #12         ; dest reg
-    orr r7, r7, r9, lsl #16         ; base reg
-    str r7, [r12], #4               ; write out instruction 6
-
-    ; Do this 8 times for R0-7
-    add r9, r9, #1
-    cmp r9, #8
-    bne .2
-    ; Code size = 7 words x 8 times = 56 words
-
-    ; Write out plot snippet.
-    ldmia r8!, {r0-r2}
-    stmia r12!, {r0-r2}
-    ; Code size = 56 words + 3 words = 59 words
-
-    subs r6, r6, #32                ; 8 words at a time = 32 chunky pixels.
-    bne .3
-    ; Code size = 59 words * 5 times = 295 words
-
-    ; Write out increment screen ptr to skip a line.
-    ldr r0, [r8], #4
-    str r0, [r12], #4
-    ; Code size = 295 words + 1 word = 296 words per row
-
-    subs r10, r10, #1               ; next row
-    bne .1
-    ; Code size = 296 words * 128 rows = 37888 words
-
-    ; Write out rts.
-    ldr r0, [r8], #4
-    str r0, [r12], #4
-    ; Code size = 37889 words = 151556 bytes = 148K + 4 bytes!
-
-    ldr pc, [sp], #4
-
-
-uv_table_code_snippet:
-    ldrb r0, [r0, #0]               ; 4c    <= mod imm offset, base reg, dest reg
-    ldrb r14, [r0, #0]              ; 4c    <= mod imm offset, base reg
-    orr r0, r0, r14, lsl #8         ; 1c    <= mod dest reg
-    ldrb r14, [r0, #0]              ; 4c    <= mod imm offset, base reg
-    orr r0, r0, r14, lsl #16        ; 1c    <= mod dest reg
-    ldrb r14, [r0, #0]              ; 4c    <= mod imm offset, base reg
-    orr r0, r0, r14, lsl #24        ; 1c    <= mod dest reg
-
-    ; Plot the pixels.
-    add r14, r12, #Screen_Stride    ; 1c
-    stmia r12!, {r0-r7}             ; 3+8*1.25=13c
-    stmia r14!, {r0-r7}             ; 3+8*1.25=13c
-
-    ; 19c per word * 8 + 27 = 179c for 8 words * 5 = 895c per row * 128 = 114560c per screen
-    ; ~5.6c per chunky pixel
-
-    ; Skip a line.
-    add r12, r12, #Screen_Stride    ; 1c
-
-    ; Return.
-    ldr pc, [sp], #4
-
-    .if UV_Table_BlankPixels
-    ; Blank a pixel.
-    mov r0, #0
-    mov r14, #0
-    .endif
-
-    ; Texture byte is 0xLL where L=logical colour
-    ; But could be 0x0L or 0xAB
-
-    ; Optional operation:
-    ; logical_colour = (logical_colour >> a) + b
-    ; Assumes texture bytes are 0x0L.
-    mov r0, r0, lsr #0              ; For Rdest.
-    add r0, r0, #0
-
-    mov r14, r14, lsr #0            ; For R14.
-    add r14, r14, #0
-
-    orr r0, r0, r0, lsl #4          ; <= do this once per word, not per byte
-    ; 28c per word * 8 + 27 = 251 * 5 = 1255 * 128 = 160640c
-    ; ~7.8c per chunky pixel (160x90 gives approx same count as vanilla version)
-
-    .if 0   ; not used yet!
-    and r0, r0, #0x0f               ; either texture select A
-    mov r0, r0, lsr #4              ;     or texture select B
-    orr r0, r0, r0, lsl #4          ; <= do this once per word, not per byte
-    ; 25c per word * 8 + 27 = 227 * 5 = 1135 * 128 = 145280c
-    ; ~7.1c per chunky pixel (160x100 gives approx same count as vanilla version)
-    .endif
-.endif

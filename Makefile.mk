@@ -173,29 +173,29 @@ clean:
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels -p ./build/itmpal.bin $< 9
 
 ./build/ShipIndex.bin: ./data/gfx/ShipIndex.png $(PNG2ARC_DEPS)		# index in red
-	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels $< 9
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
 
 ./build/bgtest4.bin: ./data/gfx/BGTest4.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels -p ./build/bgtest4.pal.bin $< 9
 
 ./build/FlameIndex.bin: ./data/gfx/FlameIndex.png $(PNG2ARC_DEPS)		# index in red
-	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels $< 9
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
 
 ./build/DiskIndex.bin: ./data/gfx/DiskIndex.png $(PNG2ARC_DEPS)		# index in red
-	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels $< 9
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
 
 ./build/CloudIndex.bin: ./data/gfx/CloudIndex.png $(PNG2ARC_DEPS)		# index in red
-	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels $< 9
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
 
 ##########################################################################
 # SPACE ASSETS (UV MAPS)
 ##########################################################################
 
 ./build/tunnel_uv.bin: $(UV_TABLE)
-	$(PYTHON2) $(UV_TABLE) -o $@ --func tunnel_func --param1 0.25 --square-aspect
+	$(PYTHON2) $(UV_TABLE) -o $@ --func tunnel_func --param1 0.25 --square-aspect --new
 
 ./build/tunnel2_uv.bin: $(UV_TABLE)
-	$(PYTHON2) $(UV_TABLE) -o $@ --func fancy_func1
+	$(PYTHON2) $(UV_TABLE) -o $@ --func fancy_func1 --new
 
 ./build/paul1_uv.bin: ./data/uvs/LUT01.png $(UV_SHADER)	# robot just blue mask?
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<

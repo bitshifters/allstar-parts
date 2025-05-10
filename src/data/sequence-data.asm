@@ -167,7 +167,7 @@ seq_space_part:
     ; Inside out.
     call_1      uv_texture_set_data,  uv_phong_texture_no_adr
     write_addr  uv_table_map_p,       uv_tunnel2_map_no_adr
-    call_0      uv_table_init
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
 
     call_1      palette_set_block,    uv_phong_pal_no_adr
     call_3      fx_set_layer_fns,     0, uv_table_tick              uv_table_draw
@@ -397,7 +397,6 @@ gradient_space:
 
 gradient_black_hole:
 .long   0x000,0x012,0x113,0x324,0x435,0x944,0xa65,0xc87,0xda8,0xdda,0xeeb,0xffd,0xefe,0xfff,0xeff,0xfff
-
 
 ; ============================================================================
 ; Palette blending - required if using palette_lerp_over_secs macro.
