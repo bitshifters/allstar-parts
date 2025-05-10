@@ -75,7 +75,8 @@ seq_space_part:
     
     ; Robot.
     call_1      uv_texture_set_data,  uv_bgtest_texture_no_adr
-    write_addr  uv_table_map_p,       uv_paul1_map_no_adr
+    call_2      unlz4,                uv_paul1_map_no_adr,        uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_64_256
     call_1      palette_set_block,    uv_bgtest_pal_no_adr
     write_byte  uv_table_offset_u,    0
@@ -87,7 +88,8 @@ seq_space_part:
 
     ; Ship w/ ext data.
     call_1      uv_texture_set_data,  uv_ship_texture_no_adr
-    write_addr  uv_table_map_p,       uv_paul2_map_no_adr
+    call_2      unlz4,                uv_paul2_map_no_adr,        uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_64
     call_3      palette_set_gradient, 0, 0, gradient_ship
     write_byte  uv_table_offset_u,    0
@@ -99,7 +101,8 @@ seq_space_part:
 
     ; Inside twisty torus
     call_1      uv_texture_set_data,  uv_fire_texture_no_adr
-    write_addr  uv_table_map_p,       uv_paul3_map_no_adr
+    call_2      unlz4,                uv_paul3_map_no_adr,        uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_0      uv_table_init
     call_1      palette_set_block,    seq_palette_red_additive
     write_byte  uv_table_offset_u,    0
@@ -111,7 +114,8 @@ seq_space_part:
 
     ; Planet.
     call_1      uv_texture_set_data,  uv_ship_texture_no_adr
-    write_addr  uv_table_map_p,       uv_paul4_map_no_adr
+    call_2      unlz4,                uv_paul4_map_no_adr,        uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_64
     call_3      palette_set_gradient, 0, 0, gradient_space
     write_byte  uv_table_offset_u,    0
@@ -123,7 +127,8 @@ seq_space_part:
 
     ; Tunnel.
     call_1      uv_texture_set_data,  uv_cloud_texture_no_adr
-    write_addr  uv_table_map_p,       uv_paul5_map_no_adr
+    call_2      unlz4,                uv_paul5_map_no_adr,        uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
     call_3      palette_set_gradient, 0, 0, gradient_ship
     write_byte  uv_table_offset_u,    0
@@ -135,7 +140,8 @@ seq_space_part:
 
     ; Black hole.
     call_1      uv_texture_set_data,  uv_disk_texture_no_adr
-    write_addr  uv_table_map_p,       uv_paul6_map_no_adr
+    call_2      unlz4,                uv_paul6_map_no_adr,        uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
     call_3      palette_set_gradient, 0, 0, gradient_black_hole
     write_byte  uv_table_offset_u,    0
@@ -147,7 +153,8 @@ seq_space_part:
 
     ; Reactor core.
     call_1      uv_texture_set_data,  uv_disk_texture_no_adr
-    write_addr  uv_table_map_p,       uv_paul7_map_no_adr
+    call_2      unlz4,                uv_paul7_map_no_adr,        uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
     call_3      palette_set_gradient, 0, 0, gradient_ship
     write_byte  uv_table_offset_u,    0
@@ -166,7 +173,8 @@ seq_space_part:
 
     ; Inside out.
     call_1      uv_texture_set_data,  uv_phong_texture_no_adr
-    write_addr  uv_table_map_p,       uv_tunnel2_map_no_adr
+    call_2      unlz4,                uv_tunnel2_map_no_adr,       uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
 
     call_1      palette_set_block,    uv_phong_pal_no_adr

@@ -74,31 +74,31 @@ uv_ship_texture_no_adr:
 ; (u,v) coordinates interleaved, 1 byte each
 ; 1 word = 2 pixels worth
 uv_paul1_map_no_adr:
-.incbin "build/paul1_uv.bin"             ; robot just blue mask?
+.incbin "build/paul1_uv.lz4"             ; robot just blue mask?
 
 uv_paul2_map_no_adr:
-.incbin "build/paul2_uv.ab.bin"          ; ship w/ shader
+.incbin "build/paul2_uv.lz4"          ; ship w/ shader
 
 uv_paul3_map_no_adr:
-.incbin "build/paul3_uv.bin"             ; inside twisty torus
+.incbin "build/paul3_uv.lz4"             ; inside twisty torus
 
 uv_paul4_map_no_adr:
-.incbin "build/paul4_uv.ab.bin"          ; planet w/ shader
+.incbin "build/paul4_uv.lz4"          ; planet w/ shader
 
 uv_paul5_map_no_adr:
-.incbin "build/paul5_uv.ab.bin"          ; tunnel w/ shader
+.incbin "build/paul5_uv.lz4"          ; tunnel w/ shader
 
 uv_paul6_map_no_adr:
-.incbin "build/paul6_uv.ab.bin"          ; black hole w/ shader
+.incbin "build/paul6_uv.lz4"          ; black hole w/ shader
 
 uv_paul7_map_no_adr:
-.incbin "build/paul7_uv.ab.bin"          ; reactor core w/ shader
+.incbin "build/paul7_uv.lz4"          ; reactor core w/ shader
 
 uv_tunnel1_map_no_adr:
-.incbin "build/tunnel_uv.bin"           ; regular tunnel
+.incbin "build/tunnel_uv.lz4"           ; regular tunnel
 
 uv_tunnel2_map_no_adr:
-.incbin "build/tunnel2_uv.bin"          ; inside out tunnel
+.incbin "build/tunnel2_uv.lz4"          ; inside out tunnel
 .endif
 
 ; ============================================================================

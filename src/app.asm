@@ -482,6 +482,9 @@ app_copy_to_screen:
 .if _DEMO_PART==_PART_DONUT
 .include "lib/mesh.asm"
 .endif
+.if _DEMO_PART==_PART_SPACE
+.include "lib/lz4-decode.asm"
+.endif
 
 ; ============================================================================
 ; ArchieKlang generated code.

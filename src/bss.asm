@@ -49,6 +49,9 @@ projected_verts_no_adr:
 ; ============================================================================
 
 .if _DEMO_PART==_PART_SPACE
+uv_table_data_no_adr:
+    .skip UV_Table_Size*3
+
 uv_texture_data_no_adr:
     .skip UV_Texture_MaxSize*2
 

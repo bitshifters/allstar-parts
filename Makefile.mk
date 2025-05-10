@@ -64,11 +64,11 @@ build:
 # ASSET LIST
 ##########################################################################
 
-./build/assets.txt: build ./build/music.mod ./build/razor-font.bin ./build/tunnel_uv.bin ./build/tunnel2_uv.bin \
+./build/assets.txt: build ./build/music.mod ./build/razor-font.bin ./build/tunnel_uv.lz4 ./build/tunnel2_uv.lz4 \
 	./build/phong128.bin ./build/itm128.bin ./build/temp-logo.bin \
-	./build/fine-font.bin ./build/paul1_uv.bin ./build/paul2_uv.ab.bin ./build/paul3_uv.bin  ./build/paul4_uv.ab.bin \
-	./build/paul5_uv.ab.bin ./build/Fire2.bin ./build/ShipIndex.bin ./build/bgtest4.bin \
-	./build/paul6_uv.ab.bin ./build/paul7_uv.ab.bin ./build/FlameIndex.bin ./build/CloudIndex.bin \
+	./build/fine-font.bin ./build/paul1_uv.lz4 ./build/paul2_uv.lz4 ./build/paul3_uv.lz4  ./build/paul4_uv.lz4 \
+	./build/paul5_uv.lz4 ./build/Fire2.bin ./build/ShipIndex.bin ./build/bgtest4.bin \
+	./build/paul6_uv.lz4 ./build/paul7_uv.lz4 ./build/FlameIndex.bin ./build/CloudIndex.bin \
 	./build/DiskIndex.bin
 	echo done > $@
 
@@ -200,22 +200,22 @@ clean:
 ./build/paul1_uv.bin: ./data/uvs/LUT01.png $(UV_SHADER)	# robot just blue mask?
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
-./build/paul2_uv.ab.bin: ./data/uvs/LUT02.png $(UV_SHADER)	# ship w/ ext data
+./build/paul2_uv.bin: ./data/uvs/LUT02.png $(UV_SHADER)	# ship w/ ext data
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
 ./build/paul3_uv.bin: ./data/uvs/LUT03.png $(UV_SHADER)	# inside twisty torus
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
-./build/paul4_uv.ab.bin: ./data/uvs/LUT04.png $(UV_SHADER)	# planet w/ ext data
+./build/paul4_uv.bin: ./data/uvs/LUT04.png $(UV_SHADER)	# planet w/ ext data
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
-./build/paul5_uv.ab.bin: ./data/uvs/LUT05.png $(UV_SHADER)	# tunnel w/ ext data
+./build/paul5_uv.bin: ./data/uvs/LUT05.png $(UV_SHADER)	# tunnel w/ ext data
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
-./build/paul6_uv.ab.bin: ./data/uvs/LUT06.png $(UV_SHADER)	# black hole w/ ext data
+./build/paul6_uv.bin: ./data/uvs/LUT06.png $(UV_SHADER)	# black hole w/ ext data
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
-./build/paul7_uv.ab.bin: ./data/uvs/LUT07.png $(UV_SHADER)	# reactor core w/ ext data
+./build/paul7_uv.bin: ./data/uvs/LUT07.png $(UV_SHADER)	# reactor core w/ ext data
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
 ##########################################################################
