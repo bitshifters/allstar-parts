@@ -60,7 +60,13 @@
 
 Start:
 main:
+    .if AppConfig_ReturnMainToCaller
+    mov r12, sp
+    .endif
     ldr sp, stack_p
+    .if AppConfig_ReturnMainToCaller
+    stmfd sp!, {r12,lr}
+    .endif
 
 	; Claim the Error vector.
     .if _DEBUG
@@ -370,7 +376,13 @@ exit:
 .endif
 
     ; Goodbye.
-	SWI OS_Exit     ; <=== FIX ME!
+    .if AppConfig_ReturnMainToCaller
+    ; For Megademo need to exit to caller with R0=0.
+    mov r0, #0
+    ldmfd sp!, {sp, pc}
+    .else
+	SWI OS_Exit
+    .endif
 
 ; ============================================================================
 ; Debug helpers.
