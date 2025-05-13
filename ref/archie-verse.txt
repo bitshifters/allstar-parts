@@ -626,6 +626,6 @@ desirata:
 - math_vars should be updated per vsync
 - scripts are ticked once per frame
 
-==> SHORTEST PATH: Update math_vars by delta_vsyncs...
+==> SHORTEST PATH: Update math_vars by delta_vsyncs... - DONE
 
 So Ship -> Planet -> Black Hole -> Tunnel -> Trippy stuff -> Reactor Panic -> Reactor Safe 

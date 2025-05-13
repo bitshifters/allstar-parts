@@ -56,7 +56,7 @@ rotate_draw:
 
     ldr r11, rotate_texture_p           ; texture_p
 
-    ; Centre rotation.
+    ; Move the rotation point to the centre of the screen.
     ; Rotate vector to TL corner by -a.
     ; u = x*cos(-a) - y*sin(-a) = x*cos(a) + y*sin(a)
     ; v = x*sin(-a) + y*cos(-a) = -x*sin(a) + y*cos(a)
@@ -199,7 +199,8 @@ rotate_line_loop:
 ; ============================================================================
 
 rotate_tick:
-    ; TODO: Move these to sequence script as appropriate.
+    ; NB. Move these to sequence script as appropriate.
+    .if 0
     ldr r0, rotate_angle
     add r0, r0, #1<<16
     str r0, rotate_angle
@@ -218,6 +219,7 @@ rotate_tick:
     
     str r0, rotate_scale
     str r1, rotate_dir
+    .endif
     mov pc, lr
 
 ; ============================================================================

@@ -159,25 +159,6 @@ seq_space_part:
     ; ================================
 
     ; ================================
-    ; Rotate & scale.
-    ; ================================
-    call_2      palette_from_gradient,gradient_space,           seq_palette_gradient
-    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
-
-    call_1      uv_texture_set_data,  rotate_texture_no_adr
-    call_3      fx_set_layer_fns, 0,  rotate_tick,              rotate_draw
-
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
-    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
-
-    ; Back to LUT FX
-    call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
-    ; ================================
-
-    ; ================================
     ; Tunnel.
     ; ================================
     call_2      palette_from_gradient,gradient_ship,            seq_palette_gradient
@@ -219,6 +200,33 @@ seq_space_part:
     wait_secs   8.0
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
+    ; ================================
+
+    ; ================================
+    ; Rotate & scale.
+    ; ================================
+    call_2      palette_from_gradient,gradient_red_alert,       seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_1      uv_texture_set_data,  rotate_texture_no_adr
+    call_3      fx_set_layer_fns, 0,  rotate_tick,              rotate_draw
+
+    write_fp      rotate_scale,       0.1                       ; zoomed in
+    math_make_var rotate_angle,       0.0,   1.0, 0,            0.0,     1.0    ; speed 1.0 brad / frame
+    
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    math_make_var rotate_scale,       0.1,   4.0, math_clamp,    0.0,    1.0/(50.0*8.0) ; zoom out
+    wait_secs   8.0
+    ; Spinning
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+
+    math_kill_var rotate_scale
+    math_kill_var rotate_angle
+
+    ; Back to LUT FX
+    call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
     ; ================================
 
     ; ================================
