@@ -70,35 +70,223 @@ seq_space_part:
     call_0      rotate_init
 
     ; UV tunnel aka UV table fx.
-    call_3      fx_set_layer_fns,   0, uv_table_tick              uv_table_draw
-    call_3      fx_set_layer_fns,   1, 0,                          0
-    
+    call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
+
+    ; ================================
+    ; Ship over surface.
+    ; ================================
+    call_2      palette_from_gradient,gradient_ship,            seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,     1.0
+
+    call_1      uv_texture_set_data,  uv_ship_texture_no_adr
+    call_2      unlz4,                uv_ship_map_no_adr,       uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_64
+    write_byte  uv_table_offset_u,    0
+    write_byte  uv_table_offset_v,    0
+    write_byte  uv_table_offset_du,   0
+    write_byte  uv_table_offset_dv,   1
+
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+    ; ================================
+
+    ; ================================
+    ; Planet, flying away from.
+    ; ================================
+    call_2      palette_from_gradient,gradient_space,     seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_1      uv_texture_set_data,  uv_ship_texture_no_adr
+    call_2      unlz4,                uv_planet_map_no_adr,     uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_64
+    write_byte  uv_table_offset_u,    0
+    write_byte  uv_table_offset_v,    0
+    write_byte  uv_table_offset_du,   0
+    write_byte  uv_table_offset_dv,   1
+
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+    ; ================================
+
+    ; ================================
+    ; Black hole.
+    ; ================================
+    call_2      palette_from_gradient,gradient_black_hole,seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_1      uv_texture_set_data,  uv_disk_texture_no_adr
+    call_2      unlz4,                uv_black_hole_map_no_adr, uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
+    write_byte  uv_table_offset_u,    0
+    write_byte  uv_table_offset_v,    0
+    write_byte  uv_table_offset_du,   0
+    write_byte  uv_table_offset_dv,   1
+
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+    ; ================================
+
+    ; ================================
+    ; Trippy.
+    ; ================================
+    palette_lerp_over_secs            seq_palette_all_black,    uv_phong_pal_no_adr,    1.0
+    call_1      uv_texture_set_data,  uv_phong_texture_no_adr
+    call_2      unlz4,                uv_inside_out_map_no_adr, uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
+
+    call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
+    write_byte  uv_table_offset_du,  -1
+    write_byte  uv_table_offset_dv,   1
+
+    wait_secs   1.0
+    call_1      palette_set_block,    uv_phong_pal_no_adr
+    wait_secs   8.0
+    palette_lerp_over_secs            uv_phong_pal_no_adr,      seq_palette_all_black,  1.0
+    wait_secs   1.0
+    ; ================================
+
+    ; ================================
+    ; Rotate & scale.
+    ; ================================
+    call_2      palette_from_gradient,gradient_space,           seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_1      uv_texture_set_data,  rotate_texture_no_adr
+    call_3      fx_set_layer_fns, 0,  rotate_tick,              rotate_draw
+
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+
+    ; Back to LUT FX
+    call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
+    ; ================================
+
+    ; ================================
+    ; Tunnel.
+    ; ================================
+    call_2      palette_from_gradient,gradient_ship,            seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_1      uv_texture_set_data,  uv_cloud_texture_no_adr
+    call_2      unlz4,                uv_tunnel_map_no_adr,     uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
+    write_byte  uv_table_offset_u,    0
+    write_byte  uv_table_offset_v,    0
+    write_byte  uv_table_offset_du,   0
+    write_byte  uv_table_offset_dv,   1
+
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+    ; ================================
+
+    ; ================================
+    ; Reactor panic.
+    ; ================================
+    call_2      palette_from_gradient,gradient_red_alert,       seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_1      uv_texture_set_data,  uv_disk_texture_no_adr
+    call_2      unlz4,                uv_reactor_panic_map_no_adr, uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
+    write_byte  uv_table_offset_u,    0
+    write_byte  uv_table_offset_v,    0
+    write_byte  uv_table_offset_du,   0
+    write_byte  uv_table_offset_dv,   1
+
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+    ; ================================
+
+    ; ================================
+    ; Reactor core.
+    ; ================================
+    call_2      palette_from_gradient,gradient_ship,            seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_1      uv_texture_set_data,  uv_disk_texture_no_adr
+    call_2      unlz4,                uv_reactor_ok_map_no_adr, uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
+    write_byte  uv_table_offset_u,    0
+    write_byte  uv_table_offset_v,    0
+    write_byte  uv_table_offset_du,   0
+    write_byte  uv_table_offset_dv,   1
+
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+    ; ================================
+
+    ; ================================
+    ; Monolith.
+    ; ================================
+    call_2      palette_from_gradient,gradient_default,         seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_1      uv_texture_set_data,  uv_cloud_texture_no_adr
+    call_2      unlz4,                uv_monolith_map_no_adr,   uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
+    write_byte  uv_table_offset_u,    0
+    write_byte  uv_table_offset_v,    0
+    write_byte  uv_table_offset_du,   0
+    write_byte  uv_table_offset_dv,   1
+
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+    ; ================================
+
+    yield       seq_space_part        ; yield = wait 1; goto <label>
+    end_script
+.endif
+
+; ============================================================================
+; UNUSED.
+; ============================================================================
+
+    .if 0
     ; Robot.
     call_1      uv_texture_set_data,  uv_bgtest_texture_no_adr
     call_2      unlz4,                uv_paul1_map_no_adr,        uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_64_256
-    call_1      palette_set_block,    uv_bgtest_pal_no_adr
+    write_addr  palette_array_p,      uv_bgtest_pal_no_adr
     write_byte  uv_table_offset_u,    0
     write_byte  uv_table_offset_v,    0
     write_byte  uv_table_offset_du,   0
     write_byte  uv_table_offset_dv,   1
+    .endif
 
-    wait_secs 5.0
-
-    ; Ship w/ ext data.
-    call_1      uv_texture_set_data,  uv_ship_texture_no_adr
-    call_2      unlz4,                uv_paul2_map_no_adr,        uv_table_data_no_adr
-    write_addr  uv_table_map_p,       uv_table_data_no_adr
-    call_1      uv_table_init_shader, UV_Table_TexDim_128_64
-    call_3      palette_set_gradient, 0, 0, gradient_ship
-    write_byte  uv_table_offset_u,    0
-    write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,   0
-    write_byte  uv_table_offset_dv,   1
-
-    wait_secs 5.0
-
+    .if 0
     ; Inside twisty torus
     call_1      uv_texture_set_data,  uv_fire_texture_no_adr
     call_2      unlz4,                uv_paul3_map_no_adr,        uv_table_data_no_adr
@@ -109,84 +297,8 @@ seq_space_part:
     write_byte  uv_table_offset_v,    0
     write_byte  uv_table_offset_du,   0
     write_byte  uv_table_offset_dv,   1
-
     wait_secs 5.0
-
-    ; Planet.
-    call_1      uv_texture_set_data,  uv_ship_texture_no_adr
-    call_2      unlz4,                uv_paul4_map_no_adr,        uv_table_data_no_adr
-    write_addr  uv_table_map_p,       uv_table_data_no_adr
-    call_1      uv_table_init_shader, UV_Table_TexDim_128_64
-    call_3      palette_set_gradient, 0, 0, gradient_space
-    write_byte  uv_table_offset_u,    0
-    write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,   0
-    write_byte  uv_table_offset_dv,   1
-
-    wait_secs 5.0
-
-    ; Tunnel.
-    call_1      uv_texture_set_data,  uv_cloud_texture_no_adr
-    call_2      unlz4,                uv_paul5_map_no_adr,        uv_table_data_no_adr
-    write_addr  uv_table_map_p,       uv_table_data_no_adr
-    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
-    call_3      palette_set_gradient, 0, 0, gradient_ship
-    write_byte  uv_table_offset_u,    0
-    write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,   0
-    write_byte  uv_table_offset_dv,   1
-
-    wait_secs 5.0
-
-    ; Black hole.
-    call_1      uv_texture_set_data,  uv_disk_texture_no_adr
-    call_2      unlz4,                uv_paul6_map_no_adr,        uv_table_data_no_adr
-    write_addr  uv_table_map_p,       uv_table_data_no_adr
-    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
-    call_3      palette_set_gradient, 0, 0, gradient_black_hole
-    write_byte  uv_table_offset_u,    0
-    write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,   0
-    write_byte  uv_table_offset_dv,   1
-
-    wait_secs 5.0
-
-    ; Reactor core.
-    call_1      uv_texture_set_data,  uv_disk_texture_no_adr
-    call_2      unlz4,                uv_paul7_map_no_adr,        uv_table_data_no_adr
-    write_addr  uv_table_map_p,       uv_table_data_no_adr
-    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
-    call_3      palette_set_gradient, 0, 0, gradient_ship
-    write_byte  uv_table_offset_u,    0
-    write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,   0
-    write_byte  uv_table_offset_dv,   1
-
-    wait_secs 5.0
-
-    ; Rotate & scale.
-    call_1      palette_set_block,      rotate_pal_no_adr
-    call_1      uv_texture_set_data,    rotate_texture_no_adr
-    call_3      fx_set_layer_fns, 0,    rotate_tick,                rotate_draw
-
-    wait_secs 5.0
-
-    ; Inside out.
-    call_1      uv_texture_set_data,  uv_phong_texture_no_adr
-    call_2      unlz4,                uv_tunnel2_map_no_adr,       uv_table_data_no_adr
-    write_addr  uv_table_map_p,       uv_table_data_no_adr
-    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
-
-    call_1      palette_set_block,    uv_phong_pal_no_adr
-    call_3      fx_set_layer_fns,     0, uv_table_tick              uv_table_draw
-    write_byte  uv_table_offset_du,  -1
-    write_byte  uv_table_offset_dv,   1
-
-    wait_secs 5.0
-
-    yield       seq_space_part  ; yield = wait 1; goto <label>
-    end_script
-.endif
+    .endif
 
 ; ============================================================================
 
@@ -375,17 +487,17 @@ seq_palette_blue_cyan_ramp:
     .long 0x00f0f0c0                    ; 14 = 1110 = oranges
     .long 0x00f0f0f0                    ; 15 = 1111 = white
 
+seq_palette_all_black:
+    .rept 16
+    .long 0x00000000
+    .endr
+
 .if 0
 seq_palette_single_white:
     .rept 15
     .long 0x00000000
     .endr
     .long 0x00ffffff
-
-seq_palette_all_black:
-    .rept 16
-    .long 0x00000000
-    .endr
 
 seq_palette_all_white:
     .rept 16
@@ -397,20 +509,36 @@ seq_palette_all_white:
 ; Or use https://gradient-blaster.grahambates.com/ by Gigabates to generate nice palettes!
 ; ============================================================================
 
+; https://gradient-blaster.grahambates.com/?points=000@0,022@4,58c@11,fff@15&steps=16&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 gradient_ship:
-.long   0x000,0x000,0x000,0x011,0x022,0x123,0x134,0x246,0x357,0x469,0x47a,0x58c,0x7ad,0xace,0xdef,0xfff
+	.long 0x000,0x000,0x000,0x011,0x022,0x123,0x134,0x246
+	.long 0x357,0x469,0x47a,0x58c,0x7ad,0xace,0xdef,0xfff
 
+; https://gradient-blaster.grahambates.com/?points=000@0,022@4,cb5@11,fff@15&steps=16&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 gradient_space:
-.long   0x000,0x000,0x000,0x011,0x022,0x232,0x343,0x553,0x773,0x984,0xaa4,0xdb5,0xdc7,0xeeb,0xfed,0xfff
+	.long 0x000,0x000,0x000,0x011,0x022,0x232,0x343,0x553
+	.long 0x773,0x984,0xaa4,0xdb5,0xdc7,0xeeb,0xfed,0xfff
 
+; https://gradient-blaster.grahambates.com/?points=000@0,012@1,435@4,944@5,eeb@10,eff@14,fff@15&steps=16&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 gradient_black_hole:
-.long   0x000,0x012,0x113,0x324,0x435,0x944,0xa65,0xc87,0xda8,0xdda,0xeeb,0xffd,0xefe,0xfff,0xeff,0xfff
+	.long 0x000,0x012,0x113,0x324,0x435,0x944,0xa65,0xc87
+	.long 0xda8,0xdda,0xeeb,0xffd,0xefe,0xfff,0xeff,0xfff
+
+; https://gradient-blaster.grahambates.com/?points=000@0,a61@8,fff@15&steps=16&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+gradient_default:
+	.long 0x000,0x100,0x110,0x310,0x421,0x530,0x740,0x950
+	.long 0xa61,0xb84,0xc86,0xda8,0xdb9,0xedb,0xfee,0xfff
+
+; https://gradient-blaster.grahambates.com/?points=000@0,200@2,c00@7,fc5@11,fff@15&steps=16&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+gradient_red_alert:
+	.long 0x000,0x100,0x200,0x400,0x600,0x800,0xa00,0xc00
+	.long 0xd52,0xe83,0xfa4,0xfc5,0xfd8,0xfeb,0xffd,0xfff
 
 ; ============================================================================
 ; Palette blending - required if using palette_lerp_over_secs macro.
 ; ============================================================================
 
-.if 0
+.if _DEMO_PART==_PART_SPACE
 seq_unlink_palette_lerp:
     math_kill_var seq_palette_blend
     math_kill_var seq_palette_id
@@ -420,8 +548,11 @@ seq_palette_lerped:
     .skip 15*4
     .long 0x00ffffff
 
+seq_palette_gradient:
+    .skip 16*4
+
 seq_palette_copy:
-    .skip 16*6
+    .skip 16*4
 
 seq_rgb_blend:
     .long 0

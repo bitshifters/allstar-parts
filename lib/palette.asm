@@ -88,6 +88,37 @@ palette_set_gradient:
 
     ldr pc, [sp], #4
 
+; R0=ptr to gradient table in 0x0rgb format.
+; R1=ptr to palette table in 0x00BbGgRr format.
+palette_from_gradient:
+    str lr, [sp, #-4]!
+
+    mov r5, r1
+    mov r2, r0
+    mov r3, #0
+.1:
+    ldr r0, [r2], #4
+
+    mov r1, r0, lsr #8
+    orr r1, r1, r1, lsl #4
+
+    and r4, r0, #0x00f0
+    orr r4, r4, r4, lsr #4
+    orr r4, r1, r4, lsl #8
+
+    and r1, r0, #0x000f
+    orr r1, r1, r1, lsl #4
+    orr r4, r4, r1, lsl #16
+
+    str r4, [r5], #4
+
+    add r3, r3, #1
+    cmp r3, #16
+    bne .1
+
+    ldr pc, [sp], #4
+
+
 .if Palette_IncludeFade
 ; R0 = [0-16] interpolation
 ; R2 = palette block ptr

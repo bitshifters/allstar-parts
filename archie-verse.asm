@@ -176,6 +176,7 @@ main_loop:
 	bl script_tick_all
     .if LibConfig_IncludeMathVar
     ; Tick after script as this is where vars will be added/removed.
+    ldr r0, vsync_delta
     bl math_var_tick                ; TODO: Here or app_tick or lib_tick?
     ; Tick before layers as this is where the vars will be used.
     .endif
@@ -369,7 +370,7 @@ exit:
 .endif
 
     ; Goodbye.
-	SWI OS_Exit
+	SWI OS_Exit     ; <=== FIX ME!
 
 ; ============================================================================
 ; Debug helpers.

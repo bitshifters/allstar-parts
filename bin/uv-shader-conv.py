@@ -49,6 +49,7 @@ def main(options):
     if found_shader_data:
         png_result=png.Reader(filename=options.rgb_path).asRGBA8()
         blue_mask=False
+        shift_warned=False
 
         for row in png_result[2]:
             for i in range(0,len(row),8):
@@ -94,10 +95,11 @@ def main(options):
                 if a1==5:   # hack for old asset
                     a1=4
 
-                if a0>4:
+                if a0>4 and not shift_warned:
                     print 'WARNING: Found B value that has unexpected shift (0x{0:02x})'.format(rgba0[2])
+                    shift_warned=True
 
-                if a1>4:
+                if a1>4 and not shift_warned:
                     print 'WARNING: Found B value that has unexpected shift (0x{0:02x})'.format(rgba1[2])
 
                 max0=(0xf>>a0)+b0

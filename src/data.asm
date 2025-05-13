@@ -34,7 +34,7 @@ fine_font_no_adr:
 ; MODE 9 texture, 4 bpp x 2
 .p2align 16
 rotate_texture_no_adr:
-.incbin "build/itm128.bin"
+.incbin "build/RocketIndex.bin"
 
 rotate_pal_no_adr:
 .incbin "build/itmpal.bin"
@@ -73,31 +73,37 @@ uv_ship_texture_no_adr:
 
 ; (u,v) coordinates interleaved, 1 byte each
 ; 1 word = 2 pixels worth
-uv_paul1_map_no_adr:
-.incbin "build/paul1_uv.lz4"             ; robot just blue mask?
+;uv_paul1_map_no_adr:
+;.incbin "build/paul1_uv.lz4"             ; robot just blue mask?
 
-uv_paul2_map_no_adr:
+uv_ship_map_no_adr:
 .incbin "build/paul2_uv.lz4"          ; ship w/ shader
 
-uv_paul3_map_no_adr:
-.incbin "build/paul3_uv.lz4"             ; inside twisty torus
+;uv_paul3_map_no_adr:
+;.incbin "build/paul3_uv.lz4"             ; inside twisty torus
 
-uv_paul4_map_no_adr:
+uv_planet_map_no_adr:
 .incbin "build/paul4_uv.lz4"          ; planet w/ shader
 
-uv_paul5_map_no_adr:
+uv_tunnel_map_no_adr:
 .incbin "build/paul5_uv.lz4"          ; tunnel w/ shader
 
-uv_paul6_map_no_adr:
+uv_black_hole_map_no_adr:
 .incbin "build/paul6_uv.lz4"          ; black hole w/ shader
 
-uv_paul7_map_no_adr:
-.incbin "build/paul7_uv.lz4"          ; reactor core w/ shader
+uv_reactor_panic_map_no_adr:
+.incbin "build/paul7_uv.lz4"          ; reactor panic w/ shader
 
-uv_tunnel1_map_no_adr:
-.incbin "build/tunnel_uv.lz4"           ; regular tunnel
+uv_reactor_ok_map_no_adr:
+.incbin "build/paul8_uv.lz4"          ; reactor core w/ shader
 
-uv_tunnel2_map_no_adr:
+uv_monolith_map_no_adr:
+.incbin "build/paul9_uv.lz4"          ; monolith w/ shader
+
+;uv_tunnel1_map_no_adr:
+;.incbin "build/tunnel_uv.lz4"           ; regular tunnel
+
+uv_inside_out_map_no_adr:
 .incbin "build/tunnel2_uv.lz4"          ; inside out tunnel
 .endif
 

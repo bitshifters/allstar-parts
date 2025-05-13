@@ -173,9 +173,13 @@ math_var_unregister:
 .3:
     mov pc, lr
 
+math_var_iter_add:
+    .long 0
+
 ; Tick all variables.
 math_var_tick:
     str lr, [sp, #-4]!
+    str r0, math_var_iter_add
 
     ; For each var in list.
     adr r12, math_var_first_active_p    ; prev_p
@@ -186,7 +190,9 @@ math_var_tick:
 
     ; Increment iteration value.
     ldr r10, [r11, #MathVar_Iter]
-    add r10, r10, #1                    ; TODO: Use delta value?
+    ldr r0, math_var_iter_add
+    add r10, r10, r0
+    ;add r10, r10, #1                    ; TODO: Use delta value? <== YES!
     str r10, [r11, #MathVar_Iter]
 
     ; Evaluate the function.
@@ -330,9 +336,9 @@ math_evaluate_palette_lerp:
     ldr r3, [r3]                ; blend = RAM[c] [1.16]
     ; TODO: Clamp to [0,1] here?
 
-    ; NOTE: For ArchieKlang intro we ignore colours 0 and 1.
     ; TODO: Make the palette lerping configurable (lerp mask?)
-    mov r0, #2                  ; not including colour 0 (background)
+    ; NOTE: For ArchieKlang intro we ignore colours 0 and 1.
+    mov r0, #1                  ; NB. Start of palette range to lerp!
 .1:
     ldmia r10, {r1-r2}          ; palette_A, palette_B
 
@@ -377,7 +383,7 @@ math_evaluate_palette_lerp:
     ldr r5, [r10, #12]          ; dest_palette
     str r4, [r5, r0, lsl #2]
     add r0, r0, #1
-    cmp r0, #15                 ; not including colour 15 (orb).
+    cmp r0, #16                 ; NB. End of palette range to lerp!
     blt .1
     ; NOTE: For Push intro we ignore colour 15 (orb).
     

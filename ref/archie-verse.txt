@@ -580,11 +580,11 @@ TODO:
     - Set texture dims in script - DONE
     - Update code gen to accomodate texture dim calc. - DONE
 - Sort out time in script as ARM2 runs much slower than ARM250!! :|
-- Fix index textures to properly pass through... (DiskIndex bug)
-- Export new U,V,S format from old UV table Python script.
-- Test decompressing LZ4 UV tables at runtime.
+- Fix index textures to properly pass through... (DiskIndex bug) - DONE
+- Export new U,V,S format from old UV table Python script. - DONE
+- Test decompressing LZ4 UV tables at runtime. - DONE saves 300K!
 
-- Compress UV tables to reduce RAM overhead?
+- Compress UV tables to reduce RAM overhead? - DONE
     - Doing U,V deltas increases the compressability.
     - LZ4 works surprisingly well.
     - Would have to see if the overall saving was enough to decomp into a scratch buffer..
@@ -600,3 +600,32 @@ For Megademo:
 - Build creates both binaries? - DONE
 - Minimal binary for each part. - IN PROGRESS
 - Compress binaries. => Sarah to choose method.
+
+Fix frames / vsyncs / seconds once and for all:
+- vsyncs (every 50Hz)
+- frames (once around the main loop - frames displayed to user)
+- seconds = vsyncs / 50
+
+vsync_count used for:
+- test for frame drops (when 50Hz) - DEBUG
+- calculating frame rate - DEBUG
+- LuaPod and RocketPod time communication with host
+
+vsync_delta used for:
+- script wait vsyncs - so that transitions match music
+- passed in as R1 to FX tick fns (but not used?)
+
+frame_counter used for:
+- overall length of the demo 'max_frames'
+- sync tracks (LuaPod) - UNUSED
+- passed in as R0 to FX tick fns (but not used?)
+- fast forward to frame when skipping music patterns - DEBUG
+
+desirata:
+- sequence scripting specified in seconds (which matches the MOD / wall clock)
+- math_vars should be updated per vsync
+- scripts are ticked once per frame
+
+==> SHORTEST PATH: Update math_vars by delta_vsyncs...
+
+So Ship -> Planet -> Black Hole -> Tunnel -> Trippy stuff -> Reactor Panic -> Reactor Safe 

@@ -69,7 +69,7 @@ build:
 	./build/fine-font.bin ./build/paul1_uv.lz4 ./build/paul2_uv.lz4 ./build/paul3_uv.lz4  ./build/paul4_uv.lz4 \
 	./build/paul5_uv.lz4 ./build/Fire2.bin ./build/ShipIndex.bin ./build/bgtest4.bin \
 	./build/paul6_uv.lz4 ./build/paul7_uv.lz4 ./build/FlameIndex.bin ./build/CloudIndex.bin \
-	./build/DiskIndex.bin
+	./build/DiskIndex.bin ./build/paul8_uv.lz4 ./build/paul9_uv.lz4 ./build/RocketIndex.bin
 	echo done > $@
 
 ##########################################################################
@@ -187,6 +187,9 @@ clean:
 ./build/CloudIndex.bin: ./data/gfx/CloudIndex.png $(PNG2ARC_DEPS)		# index in red
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
 
+./build/RocketIndex.bin: ./data/gfx/RocketIndex.png $(PNG2ARC_DEPS)		# index in red
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
+
 ##########################################################################
 # SPACE ASSETS (UV MAPS)
 ##########################################################################
@@ -215,7 +218,13 @@ clean:
 ./build/paul6_uv.bin: ./data/uvs/LUT06.png $(UV_SHADER)	# black hole w/ ext data
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
-./build/paul7_uv.bin: ./data/uvs/LUT07.png $(UV_SHADER)	# reactor core w/ ext data
+./build/paul7_uv.bin: ./data/uvs/LUT07.png $(UV_SHADER)	# reactor core
+	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
+
+./build/paul8_uv.bin: ./data/uvs/LUT08.png $(UV_SHADER)	# reactor core
+	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
+
+./build/paul9_uv.bin: ./data/uvs/LUT09.png $(UV_SHADER)	# monolith
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
 ##########################################################################

@@ -212,7 +212,7 @@ rotate_tick:
     movgt r0, #4<<16
     mvngt r1, r1
 
-    cmp r0, #1<<15          ; max angle.
+    cmp r0, #1<<15          ; min scale.
     movlt r0, #1<<15
     mvnlt r1, r1
     
