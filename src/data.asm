@@ -47,13 +47,16 @@ uv_phong_texture_no_adr:
 uv_phong_pal_no_adr:
 .incbin "data/raw/phong.pal.bin"
 
-; Stored as sparse bytes for extended data lookup UV FX.
 uv_cloud_texture_no_adr:
 .incbin "build/CloudIndex.bin"
 
 uv_disk_texture_no_adr:
 .incbin "build/DiskIndex.bin"
 
+uv_space_texture_no_adr:
+.incbin "build/SpaceIndex.bin"
+
+.if 0
 uv_fire_texture_no_adr:
 .incbin "build/Fire2.bin"
 
@@ -65,6 +68,7 @@ uv_bgtest_texture_no_adr:
 
 uv_bgtest_pal_no_adr:
 .incbin "build/bgtest4.pal.bin"
+.endif
 
 ; Stored as sparse bytes for extended data lookup UV FX.
 uv_ship_texture_no_adr:
@@ -99,6 +103,9 @@ uv_reactor_ok_map_no_adr:
 
 uv_monolith_map_no_adr:
 .incbin "build/paul9_uv.lz4"          ; monolith w/ shader
+
+uv_sun_map_no_adr:
+.incbin "build/paul10_uv.lz4"          ; sun w/ shader
 
 ;uv_tunnel1_map_no_adr:
 ;.incbin "build/tunnel_uv.lz4"           ; regular tunnel

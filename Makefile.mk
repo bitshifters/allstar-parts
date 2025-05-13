@@ -69,7 +69,8 @@ build:
 	./build/fine-font.bin ./build/paul1_uv.lz4 ./build/paul2_uv.lz4 ./build/paul3_uv.lz4  ./build/paul4_uv.lz4 \
 	./build/paul5_uv.lz4 ./build/Fire2.bin ./build/ShipIndex.bin ./build/bgtest4.bin \
 	./build/paul6_uv.lz4 ./build/paul7_uv.lz4 ./build/FlameIndex.bin ./build/CloudIndex.bin \
-	./build/DiskIndex.bin ./build/paul8_uv.lz4 ./build/paul9_uv.lz4 ./build/RocketIndex.bin
+	./build/DiskIndex.bin ./build/paul8_uv.lz4 ./build/paul9_uv.lz4 ./build/RocketIndex.bin \
+	./build/paul10_uv.lz4 ./build/SpaceIndex.bin
 	echo done > $@
 
 ##########################################################################
@@ -190,6 +191,9 @@ clean:
 ./build/RocketIndex.bin: ./data/gfx/RocketIndex.png $(PNG2ARC_DEPS)		# index in red
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
 
+./build/SpaceIndex.bin: ./data/gfx/SpaceIndex.png $(PNG2ARC_DEPS)		# index in red
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
+
 ##########################################################################
 # SPACE ASSETS (UV MAPS)
 ##########################################################################
@@ -225,6 +229,9 @@ clean:
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
 ./build/paul9_uv.bin: ./data/uvs/LUT09.png $(UV_SHADER)	# monolith
+	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
+
+./build/paul10_uv.bin: ./data/uvs/LUT10.png $(UV_SHADER)	# sun
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
 ##########################################################################

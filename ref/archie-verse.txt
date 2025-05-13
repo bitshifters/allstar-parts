@@ -593,6 +593,9 @@ TODO:
     - Could do a RLE type scheme, but might be better to use a generic compressor
      (otherwise the decompress and codegen gets complicated)
 
+- Palette pulse for Reactor panic.
+
+
 For Megademo:
 - Load and run at 0x10000 - DONE
     - Change .org

@@ -161,10 +161,10 @@ seq_space_part:
     ; ================================
     ; Tunnel.
     ; ================================
-    call_2      palette_from_gradient,gradient_ship,            seq_palette_gradient
+    call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
 
-    call_1      uv_texture_set_data,  uv_cloud_texture_no_adr
+    call_1      uv_texture_set_data,  uv_space_texture_no_adr
     call_2      unlz4,                uv_tunnel_map_no_adr,     uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
@@ -259,6 +259,28 @@ seq_space_part:
 
     call_1      uv_texture_set_data,  uv_cloud_texture_no_adr
     call_2      unlz4,                uv_monolith_map_no_adr,   uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
+    write_byte  uv_table_offset_u,    0
+    write_byte  uv_table_offset_v,    0
+    write_byte  uv_table_offset_du,   0
+    write_byte  uv_table_offset_dv,   1
+
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+    ; ================================
+
+    ; ================================
+    ; Sun.
+    ; ================================
+    call_2      palette_from_gradient,gradient_sun,             seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_1      uv_texture_set_data,  uv_ship_texture_no_adr
+    call_2      unlz4,                uv_sun_map_no_adr,        uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
     write_byte  uv_table_offset_u,    0
@@ -405,6 +427,7 @@ seq_palette_red_additive:
     .long 0x00c0e0e0                    ; 14 = 1110 = oranges
     .long 0x00f0f0f0                    ; 15 = 1111 = white
 
+.if 0
 seq_palette_grey:
     .long 0x00000000                    ; 00 = 0000 = black
     .long 0x00101010                    ; 01 = 0001 =
@@ -494,6 +517,7 @@ seq_palette_blue_cyan_ramp:
     .long 0x00f0f0a0                    ; 13 = 1101 =
     .long 0x00f0f0c0                    ; 14 = 1110 = oranges
     .long 0x00f0f0f0                    ; 15 = 1111 = white
+.endif
 
 seq_palette_all_black:
     .rept 16
@@ -517,6 +541,7 @@ seq_palette_all_white:
 ; Or use https://gradient-blaster.grahambates.com/ by Gigabates to generate nice palettes!
 ; ============================================================================
 
+.if _DEMO_PART==_PART_SPACE
 ; https://gradient-blaster.grahambates.com/?points=000@0,022@4,58c@11,fff@15&steps=16&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 gradient_ship:
 	.long 0x000,0x000,0x000,0x011,0x022,0x123,0x134,0x246
@@ -541,6 +566,17 @@ gradient_default:
 gradient_red_alert:
 	.long 0x000,0x100,0x200,0x400,0x600,0x800,0xa00,0xc00
 	.long 0xd52,0xe83,0xfa4,0xfc5,0xfd8,0xfeb,0xffd,0xfff
+
+; https://gradient-blaster.grahambates.com/?points=000@0,100@1,200@2,310@3,840@7,c86@9,e95@10,ec6@11,ffc@13,fff@14,dff@15&steps=16&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+gradient_sun:
+	.long 0x000,0x100,0x200,0x310,0x410,0x520,0x730,0x840
+	.long 0xa63,0xc86,0xe95,0xfc6,0xfe9,0xffc,0xfff,0xeff
+
+; https://gradient-blaster.grahambates.com/?points=000@0,600@3,710@5,b58@8,c7d@10,ecf@12,cbf@13,c7f@14,fff@15&steps=16&blendMode=oklab&ditherMode=goldenRatioMono&target=amigaOcs&ditherAmount=40
+gradient_tunnel:
+	.long 0x000,0x100,0x300,0x600,0x610,0x700,0x833,0xa45
+	.long 0xb58,0xc6b,0xc7d,0xeaf,0xecf,0xcbf,0xc7f,0xfff
+.endif
 
 ; ============================================================================
 ; Palette blending - required if using palette_lerp_over_secs macro.
