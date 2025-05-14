@@ -6,8 +6,8 @@ If "<RISCOS$version>"<>"3.1" Then Error This will only run on Archimedes compute
 Set CPU$Type ARM3
 RMEnsure Arm3Support 0.0 Set CPU$Type ARM2
 |
-RMLOAD <Obey$Dir>.QTM146c_24 { > null: }
-RMLOAD <Obey$Dir>.RMv030 { > null: }
+RMLOAD <Obey$Dir>.QTM149rm48 { > null: }
+RMLOAD <Obey$Dir>.RasterM36 { > null: }
 |
 wimpslot -min 1400K
 |

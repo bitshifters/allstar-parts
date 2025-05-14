@@ -53,8 +53,8 @@ $(FOLDER): build ./build/archie-verse.bin ./build/!run.txt ./build/icon.bin
 	$(MKDIR_P) $(FOLDER)
 	$(COPY) .\build\!run.txt "$(FOLDER)\!Run,feb"
 	$(COPY) .\build\icon.bin "$(FOLDER)\!Sprites,ff9"
-	$(COPY) ".\data\riscos\RMv030,ffa" "$(FOLDER)"
-	$(COPY) ".\data\riscos\QTM146c_24,ffa" "$(FOLDER)"
+	$(COPY) ".\data\riscos\RasterM36,ffa" "$(FOLDER)"
+	$(COPY) ".\data\riscos\QTM149rm48,ffa" "$(FOLDER)"
 	$(COPY) .\build\archie-verse.bin "$(FOLDER)\!RunImage,ffd"
 
 build:

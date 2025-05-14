@@ -1,10 +1,9 @@
 ; ============================================================================
 ; DATA Segment.
-; TODO: Only include data needed for corresponding _DEMO_PART.
 ; ============================================================================
 
-.data
 .p2align 6
+.data
 
 ; ===========================================================================
 
@@ -32,7 +31,6 @@ fine_font_no_adr:
 .if _DEMO_PART==_PART_SPACE
 ; fx/rotate.asm
 ; MODE 9 texture, 4 bpp x 2
-.p2align 16
 rotate_texture_no_adr:
 .incbin "build/RocketIndex.bin"
 
@@ -80,36 +78,47 @@ uv_ship_texture_no_adr:
 ;uv_paul1_map_no_adr:
 ;.incbin "build/paul1_uv.lz4"             ; robot just blue mask?
 
+.p2align 2
 uv_ship_map_no_adr:
 .incbin "build/paul2_uv.lz4"          ; ship w/ shader
 
+.p2align 2
 ;uv_paul3_map_no_adr:
 ;.incbin "build/paul3_uv.lz4"             ; inside twisty torus
 
+.p2align 2
 uv_planet_map_no_adr:
 .incbin "build/paul4_uv.lz4"          ; planet w/ shader
 
+.p2align 2
 uv_tunnel_map_no_adr:
 .incbin "build/paul5_uv.lz4"          ; tunnel w/ shader
 
+.p2align 2
 uv_black_hole_map_no_adr:
 .incbin "build/paul6_uv.lz4"          ; black hole w/ shader
 
+.p2align 2
 uv_reactor_panic_map_no_adr:
 .incbin "build/paul7_uv.lz4"          ; reactor panic w/ shader
 
+.p2align 2
 uv_reactor_ok_map_no_adr:
 .incbin "build/paul8_uv.lz4"          ; reactor core w/ shader
 
+.p2align 2
 uv_monolith_map_no_adr:
 .incbin "build/paul9_uv.lz4"          ; monolith w/ shader
 
+.p2align 2
 uv_sun_map_no_adr:
 .incbin "build/paul10_uv.lz4"          ; sun w/ shader
 
+.p2align 2
 ;uv_tunnel1_map_no_adr:
 ;.incbin "build/tunnel_uv.lz4"           ; regular tunnel
 
+.p2align 2
 uv_inside_out_map_no_adr:
 .incbin "build/tunnel2_uv.lz4"          ; inside out tunnel
 .endif
