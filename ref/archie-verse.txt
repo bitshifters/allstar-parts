@@ -32,6 +32,8 @@ And as of 6/6/24:
   => Write optimised versions of these for lib. - DONE SIMPLE VERSION
 - Standardise code generation at init. - DONE
     - Have R12=start of free RAM and expect to return top in R12 for next fn.
+- Sort out palette nonsense - some things are in expanded 0x00BbGgRr format,
+    some are in 0x0RGB format, what about VIDC command format?
 
 
 ArchieKlang Announcetro
@@ -594,6 +596,12 @@ TODO:
      (otherwise the decompress and codegen gets complicated)
 
 - Palette pulse for Reactor panic.
+int Offset = some anim (sawtooth or sine wave ) ranged 0-8 or -4 to 8 or something.
+for(PaletteIndex = 0; PaletteIndex < 16; PaletteIndex++)
+{
+   int LookupIndex = clamp( PaletteIndex + Offset, 0, 15);
+   SetPalette(PaletteIndex, Palette[LookupIndex]);
+}
 
 
 For Megademo:
@@ -604,7 +612,9 @@ For Megademo:
 - Minimal binary for each part. - IN PROGRESS
 - Compress binaries. => Sarah to choose method.
 
+---
 Fix frames / vsyncs / seconds once and for all:
+---
 - vsyncs (every 50Hz)
 - frames (once around the main loop - frames displayed to user)
 - seconds = vsyncs / 50

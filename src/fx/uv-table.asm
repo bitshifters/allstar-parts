@@ -56,42 +56,6 @@ uv_table_texture_data_p:
 
 ; ============================================================================
 
-; R12=screen addr
-uv_table_draw:
-	str lr, [sp, #-4]!
-
-    ldrb r9, uv_table_offset_u
-    ldrb r1, uv_table_offset_v
-
-    ldr r8, uv_table_texture_p ; base of the texture
-
-    add r8, r8, r9              ; add u offset
-    add r8, r8, r1, lsl #7      ; add v offset (128 bytes per row)
-
-    add r9, r8, #4096           ; only 4096 bytes are addressable at a time
-    add r10, r9, #4096          ; using offset load, so use registers
-    add r11, r10, #4096         ; 4*4096 = 16384 = 128*128
-
-    ldr pc, uv_table_code_p    ; pops return from stack.
-
-; ============================================================================
-
-uv_table_tick:
-    ldrb r9, uv_table_offset_u
-    ldrb r8, uv_table_offset_du
-    add r9, r9, r8
-    and r9, r9, #0x7f           ; u [0, 127]
-    strb r9, uv_table_offset_u
-
-    ldrb r1, uv_table_offset_v
-    ldrb r2, uv_table_offset_dv
-    add r1, r1, r2
-    and r1, r1, #0x7f           ; v [0, 127]
-    strb r1, uv_table_offset_v
-    mov pc, lr
-
-; ============================================================================
-
 ; Copies 16Kb of texture data to buffer twice (so texture lookup can wrap in V).
 ; R0=src ptr.
 uv_texture_set_data:
@@ -101,6 +65,45 @@ uv_texture_set_data:
     bl mem_copy_16K_fast
     ldmfd sp!, {r0,lr}
     b mem_copy_16K_fast
+
+; ============================================================================
+
+; R12=screen addr
+uv_table_draw:
+	str lr, [sp, #-4]!
+
+    ldrb r9, uv_table_offset_u
+    ldrb r1, uv_table_offset_v
+
+    ldr r8, uv_table_texture_p  ; base of the texture
+
+    add r8, r8, r9              ; add u offset
+    add r8, r8, r1, lsl #7      ; add v offset (128 bytes per row)
+
+    add r9, r8, #4096           ; only 4096 bytes are addressable at a time
+    add r10, r9, #4096          ; using offset load, so use registers
+    add r11, r10, #4096         ; 4*4096 = 16384 = 128*128
+
+    ldr pc, uv_table_code_p     ; pops return from stack.
+
+; ============================================================================
+
+uv_table_tick:
+    ldrb r0, uv_table_offset_u
+    ldrb r8, uv_table_offset_du
+    add r0, r0, r8
+
+    ldrb r1, uv_table_offset_v
+    ldrb r9, uv_table_offset_dv
+    add r1, r1, r9
+
+uv_table_tick_texture_wrap:         ; copied over from tex_dim below.
+    and r2, r0, #0x007f             ; u0<<0  [0, 127]   7 bits
+    and r3, r1, #0x007f             ; v0<<0  [0, 127]   7 bits
+
+    strb r2, uv_table_offset_u
+    strb r3, uv_table_offset_v
+    mov pc, lr
 
 ; ============================================================================
 ; NB. Not called directly, copied and patched at runtime.
@@ -266,6 +269,9 @@ uv_table_gen_shader_code:
     add r1, r1, r0, lsl #3          ; enum*6*4
     ldmia r1, {r3-r8}               ; copy 6 instrutions
     stmia r2, {r3-r8}
+
+    adr r2, uv_table_tick_texture_wrap
+    stmia r2, {r3-r4}               ; just the and for texture wrap
 
     ; R0=v1v0u1u0
     ; R1=v3v2u3u2
