@@ -266,6 +266,32 @@ math_evaluate_func2:
     mla r0, r2, r0, r1      ; a + b * f(c + d * i)  [16.16]
     ldr pc, [sp], #4
 
+; Evaluate the linear function v = (*a) + b * f(c + d * i)
+; Where b, c, d are fixed-point values. [s15.16]
+; Where a is the address containing a fixed-point value in [s15.16]
+; Where i is an integer iterator value that is incremented externally (usually per call).
+; Params:
+;  R10=ptr to func parameters [a, b, c, d, f]
+;  R0=i [16.0]
+; Trashes: R1-R5, R9
+; Returns: R0=v
+math_evaluate_func3:
+    str lr, [sp, #-4]!
+    ldmia r10!, {r1-r5}     ; [a, b, c, d, f]
+
+    ldr r1, [r1]            ; a = RAM[a]
+    mla r0, r4, r0, r3      ; c + d * i [16.16]
+
+    cmp r5, #0
+    beq .1
+    adr lr, .1
+    mov pc, r5              ; f(c + d * i)
+.1:
+    mov r0, r0, asr #8
+    mov r2, r2, asr #8
+    mla r0, r2, r0, r1      ; a + b * f(c + d * i)  [16.16]
+    ldr pc, [sp], #4
+
 ; Evaluate the RGB lerp function v = RGB[a] + RAM[c] * (RGB[b] - RGB[a])
 ; Where a, b are addresses assumed to contain RGB values in the format 0x00BbGgRr.
 ; Where c is an address assumed to contain a blend value in fixed-point format [1.16]

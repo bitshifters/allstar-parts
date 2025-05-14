@@ -82,16 +82,23 @@ seq_space_part:
     call_2      unlz4,                uv_ship_map_no_adr,       uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_64
-    write_byte  uv_table_offset_u,    0
-    write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,   0
-    write_byte  uv_table_offset_dv,   1
+
+    write_fp    uv_table_fp_u,        0.0
+    write_fp    seq_dv,               0.0
+    math_add_vars uv_table_fp_v, seq_dv, 1.0, uv_table_fp_v       ; v'=1.0+1.0*v
 
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
+
+    wait_secs   2.0
+    math_make_var seq_dv, 0.0, 1.0, math_clamp, 0.0, 1.0/(4.0*50.0)
+    wait_secs   4.0
+    math_make_var seq_dv, 1.0, 3.0, math_clamp, 0.0, 1.0/(4.0*50.0)
+    wait_secs   4.0
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
+    math_kill_var uv_table_fp_v
+    math_kill_var seq_dv
     ; ================================
 
     ; ================================
@@ -104,16 +111,16 @@ seq_space_part:
     call_2      unlz4,                uv_planet_map_no_adr,     uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_64
-    write_byte  uv_table_offset_u,    0
-    write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,   0
-    write_byte  uv_table_offset_dv,   1
+
+    write_fp    uv_table_fp_u,        0.0
+    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
 
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient
     wait_secs   8.0
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
+    math_kill_var uv_table_fp_v
     ; ================================
 
     ; ================================
@@ -126,16 +133,16 @@ seq_space_part:
     call_2      unlz4,                uv_black_hole_map_no_adr, uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
-    write_byte  uv_table_offset_u,    0
-    write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,   0
-    write_byte  uv_table_offset_dv,   1
+
+    write_fp    uv_table_fp_u,        0.0
+    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
 
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient
     wait_secs   8.0
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
+    math_kill_var uv_table_fp_v
     ; ================================
 
     ; ================================
@@ -148,14 +155,17 @@ seq_space_part:
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
 
     call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
-    write_byte  uv_table_offset_du,  -1
-    write_byte  uv_table_offset_dv,   1
+
+    math_make_var uv_table_fp_u,      0.0, 1.0, 0, 0.0, -1.0
+    math_make_var uv_table_fp_v,      0.0, 1.0, 0, 0.0, 1.0
 
     wait_secs   1.0
     call_1      palette_set_block,    uv_phong_pal_no_adr
     wait_secs   8.0
     palette_lerp_over_secs            uv_phong_pal_no_adr,      seq_palette_all_black,  1.0
     wait_secs   1.0
+    math_kill_var uv_table_fp_u
+    math_kill_var uv_table_fp_v
     ; ================================
 
     ; ================================
@@ -168,16 +178,16 @@ seq_space_part:
     call_2      unlz4,                uv_tunnel_map_no_adr,     uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
-    write_byte  uv_table_offset_u,    0
-    write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,   0
-    write_byte  uv_table_offset_dv,   1
+
+    write_fp    uv_table_fp_u,        0.0
+    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
 
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient
     wait_secs   8.0
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
+    math_kill_var uv_table_fp_v
     ; ================================
 
     ; ================================
@@ -198,10 +208,9 @@ seq_space_part:
     call_2      unlz4,                uv_reactor_panic_map_no_adr, uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
-    write_byte  uv_table_offset_u,    0
-    write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,   0
-    write_byte  uv_table_offset_dv,   1
+
+    write_fp    uv_table_fp_u,        0.0
+    math_link_vars uv_table_fp_v,     3.0, 1.0, uv_table_fp_v   ; v'=3.0+1.0*v
 
     wait_secs   5.0
     write_addr  palette_array_p,      seq_palette_copy
@@ -212,7 +221,7 @@ seq_space_part:
 
     math_kill_var seq_panic_offset
     math_kill_var seq_panic_handle
-
+    math_kill_var uv_table_fp_v
     ; ================================
 
     ; ================================
@@ -252,16 +261,16 @@ seq_space_part:
     call_2      unlz4,                uv_reactor_ok_map_no_adr, uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
-    write_byte  uv_table_offset_u,    0
-    write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,   0
-    write_byte  uv_table_offset_dv,   1
+
+    write_fp    uv_table_fp_u,        0.0
+    math_link_vars uv_table_fp_v,     2.0, 1.0, uv_table_fp_v   ; v'=2.0+1.0*v
 
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient
     wait_secs   8.0
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
+    math_kill_var uv_table_fp_v
     ; ================================
 
     ; ================================
@@ -274,16 +283,17 @@ seq_space_part:
     call_2      unlz4,                uv_monolith_map_no_adr,   uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
-    write_byte  uv_table_offset_u,    0
-    write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,   0
-    write_byte  uv_table_offset_dv,   1
+
+    write_fp    uv_table_fp_u,        0.0
+    math_add_vars uv_table_fp_v, seq_dv, 1.0, uv_table_fp_v       ; v'=1.0+1.0*v
+    math_make_var seq_dv, 1.0, 0.5, math_sin, 0.0, 1.0/(4.0*50.0)
 
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient
     wait_secs   8.0
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
+    math_kill_var uv_table_fp_v
     ; ================================
 
     ; ================================
@@ -296,20 +306,23 @@ seq_space_part:
     call_2      unlz4,                uv_sun_map_no_adr,        uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
-    write_byte  uv_table_offset_u,    0
-    write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,   0
-    write_byte  uv_table_offset_dv,   1
+
+    write_fp    uv_table_fp_u,        0.0
+    math_link_vars uv_table_fp_v,     0.25, 1.0, uv_table_fp_v   ; v'=0.25+1.0*v
 
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient
     wait_secs   8.0
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
+    math_kill_var uv_table_fp_v
     ; ================================
 
     yield       seq_space_part        ; yield = wait 1; goto <label>
     end_script
+
+seq_dv:
+    FLOAT_TO_FP 1.0
 
 seq_panic_handle:
     .long 0

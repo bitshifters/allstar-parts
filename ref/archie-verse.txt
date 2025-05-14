@@ -595,13 +595,22 @@ TODO:
     - Could do a RLE type scheme, but might be better to use a generic compressor
      (otherwise the decompress and codegen gets complicated)
 
-- Palette pulse for Reactor panic.
+- Palette pulse for Reactor panic. - DONE
 int Offset = some anim (sawtooth or sine wave ) ranged 0-8 or -4 to 8 or something.
 for(PaletteIndex = 0; PaletteIndex < 16; PaletteIndex++)
 {
    int LookupIndex = clamp( PaletteIndex + Offset, 0, 15);
    SetPalette(PaletteIndex, Palette[LookupIndex]);
 }
+
+Paul's TODOs:
+- Fixed point scroll for UVs
+    Ship over planet sequence could get subtly faster as it plays. The reactors probably look better faster generally but reactor panic could also speed up as it plays.
+    Monolith could slowly change the speed as a sine wave between two similar values to suggest gusts of wind.
+    Sun flare probably looks better quite slow.
+- Wonder if a palette animation from black to white then to the image would look like a camera flash / shutter effect. Could that coincide with a shutter sound?
+- Also thinking... perhaps the very first shot could start completely static so it looks like a still image and then slowly speed up from zero the scroll effect as a "tada" moment.
+- Double height LUT table..
 
 
 For Megademo:

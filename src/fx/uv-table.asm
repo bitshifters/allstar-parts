@@ -2,16 +2,6 @@
 ;
 ; UV table map effects.
 ;
-; Standard format: each word is 2 pixels of packed U,V = v1v0u1u0
-;   where U, V are [0,127] << 1 and screen_colour = texture[v * 128 + u]
-;   if UV_Table_BlankPixels is defined and bottom bit of U or V is set
-;   then the screen_colour = 0
-; Requires texture to be doubled up 0xLL.
-;
-; Extended foramt: follows with another word = b1a1b0a0
-;   where screen_colour = (texture_colour >> a) + b
-; Requires texture to be sparse 0x0L.
-;
 ; ============================================================================
 
 .equ UV_Table_CodeSize,             335876  ; 151556
@@ -27,8 +17,15 @@
 .equ UV_Table_TexDim_256_64,        2
 .equ UV_Table_TexDim_128_64,        3
 
-.equ UV_Table_BlankPixels,     1       ; TODO: Set const colour not just black.
+.equ UV_Table_FixedPointUV,         1
 
+.if UV_Table_FixedPointUV
+uv_table_fp_u:
+    FLOAT_TO_FP 0.0
+
+uv_table_fp_v:
+    FLOAT_TO_FP 0.0
+.else
 uv_table_offset_u:
     .byte 0
 
@@ -40,6 +37,7 @@ uv_table_offset_du:
 
 uv_table_offset_dv:
     .byte 1
+.endif
 .p2align 2
 
 uv_table_texture_p:
@@ -72,14 +70,30 @@ uv_texture_set_data:
 uv_table_draw:
 	str lr, [sp, #-4]!
 
-    ldrb r9, uv_table_offset_u
+    .if UV_Table_FixedPointUV
+    ldr r0, uv_table_fp_u
+    ldr r1, uv_table_fp_v
+    mov r0, r0, asr #16
+    mov r1, r1, asr #16
+    .else
+    ldrb r0, uv_table_offset_u
     ldrb r1, uv_table_offset_v
+    .endif
+
+    ; Calculate initial texture offset from U,V based on texture size.
+
+uv_table_tick_texture_wrap:         ; copied over from tex_dim below.
+    and r2, r0, #0x007f             ; u0<<0  [0, 127]   7 bits
+    and r3, r1, #0x007f             ; v0<<0  [0, 127]   7 bits
+    mov r3, r3, lsl #20+7           ; bottom 5 bits of v0
+    orr r2, r2, r3, lsr #20         ; v0 | u0           12 bits
+    and r3, r1, #0x007f             ; v0<<8  [0, 127]   7 bits
+    mov r3, r3, lsr #5              ; top 2 bits of v0
 
     ldr r8, uv_table_texture_p  ; base of the texture
 
-    add r8, r8, r9              ; add u offset
-    add r8, r8, r1, lsl #7      ; add v offset (128 bytes per row)
-
+    add r8, r8, r2              ; add initial offset [0, 4095]
+    add r8, r8, r3, lsl #12     ; plus the other two bits :)
     add r9, r8, #4096           ; only 4096 bytes are addressable at a time
     add r10, r9, #4096          ; using offset load, so use registers
     add r11, r10, #4096         ; 4*4096 = 16384 = 128*128
@@ -89,6 +103,7 @@ uv_table_draw:
 ; ============================================================================
 
 uv_table_tick:
+    .if !UV_Table_FixedPointUV
     ldrb r0, uv_table_offset_u
     ldrb r8, uv_table_offset_du
     add r0, r0, r8
@@ -97,12 +112,9 @@ uv_table_tick:
     ldrb r9, uv_table_offset_dv
     add r1, r1, r9
 
-uv_table_tick_texture_wrap:         ; copied over from tex_dim below.
-    and r2, r0, #0x007f             ; u0<<0  [0, 127]   7 bits
-    and r3, r1, #0x007f             ; v0<<0  [0, 127]   7 bits
-
-    strb r2, uv_table_offset_u
-    strb r3, uv_table_offset_v
+    strb r0, uv_table_offset_u
+    strb r1, uv_table_offset_v
+    .endif
     mov pc, lr
 
 ; ============================================================================
@@ -271,7 +283,7 @@ uv_table_gen_shader_code:
     stmia r2, {r3-r8}
 
     adr r2, uv_table_tick_texture_wrap
-    stmia r2, {r3-r4}               ; just the and for texture wrap
+    stmia r2, {r3-r8}               ; calc offset
 
     ; R0=v1v0u1u0
     ; R1=v3v2u3u2

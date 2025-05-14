@@ -59,7 +59,7 @@
     .long script_wait, \frames
 .endm
 
-; TODO: wait_secs doesn't actually wait for seconds! (Resolve frames vs vsyncs.)
+; TODO: wait_secs doesn't actually wait for seconds! (Currently waits for vsyncs.)
 .macro wait_secs secs
     .long script_wait, \secs*50
 .endm
@@ -203,6 +203,22 @@
 ; I.e. linearly link two variables (memory addresses) together.
 .macro math_link_vars addr, a, b, c
     .long script_call_6, math_var_register, \addr, MATHS_CONST_1*\a, MATHS_CONST_1*\b, \c, 0, math_read_addr
+.endm
+
+; Make a math variable: *addr = a + (*b) * (*c)
+; Where a is a s15.16 fixed-point values.
+; Where b, c are memory addresses (assumed to contain s15.16 values)
+; I.e. multiply two variables (memory addresses) together.
+.macro math_mul_vars addr, a, b, c
+    .long script_call_7, math_var_register_ex, \addr, MATHS_CONST_1*\a, \b, \c, 0, math_read_addr, math_evaluate_func2
+.endm
+
+; Make a math variable: *addr = a + (*b) * (*c)
+; Where a is a s15.16 fixed-point values.
+; Where b, c are memory addresses (assumed to contain s15.16 values)
+; I.e. multiply two variables (memory addresses) together.
+.macro math_add_vars addr, a, b, c
+    .long script_call_7, math_var_register_ex, \addr, \a, MATHS_CONST_1*\b, \c, 0, math_read_addr, math_evaluate_func3
 .endm
 
 ; Separate the link between two variables.
