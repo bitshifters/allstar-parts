@@ -182,9 +182,17 @@ seq_space_part:
 
     ; ================================
     ; Reactor panic.
+    ; Includes palette offset.
     ; ================================
+
     call_2      palette_from_gradient,gradient_red_alert,       seq_palette_gradient
-    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    ; Create a variable: offset = 3.0 + 3.0 * sin (i/50)
+    math_make_var seq_panic_offset,   3.0, 3.0, math_sin, 0.0,  1.0/50.0
+    ; Link these palettes palette_copy[i]=palette_gradient[i+offset]
+    call_7      math_var_register_ex, seq_panic_handle, seq_palette_gradient, 0, seq_panic_offset, seq_palette_copy, 0, math_evaluate_palette_offset
+    ; Fade up from all black palette to palette_copy over seconds.
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_copy,       5.0
 
     call_1      uv_texture_set_data,  uv_disk_texture_no_adr
     call_2      unlz4,                uv_reactor_panic_map_no_adr, uv_table_data_no_adr
@@ -195,11 +203,16 @@ seq_space_part:
     write_byte  uv_table_offset_du,   0
     write_byte  uv_table_offset_dv,   1
 
+    wait_secs   5.0
+    write_addr  palette_array_p,      seq_palette_copy
+
+    wait_secs   4.0
+    palette_lerp_over_secs            seq_palette_copy,         seq_palette_all_black,  1.0
     wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
-    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
+
+    math_kill_var seq_panic_offset
+    math_kill_var seq_panic_handle
+
     ; ================================
 
     ; ================================
@@ -297,6 +310,12 @@ seq_space_part:
 
     yield       seq_space_part        ; yield = wait 1; goto <label>
     end_script
+
+seq_panic_handle:
+    .long 0
+
+seq_panic_offset:
+    FLOAT_TO_FP 0.0
 .endif
 
 ; ============================================================================

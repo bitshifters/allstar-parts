@@ -391,6 +391,43 @@ math_evaluate_palette_lerp:
 
     mov pc, lr
 
+; Super hack balls!
+; Abuse the math_var functionality to lerp an entire table of RGB values.
+; RGB[d][i] = RGB[a][i+c]
+; Where a, d are base addresses assumed to contain an array of 16 RGB values in the format 0x00BbGgRr.
+; Where c is an address assumed to contain an offset value in fixed-point format [4.16]
+; Params:
+;  R10=ptr to func parameters [a, b, c, d, f]
+;  R0=i [16.0]
+; Trashes: R1-R9
+; Returns: R0=v
+math_evaluate_palette_offset:
+    ldr r3, [r10, #8]
+    ldr r3, [r3]                ; offset = RAM[c] [1.16]
+    mov r3, r3, asr #16         ; INT(offset)
+
+    ldr r1, [r10, #0]           ; palette_A
+    ldr r5, [r10, #12]          ; dest_palette
+
+    mov r0, #1                  ; palette index
+.1:
+
+    adds r2, r0, r3             ; lookup_index = palette_index + offset
+    movlt r2, #0                ; clamp
+    cmp r2, #15
+    movgt r2, #15
+
+    ldr r4, [r1, r2, lsl #2]    ; colour = palette_A[lookup_index]
+    str r4, [r5, r0, lsl #2]    ; dest_palette[i] = colour
+
+    add r0, r0, #1
+    cmp r0, #16                 ; NB. End of palette range to lerp!
+    blt .1
+    ; TODO: R0 gets stored in the handle - could use &dest_palette[0] as the handle..
+
+    mov pc, lr
+
+
 ; ============================================================================
 
 ; Super hack balls!
