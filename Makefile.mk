@@ -68,10 +68,10 @@ build:
 	./build/phong128.bin ./build/itm128.bin ./build/temp-logo.bin \
 	./build/fine-font.bin ./build/paul1_uv.lz4 ./build/paul2_uv.lz4 ./build/paul3_uv.lz4  ./build/paul4_uv.lz4 \
 	./build/paul5_uv.lz4 ./build/Fire2.bin ./build/ShipIndex.bin ./build/bgtest4.bin \
-	./build/paul6_uv.lz4 ./build/paul7_uv.lz4 ./build/FlameIndex.bin ./build/CloudIndex.bin \
-	./build/DiskIndex.bin ./build/paul8_uv.lz4 ./build/paul9_uv.lz4 ./build/RocketIndex.bin \
-	./build/paul10_uv.lz4 ./build/SpaceIndex.bin ./build/paul11_uv.lz4 ./build/paul12_uv.lz4 \
-	./build/ApolloIndex.bin
+	./build/paul6_uv.lz4 ./build/paul7_uv.lz4 ./build/FlameIndex.lz4 ./build/CloudIndex.lz4 \
+	./build/DiskIndex.lz4 ./build/paul8_uv.lz4 ./build/paul9_uv.lz4 ./build/RocketIndex.lz4 \
+	./build/paul10_uv.lz4 ./build/SpaceIndex.lz4 ./build/paul11_uv.lz4 ./build/paul12_uv.lz4 \
+	./build/ApolloIndex.lz4 ./build/paul13_uv.lz4 ./build/WarpIndex.bin
 	echo done > $@
 
 ##########################################################################
@@ -198,6 +198,9 @@ clean:
 ./build/ApolloIndex.bin: ./data/gfx/ApolloIndex.png $(PNG2ARC_DEPS)		# index in red
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
 
+./build/WarpIndex.bin: ./data/gfx/WarpIndex.png $(PNG2ARC_DEPS)		# index in red
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
+
 ##########################################################################
 # SPACE ASSETS (UV MAPS)
 ##########################################################################
@@ -242,6 +245,9 @@ clean:
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
 ./build/paul12_uv.bin: ./data/uvs/LUT12.png $(UV_SHADER)	# spin
+	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
+
+./build/paul13_uv.bin: ./data/uvs/LUT13.png $(UV_SHADER)	# warp
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
 ##########################################################################

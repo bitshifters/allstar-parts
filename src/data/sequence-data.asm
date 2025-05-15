@@ -78,7 +78,7 @@ seq_space_part:
     call_2      palette_from_gradient,gradient_grey,            seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
 
-    call_1      uv_texture_set_data,  uv_apollo_texture_no_adr
+    call_1      uv_texture_unlz4_data,  uv_apollo_texture_no_adr
     call_2      unlz4,                uv_apollo_map_no_adr,     uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
@@ -150,7 +150,7 @@ seq_space_part:
     call_2      palette_from_gradient,gradient_black_hole,      seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
 
-    call_1      uv_texture_set_data,  uv_disk_texture_no_adr
+    call_1      uv_texture_unlz4_data,  uv_disk_texture_no_adr
     call_2      unlz4,                uv_black_hole_map_no_adr, uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
@@ -172,7 +172,7 @@ seq_space_part:
     call_2      palette_from_gradient,gradient_black_hole,      seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,    1.0
     
-    call_1      uv_texture_set_data,  uv_space_texture_no_adr
+    call_1      uv_texture_unlz4_data,  uv_space_texture_no_adr
     call_2      unlz4,                uv_inside_out_map_no_adr, uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
@@ -197,7 +197,7 @@ seq_space_part:
     call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
 
-    call_1      uv_texture_set_data,  uv_space_texture_no_adr
+    call_1      uv_texture_unlz4_data,  uv_space_texture_no_adr
     call_2      unlz4,                uv_tunnel_map_no_adr,     uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
@@ -227,7 +227,7 @@ seq_space_part:
     ; Fade up from all black palette to palette_copy over seconds.
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_copy,       5.0
 
-    call_1      uv_texture_set_data,  uv_disk_texture_no_adr
+    call_1      uv_texture_unlz4_data,  uv_disk_texture_no_adr
     call_2      unlz4,                uv_reactor_panic_map_no_adr, uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
@@ -253,7 +253,7 @@ seq_space_part:
     call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
 
-    call_1      uv_texture_set_data,  uv_space_texture_no_adr
+    call_1      uv_texture_unlz4_data,  uv_space_texture_no_adr
     call_2      unlz4,                uv_spin_map_no_adr,       uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
@@ -275,7 +275,7 @@ seq_space_part:
     call_2      palette_from_gradient,gradient_red_alert,       seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
 
-    call_1      uv_texture_set_data,  rotate_texture_no_adr
+    call_1      uv_texture_unlz4_data,  rotate_texture_no_adr
     call_3      fx_set_layer_fns, 0,  rotate_tick,              rotate_draw
 
     math_make_var rotate_angle,       0.0,   1.0, 0,            0.0,     1.0    ; speed 1.0 brad / frame
@@ -301,7 +301,7 @@ seq_space_part:
     call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
 
-    call_1      uv_texture_set_data,  uv_space_texture_no_adr
+    call_1      uv_texture_unlz4_data,  uv_space_texture_no_adr
     call_2      unlz4,                uv_spin_map_no_adr,       uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
@@ -325,7 +325,7 @@ seq_space_part:
     call_2      palette_from_gradient,gradient_ship,            seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
 
-    call_1      uv_texture_set_data,  uv_disk_texture_no_adr
+    call_1      uv_texture_unlz4_data,  uv_disk_texture_no_adr
     call_2      unlz4,                uv_reactor_ok_map_no_adr, uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
@@ -342,12 +342,34 @@ seq_space_part:
     ; ================================
 
     ; ================================
+    ; Warp.
+    ; ================================
+    call_2      palette_from_gradient,gradient_sun,             seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_1      uv_texture_set_data,  uv_warp_texture_no_adr
+    call_2      unlz4,                uv_warp_map_no_adr,       uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_64
+
+    write_fp    uv_table_fp_u,        0.0
+    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
+
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+    math_kill_var uv_table_fp_v
+    ; ================================
+
+    ; ================================
     ; Monolith.
     ; ================================
     call_2      palette_from_gradient,gradient_default,         seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
 
-    call_1      uv_texture_set_data,  uv_cloud_texture_no_adr
+    call_1      uv_texture_unlz4_data,  uv_cloud_texture_no_adr
     call_2      unlz4,                uv_monolith_map_no_adr,   uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
@@ -400,36 +422,6 @@ seq_panic_offset:
     FLOAT_TO_FP 0.0
 .endif
 
-; ============================================================================
-; UNUSED.
-; ============================================================================
-
-    .if 0
-    ; Robot.
-    call_1      uv_texture_set_data,  uv_bgtest_texture_no_adr
-    call_2      unlz4,                uv_paul1_map_no_adr,        uv_table_data_no_adr
-    write_addr  uv_table_map_p,       uv_table_data_no_adr
-    call_1      uv_table_init_shader, UV_Table_TexDim_64_256
-    write_addr  palette_array_p,      uv_bgtest_pal_no_adr
-    write_byte  uv_table_offset_u,    0
-    write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,   0
-    write_byte  uv_table_offset_dv,   1
-    .endif
-
-    .if 0
-    ; Inside twisty torus
-    call_1      uv_texture_set_data,  uv_fire_texture_no_adr
-    call_2      unlz4,                uv_paul3_map_no_adr,        uv_table_data_no_adr
-    write_addr  uv_table_map_p,       uv_table_data_no_adr
-    call_0      uv_table_init
-    call_1      palette_set_block,    seq_palette_red_additive
-    write_byte  uv_table_offset_u,    0
-    write_byte  uv_table_offset_v,    0
-    write_byte  uv_table_offset_du,   0
-    write_byte  uv_table_offset_dv,   1
-    wait_secs 5.0
-    .endif
 
 ; ============================================================================
 

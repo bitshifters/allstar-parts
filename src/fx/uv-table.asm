@@ -64,6 +64,17 @@ uv_texture_set_data:
     ldmfd sp!, {r0,lr}
     b mem_copy_16K_fast
 
+; R0=compressed src ptr.
+uv_texture_unlz4_data:
+    str lr, [sp, #-4]!
+    ldr r1, uv_table_texture_data_p
+    str r1, uv_table_texture_p
+    bl unlz4
+    ldr r0, uv_table_texture_data_p
+    add r1, r0, #16*1024
+    ldr lr, [sp], #4
+    b mem_copy_16K_fast
+
 ; ============================================================================
 
 ; R12=screen addr

@@ -31,55 +31,37 @@ fine_font_no_adr:
 .if _DEMO_PART==_PART_SPACE
 ; fx/rotate.asm
 ; MODE 9 texture, 4 bpp x 2
+.p2align 2
 rotate_texture_no_adr:
-.incbin "build/RocketIndex.bin"
-
-rotate_pal_no_adr:
-.incbin "build/itmpal.bin"
+.incbin "build/RocketIndex.lz4"
 
 ; fx/uv-tunnel.asm
 ; MODE 9 texture, 4 bpp x 2
-uv_phong_texture_no_adr:
-.incbin "build/phong128.bin"
-
-uv_phong_pal_no_adr:
-.incbin "data/raw/phong.pal.bin"
-
+.p2align 2
 uv_cloud_texture_no_adr:
-.incbin "build/CloudIndex.bin"
+.incbin "build/CloudIndex.lz4"
 
+.p2align 2
 uv_disk_texture_no_adr:
-.incbin "build/DiskIndex.bin"
+.incbin "build/DiskIndex.lz4"
 
+.p2align 2
 uv_space_texture_no_adr:
-.incbin "build/SpaceIndex.bin"
+.incbin "build/SpaceIndex.lz4"
 
+.p2align 2
 uv_apollo_texture_no_adr:
-.incbin "build/ApolloIndex.bin"
+.incbin "build/ApolloIndex.lz4"
 
-.if 0
-uv_fire_texture_no_adr:
-.incbin "build/Fire2.bin"
-
-uv_flame_texture_no_adr:
-.incbin "build/FlameIndex.bin"
-
-uv_bgtest_texture_no_adr:
-.incbin "build/bgtest4.bin"
-
-uv_bgtest_pal_no_adr:
-.incbin "build/bgtest4.pal.bin"
-.endif
-
-; Stored as sparse bytes for extended data lookup UV FX.
+.p2align 2
 uv_ship_texture_no_adr:
 .incbin "build/ShipIndex.bin"           ; 8K
 .incbin "build/ShipIndex.bin"           ; 8K
 
-; (u,v) coordinates interleaved, 1 byte each
-; 1 word = 2 pixels worth
-;uv_paul1_map_no_adr:
-;.incbin "build/paul1_uv.lz4"             ; robot just blue mask?
+.p2align 2
+uv_warp_texture_no_adr:
+.incbin "build/WarpIndex.bin"           ; 8K
+.incbin "build/WarpIndex.bin"           ; 8K
 
 .p2align 2
 uv_ship_map_no_adr:
@@ -126,8 +108,8 @@ uv_spin_map_no_adr:
 .incbin "build/paul12_uv.lz4"          ; spinning ship w/ shader
 
 .p2align 2
-;uv_tunnel1_map_no_adr:
-;.incbin "build/tunnel_uv.lz4"           ; regular tunnel
+uv_warp_map_no_adr:
+.incbin "build/paul13_uv.lz4"          ; warp w/ shader
 
 .p2align 2
 uv_inside_out_map_no_adr:
