@@ -33,6 +33,8 @@
 .equ DebugDefault_ShowRasters,  0
 .equ DebugDefault_ShowVars,     0		; slow
 
+.equ Debug_TopOfWimpSlot,       0x8000 + 1400*1024
+
 ; ============================================================================
 ; Includes.
 ; ============================================================================
@@ -110,7 +112,12 @@ main:
     bl app_init_audio
 
     ; EARLY INIT - LOAD STUFF HERE!
-    ; str r12, top_of_ram
+    .if _DEBUG
+    mov r0, #Debug_TopOfWimpSlot
+    sub r0, r0, r12
+    mov r0, r0, lsr #10         ; /1024
+    str r0, debug_free_ram
+    .endif
 
 	; Bootstrap the main sequence.
     ; Does one tick of the script!
@@ -716,6 +723,9 @@ debug_restart_flag:
     .byte 0
 
 .p2align 2
+
+debug_free_ram:
+    .long 0
 .endif
 
 ; ============================================================================

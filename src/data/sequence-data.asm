@@ -78,7 +78,7 @@ seq_space_part:
     call_2      palette_from_gradient,gradient_grey,            seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
 
-    call_1      uv_texture_set_data,  uv_space_texture_no_adr
+    call_1      uv_texture_set_data,  uv_apollo_texture_no_adr
     call_2      unlz4,                uv_apollo_map_no_adr,     uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
@@ -106,17 +106,16 @@ seq_space_part:
     call_1      uv_table_init_shader, UV_Table_TexDim_128_64
 
     write_fp    uv_table_fp_u,        0.0
-    write_fp    seq_dv,               0.0
+    math_make_var seq_dv, 0.0, 1.0, math_clamp, 0.0, 1.0/(4.0*50.0)
     math_add_vars uv_table_fp_v, seq_dv, 1.0, uv_table_fp_v       ; v'=1.0+1.0*v
 
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient
 
     wait_secs   2.0
-    math_make_var seq_dv, 0.0, 1.0, math_clamp, 0.0, 1.0/(4.0*50.0)
-    wait_secs   4.0
     math_make_var seq_dv, 1.0, 3.0, math_clamp, 0.0, 1.0/(4.0*50.0)
-    wait_secs   4.0
+    wait_secs   6.0
+
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
@@ -148,7 +147,7 @@ seq_space_part:
     ; ================================
     ; Black hole.
     ; ================================
-    call_2      palette_from_gradient,gradient_black_hole,seq_palette_gradient
+    call_2      palette_from_gradient,gradient_black_hole,      seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
 
     call_1      uv_texture_set_data,  uv_disk_texture_no_adr
@@ -170,8 +169,10 @@ seq_space_part:
     ; ================================
     ; Trippy.
     ; ================================
-    palette_lerp_over_secs            seq_palette_all_black,    uv_phong_pal_no_adr,    1.0
-    call_1      uv_texture_set_data,  uv_phong_texture_no_adr
+    call_2      palette_from_gradient,gradient_black_hole,      seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,    1.0
+    
+    call_1      uv_texture_set_data,  uv_space_texture_no_adr
     call_2      unlz4,                uv_inside_out_map_no_adr, uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
@@ -182,9 +183,9 @@ seq_space_part:
     math_make_var uv_table_fp_v,      0.0, 1.0, 0, 0.0, 1.0
 
     wait_secs   1.0
-    call_1      palette_set_block,    uv_phong_pal_no_adr
+    call_1      palette_set_block,    seq_palette_gradient
     wait_secs   8.0
-    palette_lerp_over_secs            uv_phong_pal_no_adr,      seq_palette_all_black,  1.0
+    palette_lerp_over_secs            seq_palette_gradient,      seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_u
     math_kill_var uv_table_fp_v
@@ -220,7 +221,7 @@ seq_space_part:
     call_2      palette_from_gradient,gradient_red_alert,       seq_palette_gradient
 
     ; Create a variable: offset = 3.0 + 3.0 * sin (i/50)
-    math_make_var seq_panic_offset,   3.0, 3.0, math_sin, 0.0,  1.0/50.0
+    math_make_var seq_panic_offset,   -4.0, 3.0, math_sin, 0.0,  1.0/50.0
     ; Link these palettes palette_copy[i]=palette_gradient[i+offset]
     call_7      math_var_register_ex, seq_panic_handle, seq_palette_gradient, 0, seq_panic_offset, seq_palette_copy, 0, math_evaluate_palette_offset
     ; Fade up from all black palette to palette_copy over seconds.
@@ -247,6 +248,28 @@ seq_space_part:
     ; ================================
 
     ; ================================
+    ; Spinning ship.
+    ; ================================
+    call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_1      uv_texture_set_data,  uv_space_texture_no_adr
+    call_2      unlz4,                uv_spin_map_no_adr,       uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
+
+    write_fp    uv_table_fp_u,        0.0
+    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
+
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+    math_kill_var uv_table_fp_v
+    ; ================================
+
+    ; ================================
     ; Rotate & scale.
     ; ================================
     call_2      palette_from_gradient,gradient_red_alert,       seq_palette_gradient
@@ -255,12 +278,11 @@ seq_space_part:
     call_1      uv_texture_set_data,  rotate_texture_no_adr
     call_3      fx_set_layer_fns, 0,  rotate_tick,              rotate_draw
 
-    write_fp      rotate_scale,       0.1                       ; zoomed in
     math_make_var rotate_angle,       0.0,   1.0, 0,            0.0,     1.0    ; speed 1.0 brad / frame
+    math_make_var rotate_scale,       0.1,   4.0, math_clamp,    0.0,    1.0/(50.0*8.0) ; zoom out
     
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient
-    math_make_var rotate_scale,       0.1,   4.0, math_clamp,    0.0,    1.0/(50.0*8.0) ; zoom out
     wait_secs   8.0
     ; Spinning
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
@@ -271,6 +293,30 @@ seq_space_part:
 
     ; Back to LUT FX
     call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
+    ; ================================
+
+    ; ================================
+    ; Spinning ship.
+    ; ================================
+    call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_1      uv_texture_set_data,  uv_space_texture_no_adr
+    call_2      unlz4,                uv_spin_map_no_adr,       uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
+
+    write_fp    uv_table_fp_u,        0.0
+    math_add_vars uv_table_fp_v, seq_dv, 1.0, uv_table_fp_v       ; v'=1.0+1.0*v
+    math_make_var seq_dv, 1.0, -1.0, math_clamp, 0.0, 1.0/(8.0*50.0)
+
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+    math_kill_var uv_table_fp_v
+    math_kill_var seq_dv
     ; ================================
 
     ; ================================
@@ -308,7 +354,7 @@ seq_space_part:
 
     write_fp    uv_table_fp_u,        0.0
     math_add_vars uv_table_fp_v, seq_dv, 1.0, uv_table_fp_v       ; v'=1.0+1.0*v
-    math_make_var seq_dv, 1.0, 0.5, math_sin, 0.0, 1.0/(4.0*50.0)
+    math_make_var seq_dv, 0.5, -0.4, math_cos, 0.0, 1.0/(6.0*50.0)
 
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient
@@ -331,7 +377,7 @@ seq_space_part:
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
 
     write_fp    uv_table_fp_u,        0.0
-    math_link_vars uv_table_fp_v,     0.25, 1.0, uv_table_fp_v   ; v'=0.25+1.0*v
+    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=0.25+1.0*v
 
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient

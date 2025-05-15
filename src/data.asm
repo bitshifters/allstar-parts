@@ -54,6 +54,9 @@ uv_disk_texture_no_adr:
 uv_space_texture_no_adr:
 .incbin "build/SpaceIndex.bin"
 
+uv_apollo_texture_no_adr:
+.incbin "build/ApolloIndex.bin"
+
 .if 0
 uv_fire_texture_no_adr:
 .incbin "build/Fire2.bin"
@@ -117,6 +120,10 @@ uv_sun_map_no_adr:
 .p2align 2
 uv_apollo_map_no_adr:
 .incbin "build/paul11_uv.lz4"          ; apollo w/ shader
+
+.p2align 2
+uv_spin_map_no_adr:
+.incbin "build/paul12_uv.lz4"          ; spinning ship w/ shader
 
 .p2align 2
 ;uv_tunnel1_map_no_adr:

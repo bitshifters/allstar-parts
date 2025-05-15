@@ -614,6 +614,16 @@ Paul's TODOs:
     => Check max code size.
     => Put gen code at end of bss.
 
+RAM:
+- Code = 15680 bytes
+- LUTs (LZ4) and textures (raw) = 294728 bytes
+- Script & sequence data = 5100 bytes
+- MOD = 50068 bytes
+- LUT buffers = 94208 bytes
+- Unrolled LUT code = 335876 bytes
+- Sine table = 65536 bytes :)
+- Free = 534772 bytes
+
 For Megademo:
 - Load and run at 0x10000 - DONE
     - Change .org

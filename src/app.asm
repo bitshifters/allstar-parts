@@ -40,6 +40,7 @@ app_init_debug:
     .endif
 ;    DEBUG_REGISTER_VAR music_pos
     DEBUG_REGISTER_VAR_EX seq_palette_blend, debug_plot_addr_as_hex8
+    DEBUG_REGISTER_VAR_EX debug_free_ram, debug_plot_addr_as_dec4
 
     DEBUG_REGISTER_KEY          RMKey_Space,      debug_toggle_main_loop_pause,  0
     DEBUG_REGISTER_KEY_WITH_VAR RMKey_A,          debug_set_byte_true,           debug_restart_flag

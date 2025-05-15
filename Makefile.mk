@@ -70,7 +70,8 @@ build:
 	./build/paul5_uv.lz4 ./build/Fire2.bin ./build/ShipIndex.bin ./build/bgtest4.bin \
 	./build/paul6_uv.lz4 ./build/paul7_uv.lz4 ./build/FlameIndex.bin ./build/CloudIndex.bin \
 	./build/DiskIndex.bin ./build/paul8_uv.lz4 ./build/paul9_uv.lz4 ./build/RocketIndex.bin \
-	./build/paul10_uv.lz4 ./build/SpaceIndex.bin ./build/paul11_uv.lz4
+	./build/paul10_uv.lz4 ./build/SpaceIndex.bin ./build/paul11_uv.lz4 ./build/paul12_uv.lz4 \
+	./build/ApolloIndex.bin
 	echo done > $@
 
 ##########################################################################
@@ -194,6 +195,9 @@ clean:
 ./build/SpaceIndex.bin: ./data/gfx/SpaceIndex.png $(PNG2ARC_DEPS)		# index in red
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
 
+./build/ApolloIndex.bin: ./data/gfx/ApolloIndex.png $(PNG2ARC_DEPS)		# index in red
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
+
 ##########################################################################
 # SPACE ASSETS (UV MAPS)
 ##########################################################################
@@ -235,6 +239,9 @@ clean:
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
 ./build/paul11_uv.bin: ./data/uvs/LUT11.png $(UV_SHADER)	# moon
+	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
+
+./build/paul12_uv.bin: ./data/uvs/LUT12.png $(UV_SHADER)	# spin
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
 ##########################################################################
