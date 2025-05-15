@@ -450,37 +450,50 @@ uv_table_code_snippet:
     ldrb r0, [r0, #0]               ; 4c    <= mod imm offset, base reg, dest reg
     mov r0, r0, lsr #0              ; 1c    <= mod dest reg, shift value (optional)
     add r0, r0, #0                  ; 1c    <= mod dest reg, additional value (optional)
+    ; Max +3 inst p/ word
 
     mov r0, #0                      ; 1c    <= mod base reg, imm value
     ldrb r14, [r0, #0]              ; 4c    <= mod imm offset, base reg
     mov r14, r14, lsr #0            ; 1c    (optional)
     add r14, r14, #0                ; 1c    (optional)
     orr r0, r0, r14, lsl #8         ; 1c    <= mod dest reg
+    ; Max +4 inst p/ word
 
     mov r0, #0                      ; 1c    <= mod base reg, imm value
     ldrb r14, [r0, #0]              ; 4c    <= mod imm offset, base reg
     mov r14, r14, lsr #0            ; 1c    (optional)
     add r14, r14, #0                ; 1c    (optional)
     orr r0, r0, r14, lsl #16        ; 1c    <= mod dest reg
+    ; Max +4 inst p/ word
 
     mov r0, #0                      ; 1c    <= mod base reg, imm value
     ldrb r14, [r0, #0]              ; 4c    <= mod imm offset, base reg
     mov r14, r14, lsr #0            ; 1c    (optional)
     add r14, r14, #0                ; 1c    (optional)
     orr r0, r0, r14, lsl #24        ; 1c    <= mod dest reg
+    ; Max +4 inst p/ word
 
     orr r0, r0, r0, lsl #4          ; <= do this once per word, if needed
+    ; Max +1 inst p/ word
+
+    ; Max 16 inst p/ word * 8 words = 128 inst p/ write
 
     ; Plot the pixels.
     add r14, r12, #Screen_Stride    ; 1c
     stmia r12!, {r0-r7}             ; 3+8*1.25=13c
     stmia r14!, {r0-r7}             ; 3+8*1.25=13c
+    ; +3 inst p/ write
+    ; Max 131 inst p/ write * 5 writes per row = 655 inst p/ row
 
     ; Skip a line.
     add r12, r12, #Screen_Stride    ; 1c
+    ; +1 inst p/ row
+    ; Max 656 inst p/ row * 128 rows = 83968 inst p/ screen
 
     ; Return.
     ldr pc, [sp], #4
+    ; +1 inst p/ screen
+    ; Max 83969 inst p/ screen * 4 bytes/inst = 335876 bytes
 
 ; ============================================================================
 ; ============================================================================

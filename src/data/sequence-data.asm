@@ -73,6 +73,28 @@ seq_space_part:
     call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
 
     ; ================================
+    ; Apollo
+    ; ================================
+    call_2      palette_from_gradient,gradient_grey,            seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_1      uv_texture_set_data,  uv_space_texture_no_adr
+    call_2      unlz4,                uv_apollo_map_no_adr,     uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
+
+    write_fp    uv_table_fp_u,        0.0
+    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
+
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+    math_kill_var uv_table_fp_v
+    ; ================================
+
+    ; ================================
     ; Ship over surface.
     ; ================================
     call_2      palette_from_gradient,gradient_ship,            seq_palette_gradient
@@ -294,6 +316,7 @@ seq_space_part:
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
+    math_kill_var seq_dv
     ; ================================
 
     ; ================================
@@ -608,6 +631,11 @@ gradient_sun:
 gradient_tunnel:
 	.long 0x000,0x100,0x300,0x600,0x610,0x700,0x833,0xa45
 	.long 0xb58,0xc6b,0xc7d,0xeaf,0xecf,0xcbf,0xc7f,0xfff
+
+; https://gradient-blaster.grahambates.com/?points=000@0,fff@15&steps=16&blendMode=linear&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+gradient_grey:
+	.long 0x000,0x111,0x222,0x333,0x444,0x555,0x666,0x777
+	.long 0x888,0x999,0xaaa,0xbbb,0xccc,0xddd,0xeee,0xfff
 .endif
 
 ; ============================================================================

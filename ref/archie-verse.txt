@@ -611,7 +611,8 @@ Paul's TODOs:
 - Wonder if a palette animation from black to white then to the image would look like a camera flash / shutter effect. Could that coincide with a shutter sound?
 - Also thinking... perhaps the very first shot could start completely static so it looks like a still image and then slowly speed up from zero the scroll effect as a "tada" moment.
 - Double height LUT table..
-
+    => Check max code size.
+    => Put gen code at end of bss.
 
 For Megademo:
 - Load and run at 0x10000 - DONE

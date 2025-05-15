@@ -115,6 +115,10 @@ uv_sun_map_no_adr:
 .incbin "build/paul10_uv.lz4"          ; sun w/ shader
 
 .p2align 2
+uv_apollo_map_no_adr:
+.incbin "build/paul11_uv.lz4"          ; apollo w/ shader
+
+.p2align 2
 ;uv_tunnel1_map_no_adr:
 ;.incbin "build/tunnel_uv.lz4"           ; regular tunnel
 

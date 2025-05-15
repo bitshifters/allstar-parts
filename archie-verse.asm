@@ -110,6 +110,7 @@ main:
     bl app_init_audio
 
     ; EARLY INIT - LOAD STUFF HERE!
+    ; str r12, top_of_ram
 
 	; Bootstrap the main sequence.
     ; Does one tick of the script!
@@ -152,7 +153,7 @@ main_loop:
 	; PREPARE
 	; ========================================================================
 
-    bl app_pre_tick_frame
+    ;bl app_pre_tick_frame
 
     .if _DEBUG
     bl debug_do_key_callbacks

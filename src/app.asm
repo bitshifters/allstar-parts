@@ -60,6 +60,7 @@ vdu_screen_disable_cursor:
 .byte 22, VideoConfig_VduMode, 23,1,0,0,0,0,0,0,0,0,17,7
 .p2align 2
 
+; R12=top of RAM used.
 app_init_video:
     str lr, [sp, #-4]!
 
@@ -104,8 +105,8 @@ app_init_video:
 
     ; Get address of the displayed bank.
     bl get_screen_addr
-    ldr r12, screen_addr
-    str r12, init_screen_addr
+    ldr r0, screen_addr
+    str r0, init_screen_addr
 
     ; No flashing colours (FFS).
     mov r0, #9
@@ -200,6 +201,7 @@ app_init_audio:
     .if AppConfig_LoadModFromFile
     adr r0, music_filename
     mov r1, r12             ; HIMEM.
+    .err "TODO: Return top of RAM in R12 after MOD load."
     .else
 	mov r0, #0              ; load from address, don't copy to RMA.
     ldr r1, music_mod_p
@@ -240,8 +242,10 @@ app_late_init:
     bl app_copy_to_screen
     .endif
 
+    .if TipsyScrollerOnVsync
     mov r0, #1
     str r0, app_ready
+    .endif
 
     ;ldr r10, init_screen_addr
     ;bl text_pool_init
@@ -256,16 +260,18 @@ app_logo_p:
     .long 48*Screen_Stride  ; length
 .endif
 
+.if TipsyScrollerOnVsync
 app_ready:
     .long 0
+.endif
 
 ; ============================================================================
 ; App main loop.
 ; ============================================================================
 
-; Always called, regardless of tick status.
-app_pre_tick_frame:
-    mov pc, lr
+; Always called, regardless of tick status (add if needed).
+;app_pre_tick_frame:
+;    mov pc, lr
 
 ; ============================================================================
 ; Interrupt handling.
