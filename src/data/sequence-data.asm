@@ -354,6 +354,7 @@ seq_space_part:
 
     write_fp    uv_table_fp_u,        0.0
     math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
+    ; TODO: Make this go faster over time!
 
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient
