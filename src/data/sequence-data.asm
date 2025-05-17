@@ -145,6 +145,29 @@ seq_space_part:
     ; ================================
 
     ; ================================
+    ; Warp.
+    ; ================================
+    call_2      palette_from_gradient,gradient_sun,             seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_1      uv_texture_set_data,  uv_warp_texture_no_adr
+    call_2      unlz4,                uv_warp_map_no_adr,       uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_8_256
+
+    write_fp    uv_table_fp_u,        0.0
+    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
+    ; TODO: Make this go faster over time!
+
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+    math_kill_var uv_table_fp_v
+    ; ================================
+
+    ; ================================
     ; Black hole.
     ; ================================
     call_2      palette_from_gradient,gradient_black_hole,      seq_palette_gradient
@@ -152,6 +175,32 @@ seq_space_part:
 
     call_1      uv_texture_unlz4_data,  uv_disk_texture_no_adr
     call_2      unlz4,                uv_black_hole_map_no_adr, uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
+
+    write_fp    uv_table_fp_u,        0.0
+    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
+
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+    math_kill_var uv_table_fp_v
+    ; ================================
+
+    ; ================================
+    ; TODO: New : Entering wormhole?,
+    ; ================================
+
+    ; ================================
+    ; Tunnel.
+    ; ================================
+    call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_1      uv_texture_unlz4_data,  uv_space_texture_no_adr
+    call_2      unlz4,                uv_tunnel_map_no_adr,     uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
 
@@ -192,13 +241,43 @@ seq_space_part:
     ; ================================
 
     ; ================================
-    ; Tunnel.
+    ; TODO: New: More trippy effects,
+    ; ================================
+
+    ; ================================
+    ; Rotate & scale.
+    ; ================================
+    call_2      palette_from_gradient,gradient_red_alert,       seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_1      uv_texture_unlz4_data,  rotate_texture_no_adr
+    call_3      fx_set_layer_fns, 0,  rotate_tick,              rotate_draw
+
+    math_make_var rotate_angle,       0.0,   1.0, 0,            0.0,     1.0    ; speed 1.0 brad / frame
+    math_make_var rotate_scale,       0.1,   4.0, math_clamp,    0.0,    1.0/(50.0*8.0) ; zoom out
+    
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    ; Spinning
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+
+    math_kill_var rotate_scale
+    math_kill_var rotate_angle
+
+    ; Back to LUT FX
+    call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
+    ; ================================
+
+    ; ================================
+    ; Spinning ship.
     ; ================================
     call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
 
     call_1      uv_texture_unlz4_data,  uv_space_texture_no_adr
-    call_2      unlz4,                uv_tunnel_map_no_adr,     uv_table_data_no_adr
+    call_2      unlz4,                uv_spin_map_no_adr,       uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
 
@@ -248,55 +327,7 @@ seq_space_part:
     ; ================================
 
     ; ================================
-    ; Spinning ship.
-    ; ================================
-    call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
-    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
-
-    call_1      uv_texture_unlz4_data,  uv_space_texture_no_adr
-    call_2      unlz4,                uv_spin_map_no_adr,       uv_table_data_no_adr
-    write_addr  uv_table_map_p,       uv_table_data_no_adr
-    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
-
-    write_fp    uv_table_fp_u,        0.0
-    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
-
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
-    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
-    math_kill_var uv_table_fp_v
-    ; ================================
-
-    ; ================================
-    ; Rotate & scale.
-    ; ================================
-    call_2      palette_from_gradient,gradient_red_alert,       seq_palette_gradient
-    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
-
-    call_1      uv_texture_unlz4_data,  rotate_texture_no_adr
-    call_3      fx_set_layer_fns, 0,  rotate_tick,              rotate_draw
-
-    math_make_var rotate_angle,       0.0,   1.0, 0,            0.0,     1.0    ; speed 1.0 brad / frame
-    math_make_var rotate_scale,       0.1,   4.0, math_clamp,    0.0,    1.0/(50.0*8.0) ; zoom out
-    
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
-    ; Spinning
-    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
-
-    math_kill_var rotate_scale
-    math_kill_var rotate_angle
-
-    ; Back to LUT FX
-    call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
-    ; ================================
-
-    ; ================================
-    ; Spinning ship.
+    ; Spinning to stop.
     ; ================================
     call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
@@ -342,7 +373,7 @@ seq_space_part:
     ; ================================
 
     ; ================================
-    ; Warp.
+    ; New: Space Travel II - More space travel (reusue warp again or something new),
     ; ================================
     call_2      palette_from_gradient,gradient_sun,             seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
@@ -350,7 +381,7 @@ seq_space_part:
     call_1      uv_texture_set_data,  uv_warp_texture_no_adr
     call_2      unlz4,                uv_warp_map_no_adr,       uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
-    call_1      uv_table_init_shader, UV_Table_TexDim_128_64
+    call_1      uv_table_init_shader, UV_Table_TexDim_8_256
 
     write_fp    uv_table_fp_u,        0.0
     math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
@@ -408,6 +439,10 @@ seq_space_part:
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
+    ; ================================
+
+    ; ================================
+    ; TODO: New : End somehow?,
     ; ================================
 
     yield       seq_space_part        ; yield = wait 1; goto <label>

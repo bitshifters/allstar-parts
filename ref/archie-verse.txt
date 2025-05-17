@@ -661,4 +661,26 @@ desirata:
 
 ==> SHORTEST PATH: Update math_vars by delta_vsyncs... - DONE
 
-So Ship -> Planet -> Black Hole -> Tunnel -> Trippy stuff -> Reactor Panic -> Reactor Safe 
+
+Scene Order
+~~~
+Apollo (Planet rise, Demo name +Logos [ Bitshifters?, Nova? ],
+Ship flying over surface,
+Ship fling away from planet,
+Warp travel,
+Black hole,
+New : Entering wormhole?,
+Tunnel (wormhole tunnel),
+Distorty UV,
+New: More trippy effects,
+Rotozoomer,
+Spin,
+Reactor Panic,
+Spin to a stop,
+Reactor Happy,
+New: Space Travel II - More space travel (reusue warp again or something new),
+Monolith,
+Sun,
+New : End somehow?,
+
+New: Somewhere in the above - greets / credits scrolling / flying past ship? Perpahs cut in the middle of Space Travel II (or the trippy section but that feels a bit early)

@@ -16,6 +16,7 @@
 .equ UV_Table_TexDim_64_256,        1
 .equ UV_Table_TexDim_256_64,        2
 .equ UV_Table_TexDim_128_64,        3
+.equ UV_Table_TexDim_8_256,         4
 
 .equ UV_Table_FixedPointUV,         1
 
@@ -132,7 +133,7 @@ uv_table_tick:
 ; NB. Not called directly, copied and patched at runtime.
 ; ============================================================================
 
-uv_table_tex_dim_128_128:           ; 128x128
+uv_table_tex_dim_128_128:           ; 128x128=16384 (14 bits)
     and r2, r0, #0x007f             ; u0<<0  [0, 127]   7 bits
     and r3, r1, #0x007f             ; v0<<0  [0, 127]   7 bits
     mov r3, r3, lsl #20+7           ; bottom 5 bits of v0
@@ -140,7 +141,7 @@ uv_table_tex_dim_128_128:           ; 128x128
     and r3, r1, #0x007f             ; v0<<8  [0, 127]   7 bits
     mov r3, r3, lsr #5              ; top 2 bits of v0
 
-uv_table_tex_dim_64_256:            ; 64x256
+uv_table_tex_dim_64_256:            ; 64x256=16384 (14 bits)
     and r2, r0, #0x003f             ; u0<<0  [0, 63]    6 bits
     and r3, r1, #0x00ff             ; v0<<0  [0, 255]   8 bits
     mov r3, r3, lsl #20+6           ; bottom 6 bits of v0
@@ -148,7 +149,7 @@ uv_table_tex_dim_64_256:            ; 64x256
     and r3, r1, #0x00ff             ; v0<<0  [0, 255]   8 bits
     mov r3, r3, lsr #6              ; top 2 bits of v0
 
-uv_table_tex_dim_256_64:            ; 256x64
+uv_table_tex_dim_256_64:            ; 256x64=16384 (14 bits)
     and r2, r0, #0x00ff             ; u0<<0  [0, 255]  8 bits
     and r3, r1, #0x003f             ; v0<<0  [0, 63]   6 bits
     mov r3, r3, lsl #20+8           ; bottom 4 bits of v0
@@ -156,13 +157,21 @@ uv_table_tex_dim_256_64:            ; 256x64
     and r3, r1, #0x003f             ; v0<<8  [0, 63]   6 bits
     mov r3, r3, lsr #4              ; top 2 bits of v0
 
-uv_table_tex_dim_128_64:            ; 128x64
+uv_table_tex_dim_128_64:            ; 128x64=8192 (13 bits)
     and r2, r0, #0x007f             ; u0<<0  [0, 127]  7 bits
     and r3, r1, #0x003f             ; v0<<0  [0, 63]   6 bits
     mov r3, r3, lsl #20+7           ; bottom 5 bits of v0
     orr r2, r2, r3, lsr #20         ; v0 | u0          12 bits
     and r3, r1, #0x003f             ; v0<<0  [0, 63]   6 bits
     mov r3, r3, lsr #5              ; top 1 bits of v0
+
+uv_table_tex_dim_8_256:             ; 8x256=2048 (11 bits)
+    and r2, r0, #0x0007             ; u0<<0  [0, 7]     3 bits
+    and r3, r1, #0x00ff             ; v0<<0  [0, 255]   8 bits
+    mov r3, r3, lsl #20+3           ; bottom 8 bits of v0 (!)
+    orr r2, r2, r3, lsr #20         ; v0 | u0           11 bits
+    and r3, r1, #0x00ff             ; v0<<0  [0, 255]   8 bits
+    mov r3, r3, lsr #11             ; top -3 bits of v0 (!)
 
 ; ============================================================================
 ; Calculate the byte offset into a texture from the UV parameters.
