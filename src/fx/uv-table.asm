@@ -17,6 +17,7 @@
 .equ UV_Table_TexDim_256_64,        2
 .equ UV_Table_TexDim_128_64,        3
 .equ UV_Table_TexDim_8_256,         4
+.equ UV_Table_TexDim_32_256,        5
 
 .equ UV_Table_FixedPointUV,         1
 
@@ -66,15 +67,16 @@ uv_texture_set_data:
     b mem_copy_16K_fast
 
 ; R0=compressed src ptr.
-uv_texture_unlz4_data:
-    str lr, [sp, #-4]!
+; R1=decompressed size
+uv_texture_unlz4:
+    stmfd sp!, {r1,lr}
     ldr r1, uv_table_texture_data_p
     str r1, uv_table_texture_p
     bl unlz4
+    ldmfd sp!, {r2,lr}
     ldr r0, uv_table_texture_data_p
-    add r1, r0, #16*1024
-    ldr lr, [sp], #4
-    b mem_copy_16K_fast
+    add r1, r0, r2
+    b mem_copy_fast
 
 ; ============================================================================
 
@@ -93,14 +95,15 @@ uv_table_draw:
     .endif
 
     ; Calculate initial texture offset from U,V based on texture size.
-
 uv_table_tick_texture_wrap:         ; copied over from tex_dim below.
+    ; NB. v---- these instructions get overwritten at runtime!
     and r2, r0, #0x007f             ; u0<<0  [0, 127]   7 bits
     and r3, r1, #0x007f             ; v0<<0  [0, 127]   7 bits
     mov r3, r3, lsl #20+7           ; bottom 5 bits of v0
     orr r2, r2, r3, lsr #20         ; v0 | u0           12 bits
     and r3, r1, #0x007f             ; v0<<8  [0, 127]   7 bits
     mov r3, r3, lsr #5              ; top 2 bits of v0
+    ; NB. ^---- these instructions get overwritten at runtime!
 
     ldr r8, uv_table_texture_p  ; base of the texture
 
@@ -173,6 +176,14 @@ uv_table_tex_dim_8_256:             ; 8x256=2048 (11 bits)
     and r3, r1, #0x00ff             ; v0<<0  [0, 255]   8 bits
     mov r3, r3, lsr #11             ; top -3 bits of v0 (!)
 
+uv_table_tex_dim_32_256:            ; 32x256=8192 (13 bits)
+    and r2, r0, #0x001f             ; u0<<0  [0, 31]    5 bits
+    and r3, r1, #0x00ff             ; v0<<0  [0, 255]   8 bits
+    mov r3, r3, lsl #20+5           ; bottom 7 bits of v0
+    orr r2, r2, r3, lsr #20         ; v0 | u0           12 bits
+    and r3, r1, #0x00ff             ; v0<<0  [0, 255]   8 bits
+    mov r3, r3, lsr #7              ; top 1 bits of v0
+
 ; ============================================================================
 ; Calculate the byte offset into a texture from the UV parameters.
 ; Params:
@@ -192,8 +203,10 @@ uv_table_calc_offset:
     orr r2, r2, r3, lsr #20         ; v0 | u0           12 bits
     and r3, r1, #0x007f             ; v0<<0  [0, 127]   7 bits
     mov r3, r3, lsr #5              ; top 2 bits of v0
-    add r3, r3, #8                  ; [8, 11]
     ; NB. ^---- these instructions get overwritten at runtime!
+
+    ; Base register number.
+    add r3, r3, #8                  ; [8, 11]
 
     ; Shift value: a=0 (just LUT) a={1,3} (shading) a=4 (const colour)
     tst r5, #4                      ; test const bit

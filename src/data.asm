@@ -33,35 +33,37 @@ fine_font_no_adr:
 ; MODE 9 texture, 4 bpp x 2
 .p2align 2
 rotate_texture_no_adr:
-.incbin "build/RocketIndex.lz4"
+.incbin "build/RocketIndex.lz4"         ; 16K
 
 ; fx/uv-tunnel.asm
 ; MODE 9 texture, 4 bpp x 2
 .p2align 2
 uv_cloud_texture_no_adr:
-.incbin "build/CloudIndex.lz4"
+.incbin "build/CloudIndex.lz4"          ; 16K
 
 .p2align 2
 uv_disk_texture_no_adr:
-.incbin "build/DiskIndex.lz4"
+.incbin "build/DiskIndex.lz4"           ; 16K
 
 .p2align 2
 uv_space_texture_no_adr:
-.incbin "build/SpaceIndex.lz4"
+.incbin "build/SpaceIndex.lz4"          ; 16K
 
 .p2align 2
 uv_apollo_texture_no_adr:
-.incbin "build/ApolloIndex.lz4"
+.incbin "build/ApolloIndex.lz4"         ; 16K
 
 .p2align 2
 uv_ship_texture_no_adr:
-.incbin "build/ShipIndex.bin"           ; 8K
-.incbin "build/ShipIndex.bin"           ; 8K
+.incbin "build/ShipIndex.lz4"           ; 8K
 
 .p2align 2
 uv_warp_texture_no_adr:
-.incbin "build/WarpIndex.bin"           ; 8K
-.incbin "build/WarpIndex.bin"           ; 8K
+.incbin "build/WarpIndex.lz4"           ; 2K
+
+.p2align 2
+uv_greets_texture_no_adr:
+.incbin "build/GreetsIndex.lz4"         ; 8K
 
 .p2align 2
 uv_ship_map_no_adr:
@@ -110,6 +112,10 @@ uv_spin_map_no_adr:
 .p2align 2
 uv_warp_map_no_adr:
 .incbin "build/paul13_uv.lz4"          ; warp w/ shader
+
+.p2align 2
+uv_greets_map_no_adr:
+.incbin "build/paul14_uv.lz4"          ; greets w/ shader
 
 .p2align 2
 uv_inside_out_map_no_adr:

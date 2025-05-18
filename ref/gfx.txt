@@ -7,3 +7,4 @@ FlameIndex.png
 ShipIndex.png
 SpaceIndex.png
 WarpIndex.png
+GreetsIndex.png
