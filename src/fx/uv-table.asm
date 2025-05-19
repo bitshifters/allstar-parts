@@ -4,7 +4,7 @@
 ;
 ; ============================================================================
 
-.equ UV_Table_CodeSize,             335876  ; (0x52004) MAX ACTUAL=0x4a274
+.equ UV_Table_CodeSize,             0x4a274 ; 335876 (0x52004) THEORETICAL MAX
 .equ UV_Table_Columns,              160
 .equ UV_Table_Rows,                 128     ; or 120?
 
@@ -57,6 +57,9 @@ uv_table_texture_data_p:
 .if _DEBUG
 uv_table_code_size:
     .long 0
+
+uv_table_code_max:
+    .long UV_Table_CodeSize
 .endif
 
 ; ============================================================================
@@ -480,11 +483,25 @@ uv_table_gen_shader_code:
     .if _DEBUG
     ldr r0, uv_table_code_p
     sub r12, r12, r0
+
+    ldr r11, uv_table_code_max
+    cmp r12, r11
+    adrgt r0, err_outofcodespace
+    swigt OS_GenerateError
+
     mov r12, r12, lsr #10
     str r12, uv_table_code_size
     .endif
 
     ldr pc, [sp], #4
+
+.if _DEBUG
+err_outofcodespace:
+	.long 0
+	.byte "Unrolled UV table code overran buffer!"
+	.p2align 2
+	.long 0
+.endif
 
 ; ============================================================================
 ; NB. Not called directly, copied and patched at runtime.
