@@ -72,7 +72,7 @@ build:
 	./build/DiskIndex.lz4 ./build/paul8_uv.lz4 ./build/paul9_uv.lz4 ./build/RocketIndex.lz4 \
 	./build/paul10_uv.lz4 ./build/SpaceIndex.lz4 ./build/paul11_uv.lz4 ./build/paul12_uv.lz4 \
 	./build/ApolloIndex.lz4 ./build/paul13_uv.lz4 ./build/WarpIndex.lz4 ./build/paul14_uv.lz4 \
-	./build/GreetsIndex.lz4 ./build/nasa-font.bin
+	./build/GreetsIndex.lz4 ./build/nasa-font.lz4
 	echo done > $@
 
 ##########################################################################

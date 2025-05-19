@@ -4,6 +4,9 @@
 
 .equ LUTScroller_GlyphWidth,        24
 .equ LUTScroller_GlyphHeight,       24
+.equ LUTScroller_NumGlyphs,         96
+
+.equ LUTScroller_FontDataSize,      (LUTScroller_GlyphWidth*LUTScroller_GlyphHeight*LUTScroller_NumGlyphs)
 
 .equ LUTScroller_TextureWidth,      32
 .equ LUTScroller_TextureHeight,     256
@@ -18,7 +21,7 @@ lut_scroller_text_base_p:
 ; TODO: Decomp scroller font to top of unrolled code space!
 
 lut_scroller_font_p:
-    .long nasa_font_no_adr
+    .long uv_table_code_max_no_adr - LUTScroller_FontDataSize
 
 lut_scroller_v_pos:
     .long 255
@@ -29,10 +32,30 @@ lut_scroller_col:
 lut_scroller_texture_p:
     .long uv_texture_data_no_adr
 
+; R0=compressed font data.
 lut_scroller_init:
-    ldr r0, lut_scroller_text_base_p
-    str r0, lut_scroller_text_p
-    mov pc, lr
+    ldr r2, lut_scroller_text_base_p
+    str r2, lut_scroller_text_p
+
+    ldr r1, lut_scroller_font_p
+
+    .if _DEBUG
+    ldr r3, uv_table_code_top
+    cmp r1, r3
+
+    adrlt r0, err_fonthituvcode
+    swilt OS_GenerateError
+    .endif
+
+    b unlz4
+
+.if _DEBUG
+err_fonthituvcode:
+	.long 0
+	.byte "LUT scroller font data hit unrolled UV code!"
+	.p2align 2
+	.long 0
+.endif
 
 lut_scroller_tick:
     ; Update column.

@@ -58,6 +58,9 @@ uv_table_texture_data_p:
 uv_table_code_size:
     .long 0
 
+uv_table_code_top:
+    .long 0
+
 uv_table_code_max:
     .long UV_Table_CodeSize
 .endif
@@ -481,6 +484,8 @@ uv_table_gen_shader_code:
     ; Code size = 37889 words = 151556 bytes = 148K + 4 bytes!
 
     .if _DEBUG
+    str r12, uv_table_code_top
+
     ldr r0, uv_table_code_p
     sub r12, r12, r0
 

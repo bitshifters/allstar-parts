@@ -68,13 +68,12 @@ seq_space_part:
 
     ; Init FX modules.
     call_0      rotate_init
-    call_0      lut_scroller_init
 
     ; UV tunnel aka UV table fx.
     call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
 
     .if _DEBUG
-    ; goto seq_space_greets
+    goto seq_space_greets
     .endif
   
     ; ================================
@@ -383,6 +382,7 @@ seq_space_part:
     ; Greets
     ; ================================
 seq_space_greets:
+    call_1      lut_scroller_init,    nasa_font_no_adr
     call_3      fx_set_layer_fns,     1, lut_scroller_tick,     0
 
     call_2      palette_from_gradient,gradient_default,         seq_palette_gradient

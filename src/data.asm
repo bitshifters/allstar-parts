@@ -123,7 +123,7 @@ uv_inside_out_map_no_adr:
 
 .p2align 2
 nasa_font_no_adr:
-.incbin "build/nasa-font.bin"
+.incbin "build/nasa-font.lz4"
 .endif
 
 ; ============================================================================
