@@ -41,6 +41,9 @@ app_init_debug:
 ;    DEBUG_REGISTER_VAR music_pos
     DEBUG_REGISTER_VAR_EX seq_palette_blend, debug_plot_addr_as_hex8
     DEBUG_REGISTER_VAR_EX debug_free_ram, debug_plot_addr_as_dec4
+    .if _DEMO_PART==_PART_SPACE
+    DEBUG_REGISTER_VAR_EX uv_table_code_size, debug_plot_addr_as_dec4
+    .endif
 
     DEBUG_REGISTER_KEY          RMKey_Space,      debug_toggle_main_loop_pause,  0
     DEBUG_REGISTER_KEY_WITH_VAR RMKey_A,          debug_set_byte_true,           debug_restart_flag
@@ -474,6 +477,7 @@ app_copy_to_screen:
 .if _DEMO_PART==_PART_SPACE
 .include "src/fx/rotate.asm"
 .include "src/fx/uv-table.asm"
+.include "src/fx/lut-scroller.asm"
 .endif
 .if AppConfig_UseRasterMan
 .include "src/rasters.asm"

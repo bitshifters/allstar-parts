@@ -73,6 +73,10 @@ def main(options):
     pixels_per_byte=2
     pack=arc.pack_4bpp
 
+    step_x=1
+    if options.double_pixels:
+        step_x=0.5
+
     png_result=png.Reader(filename=options.input_path).asRGBA8()
 
     src_width=png_result[0]
@@ -131,7 +135,7 @@ def main(options):
 
     glyphs_across=src_width/options.glyph_dim[0]
     glyphs_down=src_height/options.glyph_dim[1]
-    glyph_size=options.glyph_dim[0]*options.glyph_dim[1]/pixels_per_byte
+    glyph_size=options.glyph_dim[0]*options.glyph_dim[1]/(pixels_per_byte*step_x)
     # TODO: Warning/errors if not a multiple of src_width/src_height.
     # TODO: Handle if glyph width is not a clean multiple of words.
 
@@ -150,21 +154,30 @@ def main(options):
 
             # One glyph.
             if options.store_as_byte_cols:
-                for x in range(0,options.glyph_dim[0],pixels_per_byte):
+                for x in range(0,options.glyph_dim[0],int(pixels_per_byte*step_x)):
                     for y in range(0,options.glyph_dim[1]):
-                        row=pixels[glyph_top+y]
+                        if options.flip_y:
+                            row=pixels[glyph_top+options.glyph_dim[1]-1-y]
+                        else:
+                            row=pixels[glyph_top+y]
                         assert(len(row)==src_width)
                         xs=[]
-                        for p in range(0,pixels_per_byte):
+
+                        for p in range(0,int(pixels_per_byte*step_x)):
                             xs.append(row[glyph_left+x+p])
+                            if options.double_pixels:
+                                xs.append(row[glyph_left+x+p])
                         assert len(xs)==pixels_per_byte
                         pixel_data.append(pack(xs))
+
                     # Pad byte columns to whole words.
                     if (options.glyph_dim[1] & 0x3) != 0:
                         for pad in range(0,4-(options.glyph_dim[1] & 0x3)):
                             pixel_data.append(0)
                             padding+=1
             else:
+                assert options.double_pixels is False
+                assert options.flip_y is False
                 for y in range(0,options.glyph_dim[1]):
                     row=pixels[glyph_top+y]
                     assert(len(row)==src_width)
@@ -226,6 +239,8 @@ if __name__=='__main__':
     parser.add_argument('-o',dest='output_path',metavar='FILE',help='output ARC data to %(metavar)s')
     parser.add_argument('-p',dest='palette_path',metavar='FILE',help='output palette data to %(metavar)s')
     parser.add_argument('--loud',action='store_true',help='display warnings')
+    parser.add_argument('--double-pixels',action='store_true',help='double pixels in x')
+    parser.add_argument('--flip-y',action='store_true',help='flip y direction')
     parser.add_argument('--store-as-byte-cols',action='store_true',help='store in columns one byte wide')
     parser.add_argument('--map-to-ascii',metavar='STRING',help='map glyphs from %(metavar)s to ASCII order')
     parser.add_argument('--glyph-dim',

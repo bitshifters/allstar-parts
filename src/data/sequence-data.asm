@@ -68,10 +68,15 @@ seq_space_part:
 
     ; Init FX modules.
     call_0      rotate_init
+    call_0      lut_scroller_init
 
     ; UV tunnel aka UV table fx.
     call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
 
+    .if _DEBUG
+    ; goto seq_space_greets
+    .endif
+  
     ; ================================
     ; Apollo
     ; ================================
@@ -377,6 +382,9 @@ seq_space_part:
     ; New: Space Travel II - More space travel (reusue warp again or something new),
     ; Greets
     ; ================================
+seq_space_greets:
+    call_3      fx_set_layer_fns,     1, lut_scroller_tick,     0
+
     call_2      palette_from_gradient,gradient_default,         seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
 
@@ -394,6 +402,8 @@ seq_space_part:
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
+
+    call_3      fx_set_layer_fns,     1, 0,                     0
     ; ================================
 
     ; ================================

@@ -10,6 +10,10 @@
 ; Defines for a specific build.
 ; ============================================================================
 
+.ifndef _WIMP_SLOT
+.equ _WIMP_SLOT,                1200*1024
+.endif
+
 .ifndef _DEMO_PART
 .equ _DEMO_PART,                _PART_SPACE       ; 0=donut, 1=tables, 2=test
 .endif
@@ -33,7 +37,7 @@
 .equ DebugDefault_ShowRasters,  0
 .equ DebugDefault_ShowVars,     0		; slow
 
-.equ Debug_TopOfWimpSlot,       0x8000 + 1400*1024
+.equ Debug_TopOfWimpSlot,       0x8000 + _WIMP_SLOT
 
 ; ============================================================================
 ; Includes.

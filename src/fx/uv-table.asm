@@ -4,7 +4,7 @@
 ;
 ; ============================================================================
 
-.equ UV_Table_CodeSize,             335876  ; 151556
+.equ UV_Table_CodeSize,             335876  ; (0x52004) MAX ACTUAL=0x4a274
 .equ UV_Table_Columns,              160
 .equ UV_Table_Rows,                 128     ; or 120?
 
@@ -53,6 +53,11 @@ uv_table_code_p:
 
 uv_table_texture_data_p:
     .long uv_texture_data_no_adr
+
+.if _DEBUG
+uv_table_code_size:
+    .long 0
+.endif
 
 ; ============================================================================
 
@@ -471,6 +476,13 @@ uv_table_gen_shader_code:
     ldr r0, [r8], #4
     str r0, [r12], #4
     ; Code size = 37889 words = 151556 bytes = 148K + 4 bytes!
+
+    .if _DEBUG
+    ldr r0, uv_table_code_p
+    sub r12, r12, r0
+    mov r12, r12, lsr #10
+    str r12, uv_table_code_size
+    .endif
 
     ldr pc, [sp], #4
 
