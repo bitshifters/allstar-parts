@@ -24,10 +24,10 @@
 ; TODO: Update for _DEMO_PARTs
 
 .equ SeqConfig_EnableLoop,              0
-.equ SeqConfig_MaxPatterns,             18          ; inc. 2.5 patterns at 12 ticks/row.
+.equ SeqConfig_MaxPatterns,             22
 
-.equ SeqConfig_ProTracker_Tempo,        114         ; Default = 125.
-.equ SeqConfig_ProTracker_TicksPerRow,  6
+.equ SeqConfig_ProTracker_Tempo,        112         ; Default = 125.
+.equ SeqConfig_ProTracker_TicksPerRow,  6           ; House tune is actually 3 :)
 
 .equ SeqConfig_PatternLength_Rows,      64
 .equ SeqConfig_PatternLength_Secs,      (2.5*SeqConfig_ProTracker_TicksPerRow*SeqConfig_PatternLength_Rows)/SeqConfig_ProTracker_Tempo

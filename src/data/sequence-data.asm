@@ -73,7 +73,7 @@ seq_space_part:
     call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
 
     .if _DEBUG
-    goto seq_space_greets
+    ;goto seq_space_greets
     .endif
   
     ; ================================
@@ -382,7 +382,7 @@ seq_space_part:
     ; Greets
     ; ================================
 seq_space_greets:
-    call_1      lut_scroller_init,    nasa_font_no_adr
+    call_2      lut_scroller_init,    nasa_font_no_adr,         seq_greets_text_no_adr
     call_3      fx_set_layer_fns,     1, lut_scroller_tick,     0
 
     call_2      palette_from_gradient,gradient_default,         seq_palette_gradient
@@ -394,14 +394,18 @@ seq_space_greets:
     call_1      uv_table_init_shader, UV_Table_TexDim_32_256
 
     write_fp    uv_table_fp_u,        0.0
-    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
+    write_fp    seq_dv,               2.0
+    math_add_vars uv_table_fp_v, seq_dv, 1.0, uv_table_fp_v       ; v'=1.0+1.0*v
 
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
+    wait_secs   5.0
+    write_fp    seq_dv,               4.0
+    wait_secs   32.0
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
+    math_kill_var seq_dv
 
     call_3      fx_set_layer_fns,     1, 0,                     0
     ; ================================
@@ -467,8 +471,17 @@ seq_panic_handle:
 
 seq_panic_offset:
     FLOAT_TO_FP 0.0
-.endif
 
+seq_greets_text_no_adr:
+    .byte "SPACE GREETS GO OUT TO... Alcatraz - Ate-Bit - AttentionWhore - "
+    .byte "CRTC - DESiRE - Hooy Program - Inverse Phase - Logicoma - Loonies - "
+    .byte "Proxima - Pulpo Corrosivo - Rabenauge - RiFT - Slipstream - YM Rockerz - "
+    .byte "NOVA orgas - IRIS - Defekt - Epoch & Ivory - Bus Error Collective - "
+    .byte "Evvvil (not a pity greet :)"
+    .byte "          "
+    .byte 0 ; end.
+.p2align 2
+.endif
 
 ; ============================================================================
 

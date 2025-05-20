@@ -13,12 +13,10 @@
 .equ LUTScroller_TextureSize,       (LUTScroller_TextureWidth*LUTScroller_TextureHeight)
 
 lut_scroller_text_p:
-    .long lut_scrolltext_text_no_adr
+    .long 0
 
 lut_scroller_text_base_p:
-    .long lut_scrolltext_text_no_adr
-
-; TODO: Decomp scroller font to top of unrolled code space!
+    .long 0
 
 lut_scroller_font_p:
     .long uv_table_code_max_no_adr - LUTScroller_FontDataSize
@@ -33,9 +31,15 @@ lut_scroller_texture_p:
     .long uv_texture_data_no_adr
 
 ; R0=compressed font data.
+; R1=ptr to scroll text.
 lut_scroller_init:
-    ldr r2, lut_scroller_text_base_p
-    str r2, lut_scroller_text_p
+    str r1, lut_scroller_text_base_p
+    str r1, lut_scroller_text_p
+
+    ldr r2, uv_table_fp_v
+    mov r2, r2, asr #16
+    and r2, r2, #0xff
+    str r2, lut_scroller_v_pos
 
     ldr r1, lut_scroller_font_p
 
@@ -58,75 +62,85 @@ err_fonthituvcode:
 .endif
 
 lut_scroller_tick:
-    ; Update column.
+    ; R0-R5 = texture col
+    ; R6 = number cols to plot
+    ; R7 = current glyph column
+    ; R8 = v pos
+    ; R9 = glyph ptr
+    ; R10 = glyph no.
+    ; R11 = text ptr
+    ; R12 = write
 
-    ldr r1, lut_scroller_text_p
-    ldr r0, lut_scroller_col
-    add r0, r0, #1
-    cmp r0, #LUTScroller_GlyphWidth
-    blt .1
-    
-    ; Update glyph.
+    ldr r8, uv_table_fp_v
+    mov r8, r8, asr #16
+    and r8, r8, #0xff               ; relies on TextureHeight==256
+    ldr r7, lut_scroller_v_pos
+    subs r6, r8, r7  ; number of cols to plot
+    addmi r6, r6, #LUTScroller_TextureHeight
+    str r8, lut_scroller_v_pos      ; prev v pos
 
-    mov r0, #0
-    ldrb r2, [r1, #1]!
-    cmp r2, #0
-    ldreq r1, lut_scroller_text_base_p
-    str r1, lut_scroller_text_p
-
-    .1:
-    str r0, lut_scroller_col
-
-    ; R12=texture map base
+    ldr r9, lut_scroller_font_p     ; R9=glyph read addr
+    ldr r11, lut_scroller_text_p
     ldr r12, lut_scroller_texture_p
 
-    ; Update texture row.
+    ; Plot into texture at old v pos
+    add r12, r12, r7, lsl #5        ; 32 byte stride
 
-    ldr r2, lut_scroller_v_pos
-    add r2, r2, #1              ; assumes fixed scroll in v.
-    cmp r2, #LUTScroller_TextureHeight
-    movge r2, #0
-    str r2, lut_scroller_v_pos
-
-    ; Plot a line to the texture and the following texture.
-
-    ; Plot address
-    add r12, r12, r2, lsl #5    ; 32 byte stride
-
-
-    ; R9=glyph read addr--
-    ldr r9, lut_scroller_font_p
-
-    ; R8=text ptr
-    ldrb r3, [r1]               ; get ASCII
+    ldr r7, lut_scroller_col
 
     ; Calc start address of glyph.
-    sub r3, r3, #32
-    add r9, r9, r3, lsl #9      ; +512
-    add r9, r9, r3, lsl #6      ; +64 =576 bytes per glyph.
+    ldrb r10, [r11]                 ; get ASCII
+    sub r10, r10, #32
+    add r9, r9, r10, lsl #9         ; +512
+    add r9, r9, r10, lsl #6         ; +64 =576 bytes per glyph.
 
-    ; R0=current byte column
-    add r9, r9, r0, lsl #4      ; +16
-    add r9, r9, r0, lsl #3      ; +8 = 24 bytes per column
+    ; r7=current byte column
+    add r9, r9, r7, lsl #4          ; +16
+    add r9, r9, r7, lsl #3          ; +8 = 24 bytes per column
 
-    ; Plot a column twice.
-
-    ldmia r9, {r0-r5}          ; 24 bytes
+    ; For each column.
+.3:
+    ; Plot a column (twice).
+    ldmia r9!, {r0-r5}              ; 24 bytes
     stmia r12, {r0-r5}
-
     add r12, r12, #LUTScroller_TextureSize
-
-    ldmia r9, {r0-r5}          ; 24 bytes
     stmia r12, {r0-r5}
+    sub r12, r12, #LUTScroller_TextureSize-LUTScroller_TextureWidth
+
+    ; Next column in glyph.
+    add r7, r7, #1
+    cmp r7, #LUTScroller_GlyphWidth
+    blt .2
+
+    mov r7, #0
+
+    ; Next char in text.
+    ldrb r10, [r11, #1]!
+    cmp r10, #0
+    ldreq r11, lut_scroller_text_base_p
+    ldreqb r10, [r11]
+    sub r10, r10, #32               ; ASCII
+
+    ; Calc start address of glyph.
+    ldr r9, lut_scroller_font_p     ; R9=glyph read addr
+    add r9, r9, r10, lsl #9         ; +512
+    add r9, r9, r10, lsl #6         ; +64 =576 bytes per glyph.
+
+.2:
+    ; Next column in texture.
+    add r8, r8, #1
+    cmp r8, #LUTScroller_TextureHeight
+
+    ; Reset texture ptr to base when we wrap.
+    movge r8, #0
+    ldrge r12, lut_scroller_texture_p
+
+    ; Next column this frame.
+    subs r6, r6, #1
+    bne .3
+    
+    ; For next time.
+    str r7, lut_scroller_col
+    str r11, lut_scroller_text_p
 
     mov pc, lr
-
-lut_scrolltext_text_no_adr:
-    .byte "SPACE GREETS GO OUT TO... Alcatraz - Ate-Bit - AttentionWhore - "
-    .byte "CRTC - DESiRE - Hooy Program - Inverse Phase - Logicoma - Loonies - "
-    .byte "Proxima - Pulpo Corrosivo - Rabenauge - RiFT - Slipstream - YM Rockerz - "
-    .byte "NOVA orgas - IRIS - Defekt - Epoch & Ivory - Bus Error Collective - "
-    .byte "Evvvil (not a pity greet :)"
-    .byte "          "
-    .byte 0 ; end.
-.p2align 2
