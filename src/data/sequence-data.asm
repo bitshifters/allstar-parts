@@ -166,15 +166,20 @@ seq_space_part:
     call_1      uv_table_init_shader, UV_Table_TexDim_8_256
 
     write_fp    uv_table_fp_u,        0.0
-    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
-    ; TODO: Make this go faster over time!
+    write_fp    seq_dv,               1.0
+    math_add_vars uv_table_fp_v, seq_dv, 1.0, uv_table_fp_v       ; v'=1.0+1.0*v
 
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient
+
+    ; Gets faster over time.
+    math_make_var seq_dv, 1.0, 9.0, math_clamp, 0.0, 1.0/(8.0*50.0)
     wait_secs   8.0
+
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
+    math_kill_var seq_dv
     ; ================================
 
     ; ================================
@@ -282,8 +287,8 @@ seq_space_part:
     call_2      uv_texture_unlz4,     rotate_texture_no_adr,    16384
     call_3      fx_set_layer_fns, 0,  rotate_tick,              rotate_draw
 
-    math_make_var rotate_angle,       0.0,   1.0, 0,            0.0,     1.0    ; speed 1.0 brad / frame
-    math_make_var rotate_scale,       0.1,   4.0, math_clamp,    0.0,    1.0/(50.0*8.0) ; zoom out
+    math_make_var rotate_angle,       0.0,   1.0, 0,            0.0,    1.0    ; speed 1.0 brad / frame
+    math_make_var rotate_scale,       0.1,   4.6, math_clamp,   0.0,    1.0/(50.0*9.0) ; zoom out
     
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient
