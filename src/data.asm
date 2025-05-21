@@ -70,10 +70,6 @@ uv_ship_map_no_adr:
 .incbin "build/paul2_uv.lz4"          ; ship w/ shader
 
 .p2align 2
-;uv_paul3_map_no_adr:
-;.incbin "build/paul3_uv.lz4"             ; inside twisty torus
-
-.p2align 2
 uv_planet_map_no_adr:
 .incbin "build/paul4_uv.lz4"          ; planet w/ shader
 
@@ -118,8 +114,12 @@ uv_greets_map_no_adr:
 .incbin "build/paul14_uv.lz4"          ; greets w/ shader
 
 .p2align 2
-uv_inside_out_map_no_adr:
-.incbin "build/tunnel2_uv.lz4"          ; inside out tunnel
+uv_fractal_map_no_adr:
+.incbin "build/paul16_uv.lz4"          ; inv fractal w/ shader
+
+.p2align 2
+uv_wormhole_map_no_adr:
+.incbin "build/paul17_uv.lz4"          ; greets w/ shader
 
 .p2align 2
 nasa_font_no_adr:

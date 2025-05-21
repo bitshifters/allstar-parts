@@ -72,7 +72,7 @@ build:
 	./build/DiskIndex.lz4 ./build/paul8_uv.lz4 ./build/paul9_uv.lz4 ./build/RocketIndex.lz4 \
 	./build/paul10_uv.lz4 ./build/SpaceIndex.lz4 ./build/paul11_uv.lz4 ./build/paul12_uv.lz4 \
 	./build/ApolloIndex.lz4 ./build/paul13_uv.lz4 ./build/WarpIndex.lz4 ./build/paul14_uv.lz4 \
-	./build/GreetsIndex.lz4 ./build/nasa-font.lz4
+	./build/GreetsIndex.lz4 ./build/nasa-font.lz4 ./build/paul16_uv.lz4 ./build/paul17_uv.lz4
 	echo done > $@
 
 ##########################################################################
@@ -255,6 +255,12 @@ clean:
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
 ./build/paul14_uv.bin: ./data/uvs/LUT14.png $(UV_SHADER)	# greets
+	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
+
+./build/paul16_uv.bin: ./data/uvs/LUT16.png $(UV_SHADER)	# fractal
+	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
+
+./build/paul17_uv.bin: ./data/uvs/LUT17.png $(UV_SHADER)	# workhole
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
 ##########################################################################

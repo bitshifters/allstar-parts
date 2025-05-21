@@ -89,11 +89,16 @@ seq_space_part:
     call_1      uv_table_init_shader, UV_Table_TexDim_128_128
 
     write_fp    uv_table_fp_u,        0.0
-    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
+    write_fp    uv_table_fp_v,        64.0
 
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
+    wait_secs   4.0
+
+    math_make_var uv_table_fp_v,      64.0, 64.0, math_clamp, 0.0, 1.0/(4.0*50)    ; v=i/200
+;    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
+
+    wait_secs   4.0
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
@@ -195,7 +200,25 @@ seq_space_part:
     ; ================================
 
     ; ================================
-    ; TODO: New : Entering wormhole?,
+    ; Wormhole.
+    ; ================================
+    call_2      palette_from_gradient,gradient_default,         seq_palette_gradient
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+
+    call_2      uv_texture_unlz4,     uv_space_texture_no_adr,  16384
+    call_2      unlz4,                uv_wormhole_map_no_adr,   uv_table_data_no_adr
+    write_addr  uv_table_map_p,       uv_table_data_no_adr
+    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
+
+    write_fp    uv_table_fp_u,        0.0
+    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
+
+    wait_secs   1.0
+    write_addr  palette_array_p,      seq_palette_gradient
+    wait_secs   8.0
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
+    wait_secs   1.0
+    math_kill_var uv_table_fp_v
     ; ================================
 
     ; ================================
@@ -223,13 +246,14 @@ seq_space_part:
     ; ================================
     ; Trippy.
     ; ================================
-    call_2      palette_from_gradient,gradient_black_hole,      seq_palette_gradient
+    call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,    1.0
     
     call_2      uv_texture_unlz4,     uv_space_texture_no_adr,  16384
-    call_2      unlz4,                uv_inside_out_map_no_adr, uv_table_data_no_adr
+    call_2      unlz4,                uv_fractal_map_no_adr,    uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
-    call_1      uv_table_init_shader, UV_Table_TexDim_128_128
+    ;call_1      uv_table_init_shader, UV_Table_TexDim_128_128  ; <== inherits shader data from previous!
+    call_0      uv_table_init
 
     call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
 
