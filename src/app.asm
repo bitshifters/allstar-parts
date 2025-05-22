@@ -33,7 +33,7 @@ app_init_debug:
     bl debug_init
 
     DEBUG_REGISTER_VAR_EX debug_frame_rate, debug_plot_addr_as_dec4
-    ; DEBUG_REGISTER_VAR_EX vsync_delta, debug_plot_addr_as_dec4
+    DEBUG_REGISTER_VAR_EX vsync_delta, debug_plot_addr_as_dec4
     DEBUG_REGISTER_VAR frame_counter
     .if _DEMO_PART==_PART_DONUT
     DEBUG_REGISTER_VAR scene3d_stats_quads_plotted
@@ -401,8 +401,12 @@ vsync_bodge:
 ; Code run at vsync.
 ; ============================================================================
 
-.if !AppConfig_UseRasterMan
 app_vsync_code:
+
+.if AppConfig_UseRasterMan
+	STMDB sp!, {r0-r1,r11-r12,lr}
+.endif
+
 	; Update the vsync counter.
 	ldr r0, vsync_count
 	add r0, r0, #1
@@ -427,12 +431,17 @@ app_vsync_code:
 	.if _CHECK_FRAME_DROP
 	streq r0, last_dropped_frame
 	.endif
-	beq exitVs
+	beq .2
     str r1, displayed_bank
 
     ldr r12, pending_screen_addr
     str r12, displayed_screen_addr
 
+	; Clear pending bank.
+	mov r0, #0
+	str r0, pending_bank
+
+.if !AppConfig_UseRasterMan
     ; Set palette for pending bank.
 	mov r11, #VIDC_Write
     ldr r12, vidc_buffers_p
@@ -446,11 +455,11 @@ app_vsync_code:
     subs r1, r1, #1
     bne .1
 .2:
-
-	; Clear pending bank.
-	mov r0, #0
-	str r0, pending_bank
     b exitVs
+.else
+.2:
+	LDMIA sp!, {r0-r1,r11-r12,lr}
+    SUBS PC,R14,#4
 .endif
 
 ; R0=src ptr
@@ -471,6 +480,8 @@ app_copy_to_screen:
 .endif
 .if _DEMO_PART==_PART_DONUT
 .include "src/fx/scene-3d.asm"
+.endif
+.if TipsyScrollerOnVsync
 .include "src/fx/tipsy-scroller.asm"
 .endif
 .if _DEMO_PART==_PART_SPACE

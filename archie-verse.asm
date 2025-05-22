@@ -35,7 +35,7 @@
 
 .equ DebugDefault_PlayPause,    1		; play
 .equ DebugDefault_ShowRasters,  0
-.equ DebugDefault_ShowVars,     0		; slow
+.equ DebugDefault_ShowVars,     1		; slow
 
 .equ Debug_TopOfWimpSlot,       0x8000 + _WIMP_SLOT
 
@@ -144,6 +144,9 @@ main:
     ; From Steve: QTM's DMA routine needs to be enabled for a few VSyncs after the final mode 
     ;             change before RM starts - hence need for QTM_SoundControl.
     ; TODO: Does this mean QTM_Start has to run for a few frames?
+
+    adr r0, app_vsync_code
+    swi RasterMan_Callback
     swi RasterMan_Wait
     swi RasterMan_Wait
 
@@ -560,6 +563,7 @@ mark_write_bank_as_pending_display:
     beq .2
 
     ; TODO: Could think about a palette dirty flag.
+    ; TODO: Stop needlessly converting between OSWORD and VIDC formats.
 
     mov r4, #0
 .3:
@@ -596,28 +600,13 @@ get_next_bank_for_writing:
 	cmp r1, #VideoConfig_ScreenBanks
 	movgt r1, #1
 
-.if AppConfig_UseRasterMan
-    ; VSYNC bodge for now - assume 50Hz.
-	swi RasterMan_Wait
-
-    ldr r0, pending_bank
-    str r0, displayed_bank
-
-    mov r0, #0
-    str r0, pending_bank
-
-    ldr r0, vsync_count
-    add r0, r0, #1
-    str r0, vsync_count
-.else
 	; Block here if trying to write to displayed bank.
-.if VideoConfig_ScreenBanks > 1
+    .if VideoConfig_ScreenBanks > 1
 	.1:
 	ldr r0, displayed_bank
 	cmp r1, r0
 	beq .1
-.endif
-.endif
+    .endif
 
 	str r1, write_bank
 

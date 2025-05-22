@@ -21,7 +21,9 @@ razor_font_no_adr:
 
 temp_logo_no_adr:
 .incbin "build/temp-logo.bin"
+.endif
 
+.if TipsyScrollerOnVsync
 fine_font_no_adr:
 .incbin "build/fine-font.bin"
 .endif
