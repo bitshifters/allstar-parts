@@ -3,6 +3,12 @@
 ; TODO: Tidy this up into sections and make more comprehensive.
 ; ============================================================================
 
+.ifndef RasterMan_VersionNumber
+.equ RasterMan_VersionNumber, 0.37
+.endif
+
+; ============================================================================
+
 .equ OS_WriteC, 0
 .equ OS_WriteO, 2
 .equ OS_WriteN, 0x46
@@ -18,6 +24,8 @@
 .equ OS_EnterOS, 0x16
 .equ OS_BreakPt, 0x17
 .equ OS_Mouse, 0x1c
+.equ OS_Claim, 0x1f
+.equ OS_Release, 0x20
 .equ OS_ChangeDynamicArea, 0x2a
 .equ OS_GenerateError, 0x2b
 .equ OS_ReadEscapeState, 0x2c
@@ -25,6 +33,7 @@
 .equ XOS_ReadVduVariables, OS_ReadVduVariables | (1 << 17)
 .equ OS_ReadMonotonicTime, 0x42
 .equ OS_Plot, 0x45
+.equ OS_AddToVector, 0x47
 .equ OS_ClaimDeviceVector, 0x4b
 .equ OS_ReleaseDeviceVector, 0x4c
 .equ OS_ReadDynamicArea, 0x5c
@@ -45,6 +54,7 @@
 
 .equ OSWord_WritePalette, 12
 
+; ============================================================================
 ; BBC compatible Internal Key numbers.
 ; Found in RISCOS PRMs pp 1-849.
 ; Values are EOR 0xff for OS_Byte 129 (Read keyboard for information.)
@@ -63,7 +73,9 @@
 .equ IKey_ArrowLeft, 230
 .equ IKey_ArrowRight, 134
 .equ IKey_Return, 0xB6
+; ============================================================================
 
+; ============================================================================
 ; Archimedes low-level internal key numbers transmitted by IOC.
 ; Found in RISCOS PRMs pp 1-156.
 ; Used by RasterMan and OS_Event Event_KeyPressed (11)
@@ -113,20 +125,21 @@
 .equ RMKey_8, 0x18
 .equ RMKey_9, 0x19
 .equ RMKey_0, 0x1a
+; ============================================================================
 
+; ============================================================================
 .equ DynArea_Screen, 2
-
 .equ VD_ScreenStart, 148 
+; ============================================================================
 
-.equ OS_Claim, 0x1f
-.equ OS_Release, 0x20
-.equ OS_AddToVector, 0x47
-
+; ============================================================================
 .equ ErrorV, 0x01
 .equ EventV, 0x10
 .equ Event_VSync, 4
 .equ Event_KeyPressed, 11
+; ============================================================================
 
+; ============================================================================
 .equ Font_FindFont, 0x40081
 .equ Font_LoseFont, 0x40082
 .equ Font_Paint, 0x40086
@@ -135,12 +148,18 @@
 .equ Font_SetColours, 0x40092
 .equ Font_SetPalette, 0x40093
 .equ Font_ScanString, 0x400a1
+; ============================================================================
 
+; ============================================================================
 .equ Wimp_SlotSize, 0x400EC
+; ============================================================================
 
+; ============================================================================
 .equ Sound_Configure, 0x40140
 .equ Sound_SoundLog, 0x40181
+; ============================================================================
 
+; ============================================================================
 .equ QTM_SwiBase, 0x47E40
 .equ QTM_Load, 0x47E40
 .equ QTM_Start, 0x47E41
@@ -179,21 +198,35 @@
 .equ QTM_DMAHandler, 0x47E62
 
 .equ MusicInterrupt_SongEnded, 0
+; ============================================================================
 
-.equ RasterMan_Install, 0x47e80
-.equ RasterMan_Release, 0x47e81
-.equ RasterMan_Wait, 0x47e82
-.equ RasterMan_SetTables, 0x47e83
-.equ RasterMan_Version, 0x47e84
-.equ RasterMan_ReadScanline, 0x47e85
-.equ RasterMan_SetVIDCRegister, 0x47e86
-.equ RasterMan_SetMEMCRegister, 0x47e87
-.equ RasterMan_QTMParamAddr, 0x47e88
-.equ RasterMan_ScanKeyboard, 0x47e89
-.equ RasterMan_ClearKeyBuffer, 0x47e8a
-.equ RasterMan_ReadScanAddr, 0x47e8b
-.equ RasterMan_Configure, 0x47e8c
+; ============================================================================
+.if RasterMan_VersionNumber >= 0.37
+.equ RasterMan_SWIBase,         0x5A940
+.else
+.equ RasterMan_SWIBase,         0x47e80
+.endif
 
+.equ RasterMan_Install,         RasterMan_SWIBase+0
+.equ RasterMan_Release,         RasterMan_SWIBase+1
+.equ RasterMan_Wait,            RasterMan_SWIBase+2
+.equ RasterMan_SetTables,       RasterMan_SWIBase+3
+.equ RasterMan_Version,         RasterMan_SWIBase+4
+.equ RasterMan_ReadScanline,    RasterMan_SWIBase+5
+.equ RasterMan_SetVIDCRegister, RasterMan_SWIBase+6
+.equ RasterMan_SetMEMCRegister, RasterMan_SWIBase+7
+.equ RasterMan_Status,          RasterMan_SWIBase+8
+.equ RasterMan_ScanKeyboard,    RasterMan_SWIBase+9
+.equ RasterMan_ClearKeyBuffer,  RasterMan_SWIBase+10
+.equ RasterMan_ReadScanAddr,    RasterMan_SWIBase+11
+.equ RasterMan_HSyncWaitAddr,   RasterMan_SWIBase+12
+.equ RasterMan_Configure,       RasterMan_SWIBase+13
+.equ RasterMan_Mode,            RasterMan_SWIBase+14
+.equ RasterMan_Callback,        RasterMan_SWIBase+15
+.equ RasterMan_ReadSWIHandler,  RasterMan_SWIBase+16
+; ============================================================================
+
+; ============================================================================
 .equ VIDC_Col0, 0x00000000
 .equ VIDC_Col1, 0x04000000              ; index << 26
 .equ VIDC_Col2, 0x08000000
@@ -225,7 +258,9 @@
 
 .equ MODE9_HCentrePixels, 291
 .equ MODE9_VCentreRasters, 166
+; ============================================================================
 
+; ============================================================================
 .equ ASCII_a, 97
 .equ ASCII_z, 122
 .equ ASCII_A, 65
@@ -239,11 +274,15 @@
 .equ ASCII_Minus, 45
 .equ ASCII_LessThan, 60
 .equ ASCII_MoreThan, 62
+; ============================================================================
 
+; ============================================================================
 .equ VDU_TextColour, 17
 .equ VDU_Home, 30
 .equ VDU_SetPos, 31
+; ============================================================================
 
+; ============================================================================
 .equ IOC_Write,         0x3200000
 
 .equ IOC_Control,       0x00
@@ -283,7 +322,9 @@
 .equ IRQA_PowerOn,      1<<4
 .equ IRQA_Timer0,       1<<5
 .equ IRQA_Timer1,       1<<6
+; ============================================================================
 
+; ============================================================================
 .equ ProcMode_User,     0b00
 .equ ProcMode_FIQ,      0b01
 .equ ProcMode_IRQ,      0b10
@@ -291,7 +332,9 @@
 
 .equ IRQ_Disable,       1<<27
 .equ FIQ_Disable,       1<<26
+; ============================================================================
 
+; ============================================================================
 .equ HwVector_Reset,        0x00    ; When computer is reset. Otherwise 'Branch through zero'.
 .equ HwVector_UndefInst,    0x04    ; Attempt to execute an instruction that is not part of normal instruction set.
 .equ HwVector_SWI,          0x08    ; SWI instruction issued. PC saved to R14_svc, ARM enters SVC mode, IRQ interrupts are disabled.
@@ -300,3 +343,4 @@
 .equ HwVector_AddrExcep,    0x14    ; Data reference made outside range 0x00000000-0x03FFFFFF.
 .equ HwVector_IRQ,          0x18    ; ARM received interrupt request. PC saved to R14_irq, ARM enters IRQ mode, IRQ interrupts disabled.
 .equ HwVector_FIQ,          0x1C    ; ARM received fast interrupt requrest. PC saved to R14_fiq, ARM enters FIQ mode, IRQ & FIQ interrupts disabled.
+; ============================================================================

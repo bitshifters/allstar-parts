@@ -15,7 +15,7 @@
 .endif
 
 .ifndef _DEMO_PART
-.equ _DEMO_PART,                _PART_SPACE       ; 0=donut, 1=tables, 2=test
+.equ _DEMO_PART,                _PART_TEST       ; 0=donut, 1=tables, 2=test
 .endif
 
 .ifndef _DEBUG
@@ -140,13 +140,16 @@ main:
 	mov r1, #Event_KeyPressed
 	SWI OS_Byte
     .else
-	; Fire up the RasterMan!
-	swi RasterMan_Install
-    .endif
-
     ; TODO: Sort out the screen mode / QTM / RasterMan init timing.
     ; From Steve: QTM's DMA routine needs to be enabled for a few VSyncs after the final mode 
     ;             change before RM starts - hence need for QTM_SoundControl.
+    ; TODO: Does this mean QTM_Start has to run for a few frames?
+    swi RasterMan_Wait
+    swi RasterMan_Wait
+
+	; Fire up the RasterMan!
+	swi RasterMan_Install
+    .endif
 
 	; Play music!
 	QTMSWI QTM_Start

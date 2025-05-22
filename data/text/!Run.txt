@@ -7,7 +7,7 @@ Set CPU$Type ARM3
 RMEnsure Arm3Support 0.0 Set CPU$Type ARM2
 |
 RMLOAD <Obey$Dir>.QTM149rm48 { > null: }
-RMLOAD <Obey$Dir>.RasterM36 { > null: }
+RMLOAD <Obey$Dir>.RasterM37 { > null: }
 |
 wimpslot -min 1200K
 |

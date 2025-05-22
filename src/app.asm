@@ -39,7 +39,6 @@ app_init_debug:
     DEBUG_REGISTER_VAR scene3d_stats_quads_plotted
     .endif
 ;    DEBUG_REGISTER_VAR music_pos
-    DEBUG_REGISTER_VAR_EX seq_palette_blend, debug_plot_addr_as_hex8
     DEBUG_REGISTER_VAR_EX debug_free_ram, debug_plot_addr_as_dec4
     .if _DEMO_PART==_PART_SPACE
     DEBUG_REGISTER_VAR_EX uv_table_code_size, debug_plot_addr_as_dec4

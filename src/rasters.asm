@@ -10,9 +10,9 @@ raster_table_top_p:
 
 raster_tables:
 	.long vidc_table_1_no_adr
-	.long vidc_table_2_no_adr
-	.long vidc_table_3_no_adr
-	.long memc_table_no_adr
+	.long -1
+	.long -1
+	.long -1
 
 ; ============================================================================
 
@@ -20,9 +20,7 @@ rasters_init:
     ; Configure RasterMan for future compatibility.
     mov r0, #4              ; number of VIDC reg writes
     mov r1, #0              ; number of MEMC reg writes
-    mov r2, #256            ; number of hsync interrupts
-    mov r3, #55             ; start of hsyncs (from vsync pos)
-    mov r4, #1              ; lines between hsyncs
+    mov r2, #1              ; number of scanlines between H-interrupts
     swi RasterMan_Configure
 
 	; Init tables.
@@ -39,11 +37,7 @@ rasters_init:
 .1:
 	stmia r0!, {r6-r9}		; 4x VIDC commands per line.
 	stmia r0!, {r6-r9}		; Double up as we're scrolling through the first buffer.
-	stmia r1!, {r6-r9}		; 4x VIDC commands per line.
-	stmia r2!, {r6-r9}		; 4x VIDC commands per line.
-	stmia r2!, {r6-r9}		; 4x VIDC commands per line.
-	str r4, [r3], #4
-	str r4, [r3], #4
+    ; NB. No longer need to fill redundant buffers.
 	subs r5, r5, #1
 	bne .1
 

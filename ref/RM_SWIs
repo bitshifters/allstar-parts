@@ -1,0 +1,432 @@
+RasterMan v0.37, 22nd May 2025               (c) Stephen Harrison, 2014-2025
+----------------------------------------------------------------------------
+
+New in v0.37 - officially allocated SWI base and error block!
+
+NOTE: With the change to new SWI base, SWI RasterMan_QTMParamAddr has been
+removed. Its function is now fully covered by the new SWI RasterMan_Status,
+but this is not a drop-in replacement. So if you are updating your code for
+the new SWI base and for some reason you used the old (very limited use)
+QTMParamAddr SWI, check out the new Status SWI and update to use this.
+
+Additional v0.37 - SWI RasterMan_Release now causes RasterMan to 'forget' any
+VIDC and MEMC tables, and any CallBack address. So you must set up your VIDC
+and MEMC tables again with SWI RasterMan_SetTables, if you intend to call SWI
+RasterMan_Install again. This minimises risk of 'old' addresses remaining in
+RasterMan's memory if/when another user calls RM.
+
+RasterMan works on *REAL* Acorn Archimedes computers upto RISC OS 3.1x It
+will also run under emulation on Arculator v2.1 and later.
+
+Introduction
+------------
+
+RasterMan brings 100% accurate H-Sync 'raster bar' interrupts to the
+Archimedes, which (amongst other things) allows the user to: create solid
+raster bars, switch display resolutions mid-screen, change the entire
+16-register palette on every scanline, mirror sections of the screen, etc.
+All this is possible while music can still be played using QTM (special
+release), due to accurate scheduling of QTM's interrupts so they do not clash
+with RasterMan's H-Sync interrupts.
+
+This version of RasterMan allow 0/4/8 or 16 VIDC register changes and 0, 1 or
+2 MEMC register changes, up to twice per scanline, or once every x scanlines
+(x=1 to 255). Programming of registers is carried out through (up to) 4
+user-defined register tables which can be moified in real time. Note:
+Reducing the number of register changes and/or increasing the number of
+scanlines between RasterMan 'HSync' interruptes will reduce the amount of CPU
+usage by RasterMan's HSync interrupt, so to free up CPU time, only use the
+number of changes you need.
+
+The RasterMan HSync interrupt is timed to occur between the end of the
+previous scanline, during H-retrace, and the start of the target scanline, so
+that any changes to VIDC palette and screen parameters, and MEMC registers
+will be in place by the start of the target scanline. If configured for two
+changes per scanline, the second change is timed to occur approximately half
+way through the scanline output, so palette changes will be visible unless
+carefully aligned to changing screen data.
+
+Example use of RasterMan: When set to have 16 VIDC changes per line taking
+place, RasterMan enables the programmer to accurately change the entire 16
+register VIDC palette *on every scanline*, with no flicker or visible
+artefacts, allowing colourful "raster bar" effects.
+
+
+More than 16 changes per line?
+------------------------------
+
+By allowing two interrupts per scanline (RasterMan_Confgure, with R2=0), the
+first RasterMan interrupt occure during H-retrace (as above), and the second
+at approx. half-way through the displayed scanline.
+ 
+Changing up to 32 VIDC and up to 4 MEMC registers each scanline involves RM
+using a lot of processor time particularly on Arm2 systems, so this may only
+be of use in very carefully crafted demo/game scenes.
+
+Note: As the second 16 VIDC registers are being changed mid-scanline, palette
+changes may be visible immediately on the screen, so programmers will need to
+select colours and graphics carefully to avoid the user seeing any jitter
+(the pixel timing of the mid-scanline changes is affected by unavoidable
+sound and video DMA requests, so expect +/- 4 pixel accuracy if making
+mid-scanline palette changes).
+
+
+Contact
+-------
+
+The author resides somewhere on the internet. Email me at sah3000@yahoo.com
+
+
+
+----------------------------------------------------------------------------
+SWI documentation v0.37
+----------------------------------------------------------------------------
+
+RasterMan v0.37 now has an offical RISC OS registered SWI base. This change
+since v0.36 means users moving their code to v0.37 will need to reassemble
+any existing ARM code that relied on the previous SWI numbers.
+
+Allocated SWI base: &5A940
+
+
+SWI RasterMan_Install                                                 &5A900
+----------------------------------------------------------------------------
+
+Entry: -
+Exit:  RasterMan enabled. All interrupts disabled except RasterMan and QTM.
+
+This SWI enables RasterMan HSync interrupt code on the IRQ and FIQ vectors.
+Once enabled, RasterMan will read registers from the VIDC and MEMC tables on
+each raster interrupt and pass these to the VIDC and MEMC. In order to
+guarentee solid 'rasters', all RISC OS interrupts are disabled. This means
+code must not call any OS SWIs which rely on interrupts or are not IRQ
+compatible (eg. SWIs to read the 100Hz timer, set up interrupts, etc.).
+
+With RasterMan enabled, BASIC will still run, but programmes must not use the
+TIME variable, or the WAIT or MODE commands, or any key/input commands. Use
+SWI RasterMan_Release to disable RasterMan's HSync interrupt.
+
+***************************************************************************
+** Also you must not LOAD/SAVE any data - disc access must not take place**
+** while RM HSync is active, or the system will crash, disable RM first! **
+***************************************************************************
+
+When RasterMan is enabled, the RasterMan SWIs are safe to use and should be
+used in preferance to any OS SWIs.
+
+An error will be generated, and RasterMan will not be enabled, if the VIDC or
+MEMC tables have not been defined using SWI RasterMan_SetTables.
+
+
+SWI RasterMan_Release                                                 &5A901
+----------------------------------------------------------------------------
+
+Entry: -
+Exit:  RasterMan disabled. All interrupts including OS interrupts reenabled.
+
+This SWI releases RasterMan control of IRQ and FIQ vectors and disables the
+RasterMan HSync interrupt code. You must call this SWI once your code has
+finished using RasterMan and wishes to return control of interrupts to the
+OS.
+
+From v0.37, SWI RasterMan_Release also causes RasterMan to 'forget' and VIDC
+and MEMC tables, and any CallBack address. So you must set up your VIDC and
+MEMC tables again with SWI RasterMan_SetTables, if you intend to call SWI
+RasterMan_Install again. This minimises risk of 'old' addresses remaining in
+RasterMan's memory if/when another user calls RM.
+
+Remember: You must call this SWI if your code wants to load any data from
+disc, or use any OS SWI which is not IRQ compatible.
+
+
+SWI RasterMan_Wait                                                    &5A902
+----------------------------------------------------------------------------
+
+Entry: -
+Exit:  all registers preserved
+
+This SWI waits until the end of the vertical screen redraw, then returns to
+the caller once the VIDC is in V-retrace. During the retrace, the screenbanks
+can be swapped or screen data updated/sprites plotted without causing visual
+artifacts/tearing.
+
+This SWI performs the same function as OS_Byte 19 and may be called when
+RasterMan is initialised as well as when it is not.
+
+(Note: You must not call OS_Byte 19 when RM is initialised because calling
+this OS SWI will crash the computer, use SWI RasterMan_Wait instead).
+
+
+SWI RasterMan_SetTables                                               &5A903
+----------------------------------------------------------------------------
+
+Entry: R0=vidc table 1 [4/8/16 regs per interrupt], or -1 to read current
+       R1=vidc table 2 [8/16 regs per interrupt], or -1 to read current
+       R2=vidc table 3 [16 regs per interrupt], or -1 to read current
+       R3=memc table [1 or 2 regs per interrupt], or -1 to read current
+
+Exit:  R0-R3 previous table pointers
+
+This SWI must be called before initialising RasterMan, as it specifies the
+memory address of the VIDC tables and MEMC table of registers to update
+during each reaster interrupt. ***WARNING: The user must define all the
+tables needed by the configuration (SWI RasterMan_Configure) before RM is
+initialised, or the system will hang on initialisation***.
+
+*** Note: The size/format of these tables may change in future versions ***
+
+The format of the tables is as follows:
+
+VIDC table 1 (required for 4/8/16 changes) & VIDC table 2 (8/16 changes)
+------------------------------------------------------------------------
+
+VIDC tables 1 and 2 have 4 words per raster. Each word is a VIDC register
+parameter (eg. a palette register) which is sent to the VIDC during HSync
+interrupt for the corresponding raster. The minumum size of table 1 and table
+2 is <number of scanline interrupts>*16 bytes, so for 256 scanlines with 1
+interrupt every scanline, the table size must be at least 256*16 = 4096
+bytes. Tables 1 and 2 are formatted as follows:
+
+Raster   0: Word    0, Word    1, Word    2, Word    3
+Raster   1: Word    4, Word    5, Word    6, Word    7
+...
+Raster 255: Word 1020, Word 1021, Word 1022, Word 1023
+
+IMPORTANT: Every word in this table will be sent to the VIDC, so be very
+careful about prefilling the table. If you fill the table with 0's, this will
+set colour 0 to rgb=000 ie. black, on each raster. So do not prefill with 0's
+unless you want colour 0 programmed to black on each unused line. If your
+game/demo is not using the border colour, then a good option is to prefill
+with &40000000, which sets the border to black.
+
+VIDC table 3 (only needed for 16 changes per scanline)
+------------------------------------------------------
+
+VIDC table 3 is larger than tables 1 or 2, because table 3 contains 8
+registers/words per raster. The minumum size of table 3 is <number of
+scanline interrupts>*32 bytes, so for 256 scanlines with 1 interrupt every
+scanline, the table size must be at least 256*32 = 8192 bytes. Table 3 is
+formatted as follows:
+
+Raster   0: Words    0,    1,    2,    3,    4,    5,    6,    7
+Raster   1: Words    8,    9,   10,   11,   12,   13,   14,   15
+...
+Raster 255: Words 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047
+
+As with tables 1 and 2, be careful when pre-filling the table as all words
+are sent to the VIDC.
+
+MEMC table
+----------
+
+The MEMC table is either 1 or 2 words per raster depending on whether there
+are 1 or 2 MEMC changes configured per RasterMan interrupt. As with the VIDC
+table, these 1 or 2 words are registers which are sent to the MEMC on each
+interrupt. However, unlike the VIDC tables, the words in the MEMC table are
+only sent to the MEMC if their value is >= &03600000, as this is required for
+MEMC registers. Because of this check, you can safely prefill the MEMC table
+with 0's, these will not be sent to the MEMC.
+
+The minumum size of the MEMC table is <number of MEMC changes per
+interrupt>*<number of scanline interrpts>*4 bytes, so for 2 MEMC changes per
+interrupt, 256 scanlines with 1 interrupt every scanline, the table size must
+be at least 256*8 = 2048 bytes. The MEMC tables is formatted as follows:
+
+1 MEMC change per interrupt:
+
+Raster   0: Word    0
+Raster   1: Word    1
+...
+Raster 255: Word  255
+
+2 MEMC changes per interrupt:
+
+Raster   0: Word    0, Word    1
+Raster   1: Word    2, Word    3
+...
+Raster 255: Word  510, Word  511
+
+
+SWI RasterMan_Version                                                 &5A904
+----------------------------------------------------------------------------
+
+Entry: -
+Exit:  R0=version*100 (eg. 011 for v0.11)
+
+Used to read the version of RasterMan loaded.
+
+
+SWI RasterMan_ReadScanline                                            &5A905
+----------------------------------------------------------------------------
+
+Entry: -
+Exit:  R0=current scanline (0-max screen height) 
+          or -1 if V-retrace taking place
+
+This SWI is a useful alternative to RasterMan_Wait and returns either the
+current on-screen scanline being sent to the display, or returns -1 if the
+display is in V-retrace.
+
+This SWI only works when RasterMan is installed and will return an error if
+RasterMan H-Sync interrupts are not enabled (see SWI RasterMan_Install).
+
+
+SWI RasterMan_SetVIDCRegister                                         &5A906
+----------------------------------------------------------------------------
+
+Entry: R0=VIDC register to send to VIDC
+Exit:  registers preserved
+
+This SWI sends the contents of R0 direct to the VIDC.
+
+The user must be careful to ensure R0 contains a valid VIDC
+register/parameter, as no checks are preformed by this SWI and sending an
+invalid register to the VIDC could result in an immediate complete system
+crash.
+
+
+SWI RasterMan_SetMEMCRegister                                         &5A907
+----------------------------------------------------------------------------
+
+Entry: R0=MEMC register to send to MEMC
+Exit:  registers preserved
+
+This SWI sends the contents of R0 direct to the MEMC.
+
+The user must be very careful to ensure R0 contains a valid MEMC
+register/parameter, as no checks are preformed by this SWI and sending an
+invalid register to the MEMC will almost certainly result in an immediate
+complete system crash.
+
+
+SWI RasterMan_Status                                                  &5A908
+----------------------------------------------------------------------------
+
+**NOTE this SWI has changed since v0.36 and is not backwards compatible**
+
+Entry: -
+Exit:  R0=RasterMan status byte:
+		bit	meaning if set
+		0	RasterMan installed and running
+		1	RasterMan is controlling QTM music and DMA IRQs
+			(bit1 is only valid if bit0=1 RasterMan installed)
+		2	User callback enabled
+
+If bit0 of R0 is set, RasterMan H-interrupt code is installed and functioning
+correctly. If bit1 is set, then RM is communicating with QTM correctly to
+enable sound, by handling all music IRQs and DMA fill IRQs. If bit2 is set,
+an external routine (registered with RasterMan_CallBack) will be called after
+all VSync processing (including music/DMA IRQs).
+
+
+SWI RasterMan_ScanKeyboard                                            &5A909
+----------------------------------------------------------------------------
+
+Entry: -
+Exit:  R0=two byte keyboard code
+
+This SWI reads the curent two-byte keyboard key code.
+
+
+SWI RasterMan_ClearKeyBuffer (temp SWI, may be removed in future)     &5A90A
+----------------------------------------------------------------------------
+
+Entry: -
+Exit:  -
+
+This SWI clears the current RM keyboard buffer.
+
+
+SWI RasterMan_ReadScanAddr                                            &5A90B
+----------------------------------------------------------------------------
+
+Entry: -
+Exit:  R0=address of 'swi_scankeyboard' routine
+
+This SWI returns the address of the scan keyboard routine - so this can be
+called directly, avoiding the need to call the SWI as the OS SWI routines may
+disable interrupts briefly.
+
+
+SWI RasterMan_HSyncWaitAddr                                           &5A90C
+----------------------------------------------------------------------------
+
+Entry: -
+Exit:  R0=address of code to call for HSync Wait (R5 & R6 will be corrupted
+on calling)
+
+Returns address of short code routine that can be called directly to wait for
+completion of next RM interrupt (equivalent of HSync, if one int per line).
+
+Note: if the routine at R0 is called from USR mode, it will only work if RM
+configured for >4 VIDC changes per line, otherwise it will hang until reset!
+Calling from SVC or IRQ mode will work for any RM setting.
+
+
+SWI RasterMan_Configure                                               &5A90D
+----------------------------------------------------------------------------
+
+Entry: R0=0, 4, 8, 16 VIDC register changes per H-interrupt, -1 to read
+       R1=0, 1, 2 MEMC register changes per H-interrupt, -1 to read
+       R2=number of scanlines between H-interrupts (min. = 1 to interrupt
+every line, max. = 256, or set to 0 for 2 H-interrpts per line, one at start,
+one in middle), -1 to read
+
+...if both R0&R1=0 then no VIDC/MEMC changes or H-interrupts IRQs will happen
+
+Exit:  R0, R1, R2 = settings before any changes made, all other reg preserved
+
+This SWI configures RasterMan to the required number of VIDC/MEMC changes per
+'HSync' interrupt and sets the number of scanlines between each interrupt.
+
+Note - if changing configuration while RasterMan is 'installed' (SWI
+RasterMan_Install), you must call RasterMan_Wait, followed by
+RasterMan_SetTables (if necessary) to ensure the correct tables are
+available, *before* making changes by calling RasterMan_Configure, otherwise
+it will likely crash.
+
+Default settup: R0=16 VIDC changes, R1=2 MEMC changes, R2=1 scanline per int
+
+
+SWI RasterMan_Mode                                                    &5A90E
+----------------------------------------------------------------------------
+
+Entry: R0=new screen mode number
+Exit:  R0 preserved
+
+This SWI changes mode. Don't use if RM is installed.
+
+
+SWI RasterMan_CallBack                                                &5A90F
+----------------------------------------------------------------------------
+
+Entry: R0=address of routine to be called once RM VSync processing is
+complete, 0 to clear the callback, or -1 to read current callback addr.
+Exit:  R0=previous address or 0 if not in use
+
+The callback routine will be called with processor in IRQ mode and IRQs
+disabled. On entry R13 points to IRQ stack, R14 contains return address+4.
+The routine must complete quickly, preserve all registers, and exit with SUBS
+PC,R14,#4. The routine must not call any SWIs, or enable IRQs, as this will
+crash RM.
+
+
+SWI RasterMan_ReadSWIHandler                                          &5A910
+----------------------------------------------------------------------------
+
+Entry: -
+Exit:  R0=address of RM SWI handler code
+
+This returns the address of RM's SWI handler code, so you can call directly
+from your code, or from IRQs to save time.
+
+To use the address returned by R0, you must only call it from SVC or IRQ
+mode, and you must set R11 = <required SWI number>-<RM SWI base> (or use the
+final 2 digits of the number shown to the right of each SWI in this ReadMe).
+eg. to call RasterMan_Version, set R11=&04.
+
+Some RM SWIs must never be called from within an interrupt or callback:
+Install, Release, Wait, Configure and Mode, or will lead to system hang.
+Others should be OK, if used appropriately (eg. don't call the HSync wait
+code returned by HSyncWaitAddr if you are in a VSync callback...).
+

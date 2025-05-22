@@ -1,4 +1,4 @@
-SWI list and API information for QTM v1.49beta   © Steve Harrison, 1993-2023
+SWI list and API information for QTM v1.49       © Steve Harrison, 1993-2023
 ----------------------------------------------------------------------------
 
 The QTMTracker module contains a full application programming interface (API)
@@ -685,17 +685,14 @@ If 0 channels are specified, the QTM sound system is shut down. If a song
 was playing at that time, the music handlers and position counters will
 continue to move through the song, although no sound will be heard from QTM.
 
-Details of the Transparent Sound System can be found in the 'Technical' help
-file, but basically it allows joint control over the sound channels, by QTM
-and either the RISC OS sound handler (default) or any other RISC OS
-compatible sound channel handler. Switching the Transparent Sound System on
-(setting bit 1 in R1) will allow you to hear any RISC OS voice module sounds
-AS WELL as any QTM samples. For example, in its default state, the
-Transparent Sound System will allow you to hear the system 'beep', while a
-song or sample is being played through QTM.
-
-TSS is enabled by default on RISC OS 5 computers (otherwise switched off by
-default). Also use '*command' *QTMTransparent [On|Off] to switch on/off TSS.
+Bit 0 controls the Transparent Sound System (TSS). Details of the TSS can be
+found in the 'Technical' help file, but basically it allows RISC OS to sounds
+to play through QTM's music. Switching the Transparent Sound System on
+(setting bit 0 in R1) or using "*QTMTransparent On" will allow you to hear
+any RISC OS voice module sounds AS WELL as any QTM samples. For example,
+enabling the TSS will allow you to hear the system 'beep', while a song or
+sample is being played through QTM. TSS is enabled by default on RISC OS 5
+computers (otherwise switched off by default).
 
 Bit 2 Controls what QTM does with the it's sound DMA channel handler when a
 Pause/Stop/Clear (SWI or *Command) is used. The default is for QTM to remove
@@ -717,17 +714,24 @@ previous state (usually released) by issuing a QTM Pause/Stop/Clear after
 clearing Bit 2 of sound system flags, or issuing a QTM_SoundControl with R0=0
 (and R1, R2 set appropriately).
 
-Change with R2 in v1.49: Previously QTM v1.22-v1.48 allowed replacement of
-the channel handler called by QTM's TSS while QTM was running - however
-function this was removed in v1.49, because it is not necessary. Advanced
-users who want a different channel handler to be used with TSS just need to
-register their channel handler with RISC OS (Sound_Configure) before enabling
-QTM's TSS. This allows, for example, QTM to be used along with a specially
-written sound effects generator for games or demos. The channel handler must
-be set up with RISC OS before QTM's sound is enabled or while it is stopped
-(eg. before playing a track, or after switching QTM off with QTM Pause/Stop
-or QTM_SoundControl, R0=0) and the RISC OS channel handler must only be
+*NOTE* Change with R2 in v1.49: Previous versions of QTM before v1.49 allowed
+coders to replace the channel handler called by QTM's TSS while QTM was
+running, using R2. However this function was removed in v1.49, because it is
+not necessary as the same change can be achieved via RISC OS Sound_Configure
+and the need to use an external channel handler is minimal since QTM provides
+the abiliy for users to directly play sample/sound effects through QTM.
+
+Advanced users who require a different channel handler to be used with TSS
+just need to register their channel handler with RISC OS (Sound_Configure)
+before enabling QTM's TSS. This could allow QTM to be used along with a
+specially written RISC OS sound effects generator for games. The channel
+handler must be set up with RISC OS before QTM's sound is enabled or while it
+is stopped (eg. before playing a track, or after switching QTM off with QTM
+Pause/Stop or QTM_SoundControl, R0=0) and your channel handler must only be
 removed/deregistered from RISC OS after QTM sound has been disabled again.
+For channel handler details, see page 4-10 of the RISC OS 3 PRMs or page 1578
+of the RO 2 PRMs.
+
 
 
 SWI "QTM_SWITableAddress"                                             &47E59
