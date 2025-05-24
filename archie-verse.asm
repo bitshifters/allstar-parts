@@ -15,7 +15,7 @@
 .endif
 
 .ifndef _DEMO_PART
-.equ _DEMO_PART,                _PART_TEST       ; 0=donut, 1=tables, 2=test
+.equ _DEMO_PART,                _PART_DONUT       ; 0=donut, 1=tables, 2=test
 .endif
 
 .ifndef _DEBUG
@@ -23,7 +23,7 @@
 .endif
 
 .ifndef _SMALL_EXE
-.equ _SMALL_EXE,                1
+.equ _SMALL_EXE,                !_DEBUG
 .endif
 
 .equ _SLOW_CPU,                 1       ; ARM2 @ 8MHz. TODO: Set dynamically.
@@ -67,7 +67,7 @@
 Start:
 main:
     .if AppConfig_ReturnMainToCaller
-    mov r12, sp
+    mov r12, sp                 ; TODO: Use caller's stack!
     .endif
     ldr sp, stack_p
     .if AppConfig_ReturnMainToCaller
@@ -378,7 +378,7 @@ exit:
 	ldr r1, write_bank
 	swi OS_Byte
 	; and write to it
-	mov r0, #OSByte_WriteVDUBank
+	mov r0, #OSByte_WriteVduBank
 	ldr r1, write_bank
 	swi OS_Byte
 
@@ -526,12 +526,6 @@ exitVs:
 
 event_handler_return:
 	mov pc, lr
-
-    .if _DEBUG
-    b debug_handle_keypress
-    .else
-    mov pc, lr
-    .endif
 .endif
 
 
@@ -548,9 +542,6 @@ mark_write_bank_as_pending_display:
 	cmp r0, #0
 	bne .1
 	str r1, pending_bank
-
-    ldr r12, screen_addr
-    str r12, pending_screen_addr
 
     ; Convert palette buffer to VIDC writes here!
     ldr r2, vidc_buffers_p
@@ -588,8 +579,10 @@ mark_write_bank_as_pending_display:
 
 .2:
 	; Show pending bank at next vsync.
+    .if !AppConfig_UseMemcBanks
 	MOV r0, #OSByte_WriteDisplayBank
 	swi OS_Byte
+    .endif
 ;	mov pc, lr
 ; FALL THROUGH!
 
@@ -611,16 +604,43 @@ get_next_bank_for_writing:
 	str r1, write_bank
 
 	; Now set the screen bank to write to
-	mov r0, #OSByte_WriteVDUBank
+.if !AppConfig_UseMemcBanks
+	mov r0, #OSByte_WriteVduBank
 	swi OS_Byte
+.endif
 ; FALL THROUGH!
 
 get_screen_addr:
+.if AppConfig_UseMemcBanks
+    adr r0, screen_addr_logical
+    ldr r1, write_bank
+    ldr r0, [r0, r1, lsl #2]
+    str r0, screen_addr
+.else
 	; Back buffer address for writing bank stored at screen_addr
 	adrl r0, screen_addr_input
 	adrl r1, screen_addr
 	swi OS_ReadVduVariables
+.endif
     mov pc, lr
+
+.if AppConfig_UseMemcBanks
+screen_addr_logical:
+    .long 0
+    .set BankNo, 0
+    .rept VideoConfig_ScreenBanks
+    .long MEMC_PhysRam - TotalScreenSize + Screen_Bytes * BankNo
+    .set BankNo, BankNo+1
+    .endr
+
+screen_addr_phys:
+    .long 0
+    .set BankNo, 0
+    .rept VideoConfig_ScreenBanks
+    .long BankNo*Screen_Bytes >> 4
+    .set BankNo, BankNo+1
+    .endr
+.endif
 
 .if _DEBUG
 error_handler:
@@ -678,20 +698,15 @@ screen_addr:
 init_screen_addr:
     .long 0             ; ptr to the screen displayed during [long] init.
 
+; TODO: Make these bytes?
 displayed_bank:
 	.long 0				; VIDC sreen bank being displayed
-
-displayed_screen_addr:
-    .long 0             ; ptr to the screen being displayed
 
 write_bank:
 	.long 0				; VIDC screen bank being written to
 
 pending_bank:
 	.long 0				; VIDC screen to be displayed next
-
-pending_screen_addr:
-    .long 0             ; ptr to the screen about to be displayed
 
 vsync_count:
 	.long 0				; current vsync count from start of exe.

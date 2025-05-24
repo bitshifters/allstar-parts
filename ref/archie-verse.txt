@@ -459,6 +459,17 @@ DONUT PART
     - Scroller at 50Hz how?
         - Update on vsync - STARTED
         - Use RasterMan to display a separate buffer?
+        - Fixed single buffer that's updated at vsync.
+        => Would need to move the framework to all MEMC for buffer management.
+        => Set Vinit per frame (Vptr gets loaded with Vinit at vsync)
+        => When Vptr>Vend then Vptr=VStart
+
+To move to direct buffers.
+Turn off RasterMan for now to avoid complications.
+Obtain logical & physical RAM addresses for N banks at init.
+Use bank numbers to obtain relevant addresses.
+Set Vinit instead of calling OSByte_WriteDisplayBank.
+
 - Come up with at least four interesting variations.
     - Move
         - Defining paths with individual math_vars is tedious.
@@ -475,7 +486,7 @@ DONUT PART
         - Update mesh ptr in the entity being displayed...
     - Lighting
         - Move the light source - DONE
-        - Multiple light sources? => NOT ENOUGH COLOURS?
+        - Multiple light sources? => NOT ENOUGH COLOURS (TOO MANY FACES)
         - Draw the light source
     - Triangle wibble by offseting X start by Y index into table..
 - Colours
@@ -522,21 +533,6 @@ Scheme 1:
 Scheme 2:
 logical_colour = texture[uv]
 logical_colour = (logical_colour >> a) + b
-
-#if SCENE == SHIP_SCENE
-// https://gradient-blaster.grahambates.com/?points=000@0,022@4,58c@11,fff@15&steps=16&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
-    int PaletteData[] = int[](
-	0x000,0x000,0x000,0x011,0x022,0x123,0x134,0x246,
-	0x357,0x469,0x47a,0x58c,0x7ad,0xace,0xdef,0xfff    
-    );
-#else
-    // https://gradient-blaster.grahambates.com/?points=000@0,a61@8,fff@15&steps=16&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
-
-    int PaletteData[] = int[](
-    	0x000,0x100,0x110,0x310,0x421,0x530,0x740,0x950,
-        0xa61,0xb84,0xc86,0xda8,0xdb9,0xedb,0xfee,0xfff
-    );
-#endif    
 
 => Need a cheap fade for the tunnel / distance modifier
     - Use Paul's shift and add approach?
@@ -610,7 +606,7 @@ Paul's TODOs:
     Sun flare probably looks better quite slow.
 - Wonder if a palette animation from black to white then to the image would look like a camera flash / shutter effect. Could that coincide with a shutter sound?
 - Also thinking... perhaps the very first shot could start completely static so it looks like a still image and then slowly speed up from zero the scroll effect as a "tada" moment.
-- Double height LUT table..
+- Double height LUT table.. => NEXT TIME?
     => Check max code size.
     => Put gen code at end of bss.
 
@@ -684,3 +680,17 @@ Sun,
 New : End somehow?,
 
 New: Somewhere in the above - greets / credits scrolling / flying past ship? Perpahs cut in the middle of Space Travel II (or the trippy section but that feels a bit early)
+
+
+NOTE TO SELF:
+MODE 13 default palette: (RGB222+tint)
+ [0]=0000 [1]=0111 [2]=0222 [3]=0333 [4]=0004 [5]=0115 [6]=0226 [7]=0337
+ [8]=0400 [9]=0511 [a]=0622 [b]=0733 [c]=0404 [d]=0515 [e]=0626 [f]=0737
+
+RTW RGB233 palette:
+ [0]=0000 [1]=0200 [2]=0020 [3]=0220 [4]=0006 [5]=0206 [6]=0026 [7]=0226
+ [8]=0400 [9]=0600 [a]=0420 [b]=0620 [c]=0406 [d]=0606 [e]=0426 [f]=0626
+
+RTW RGB332 palette:
+ [0]=0000 [1]=0002 [2]=0020 [3]=0022 [4]=0004 [5]=0006 [6]=0024 [7]=0026
+ [8]=0600 [9]=0602 [a]=0620 [b]=0622 [c]=0604 [d]=0606 [e]=0624 [f]=0626

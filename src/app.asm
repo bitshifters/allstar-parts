@@ -3,7 +3,7 @@
 ; Hack as necessary per prod.
 ; ============================================================================
 
-.equ TipsyScrollerOnVsync,      0
+.equ TipsyScrollerOnVsync,      _DEMO_PART==_PART_DONUT
 .equ RasterSplitLine,           56+90			; 56 lines from vsync to screen start
 
 ; ============================================================================
@@ -77,6 +77,8 @@ app_init_video:
 	SWI OS_ReadDynamicArea
 	MOV r0, #DynArea_Screen
 	MOV r2, #Mode_Bytes * VideoConfig_ScreenBanks
+    ; NB. This gets rounded up to page size = Total RAM / 128
+    ;     So 3x40K MODE 9 buffers = 128K not 120K!
 	SUBS r1, r2, r1
 	SWI OS_ChangeDynamicArea
 	MOV r0, #DynArea_Screen
@@ -91,7 +93,7 @@ app_init_video:
 	str r1, write_bank
 
 	; CLS bank N
-	mov r0, #OSByte_WriteVDUBank
+	mov r0, #OSByte_WriteVduBank
 	swi OS_Byte
 	SWI OS_WriteI + 12		; cls
 
@@ -412,19 +414,6 @@ app_vsync_code:
 	add r0, r0, #1
 	str r0, vsync_count
 
-    .if TipsyScrollerOnVsync
-    ; Do scrolltext?!
-    ldr r0, app_ready
-    cmp r0, #0
-    beq .3
-    stmfd sp!, {r2-r10}
-    bl tipsy_scroller_tick
-    ldr r12, screen_addr    ; write to screen to be displayed.
-    bl tipsy_scroller_draw
-    ldmfd sp!, {r2-r10}
-    .3:
-    .endif
-
 	; Pending bank will now be displayed.
 	ldr r1, pending_bank
 	cmp r1, #0
@@ -432,10 +421,25 @@ app_vsync_code:
 	streq r0, last_dropped_frame
 	.endif
 	beq .2
-    str r1, displayed_bank
 
-    ldr r12, pending_screen_addr
-    str r12, displayed_screen_addr
+    ; Set MEMC Vinit here if we're managing screen buffers manually.
+    .if AppConfig_UseMemcBanks
+    adr r12, screen_addr_phys
+    ldr r0, [r12, r1, lsl #2]       ; physical RAM address of pending bank
+    mov r0, r0, lsl #2
+    orr r0, r0, #MEMC_Vinit
+
+    mov r11, pc                     ; Save processor mode.
+    orr r12, r11, #ProcMode_Svc
+    teqp r12, #0                    ; Set Supervisor mode.
+    mov r0, r0
+    str r0, [r0]                    ; Set MEMC register Vinit
+
+    teqp r11, #0                    ; Restore previous processor mode.
+    mov r0, r0
+    .endif
+
+    str r1, displayed_bank
 
 	; Clear pending bank.
 	mov r0, #0
@@ -450,14 +454,35 @@ app_vsync_code:
 .1:
     ldr r0, [r12], #4
     cmp r0, #-1
-    beq .2
+    beq .3
     str r0, [r11]                   ; VIDC_Write
     subs r1, r1, #1
     bne .1
+.endif
+
+    ; Done pending bank.
 .2:
+    .if TipsyScrollerOnVsync
+    ; Do scrolltext?!
+    ldr r0, app_ready
+    cmp r0, #0
+    beq .4
+    stmfd sp!, {r2-r10}
+    bl tipsy_scroller_tick
+    ldr r1, displayed_bank          ; write to screen actually displayed.
+    adr r12, screen_addr_logical
+    ldr r12, [r12, r1, lsl #2]
+    bl tipsy_scroller_draw
+    ldmfd sp!, {r2-r10}
+    .4:
+    .endif
+
+.if !AppConfig_UseRasterMan
+.3:
     b exitVs
 .else
-.2:
+.3:
+    ; Correct exit for RasterMan vsync callback.
 	LDMIA sp!, {r0-r1,r11-r12,lr}
     SUBS PC,R14,#4
 .endif

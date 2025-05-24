@@ -47,7 +47,7 @@
 .equ OSByte_EventEnable, 14
 .equ OSByte_EventDisable, 13
 .equ OSByte_Vsync, 19
-.equ OSByte_WriteVDUBank, 112
+.equ OSByte_WriteVduBank, 112
 .equ OSByte_WriteDisplayBank, 113
 .equ OSByte_KeyboardScan, 121
 .equ OSByte_ReadKey, 129
@@ -258,6 +258,31 @@
 
 .equ MODE9_HCentrePixels, 291
 .equ MODE9_VCentreRasters, 166
+; ============================================================================
+
+; ============================================================================
+;
+; PhysRam + TotalScreenSize +----------------+ Vend MEMC register
+;                           |                |
+;                           +----------------+
+;                           |   ^            |
+;                           |   | MEMC       |
+;                           |   | DMA        |
+;                           |   v            |
+;      PhysRAM (0x02000000) +----------------+ Vstart and Vinit MEMC registers
+;                  ^        |                | } Available for OS_ClaimScreenMemory
+;            Total |        +----------------+
+;           Screen |        |   ^            |
+;             Size |        |   | Screen     |
+;                  |        |   | Size       |
+;                  v        |   v            |
+; PhysRam - TotalScreenSize +----------------+ ScreenStart VDU variable
+;
+; ============================================================================
+.equ MEMC_PhysRam,  0x02000000
+.equ MEMC_Vinit,    0x03600000            ; | (physical address>>4)<<2
+.equ MEMC_Vstart,   0x03620000            ; | (physical address>>4)<<2
+.equ MEMC_Vend,     0x03640000            ; | (physical address>>4)<<2
 ; ============================================================================
 
 ; ============================================================================

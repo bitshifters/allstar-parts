@@ -14,8 +14,17 @@
 .equ AppConfig_UseSyncTracks,           0       ; currently Luapod could also be Rocket.
 .equ AppConfig_UseQtmEmbedded,          0
 .equ AppConfig_UseArchieKlang,          (_SMALL_EXE && 0)
-.equ AppConfig_UseRasterMan,            _DEMO_PART==_PART_TEST     ; removes event / IRQ handler.
+.equ AppConfig_UseRasterMan,            _DEMO_PART!=_PART_SPACE     ; removes event / IRQ handler.
 .equ AppConfig_ReturnMainToCaller,      1       ; desktop by default
+.equ AppConfig_UseMemcBanks,            1       ; not currently compatible with IrqHandler.
+
+; ============================================================================
+; Machine config.
+; TODO: This should really be dynamic and determined at runtime.
+;       But can assume page size is 16K minimum for demos that require >1Mb.
+; ============================================================================
+
+.equ Machine_PageSize,                  16*1024     ; can assume at least this for 2Mb demos.
 
 ; ============================================================================
 ; Sequence config.
@@ -78,7 +87,7 @@
 .equ Screen_Height,                     256
 .endif
 
-; Clear screen (clipping)
+; Clear screen (clipping)               ; TODO: This is ick.
 .if _DEMO_PART==_PART_DONUT             ; donut
 .equ Cls_FirstLine,                     48              ; inclusive
 .equ Cls_LastLine,                      255-8           ; inclusive
@@ -93,6 +102,8 @@
 .equ Screen_Bytes,                      Screen_Stride*Screen_Height
 .equ Mode_Bytes,                        Screen_Stride*VideoConfig_ModeHeight
 .equ Cls_Bytes,                         (Cls_LastLine+1-Cls_FirstLine)*Screen_Stride
+
+.equ TotalScreenSize,                   (Mode_Bytes*VideoConfig_ScreenBanks+Machine_PageSize-1)&~(Machine_PageSize-1)
 
 ; ============================================================================
 ; QTM Embedded entry points.
