@@ -19,6 +19,9 @@ debug_pressed_mask:
 debug_prev_mask:
     .long 0
 
+debug_rm_key:
+    .long 0
+
 ; Plot a string to the screen at the current cursor position.
 ; R0=ptr to null terminated string.
 .if Screen_Mode==9

@@ -32,6 +32,7 @@ app_init_debug:
 
     bl debug_init
 
+    ; DEBUG_REGISTER_VAR debug_rm_key
     DEBUG_REGISTER_VAR_EX debug_frame_rate, debug_plot_addr_as_dec4
     DEBUG_REGISTER_VAR_EX vsync_delta, debug_plot_addr_as_dec4
     DEBUG_REGISTER_VAR music_pos

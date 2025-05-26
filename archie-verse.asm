@@ -176,23 +176,18 @@ main_loop:
 
     .if AppConfig_UseRasterMan
     swi RasterMan_ScanKeyboard
-    mov r1, r0, lsr #8
-    and r1, r1, #0xf
+    str r0, debug_rm_key        ; R0=(low key nibble << 8) | (high key nibble)
+    mov r1, r0, lsr #12         ; 0xc=key down 0xd=key up
+    and r1, r1, #1
+    eor r1, r1, #1              ; 1=key down 0=key up
+    mov r2, r0, lsr #8
+    and r2, r2, #0xf
     and r0, r0, #0xf
-    orrs r2, r1, r0, lsl #4
-    str r2, [sp, #-4]!
-    movne r1, #1  ; key down
-    blne debug_handle_keypress
+    orrs r2, r2, r0, lsl #4     ; combine nibbles back into RMKey_* value
+    bl debug_handle_keypress
     .endif
 
     bl debug_do_key_callbacks
-
-    .if AppConfig_UseRasterMan
-    ldr r2, [sp], #4
-    cmp r2, #0
-    movne r1, #0    ; key up
-    blne debug_handle_keypress
-    .endif
 
     ldrb r0, debug_restart_flag
     cmp r0, #0
