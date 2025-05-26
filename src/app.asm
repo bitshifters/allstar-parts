@@ -3,7 +3,7 @@
 ; Hack as necessary per prod.
 ; ============================================================================
 
-.equ TipsyScrollerOnVsync,      _DEMO_PART==_PART_DONUT
+.equ TipsyScrollerOnVsync,      0;_DEMO_PART==_PART_DONUT ; <= makes RasterMan wobble
 .equ RasterSplitLine,           56+90			; 56 lines from vsync to screen start
 
 ; ============================================================================
@@ -122,6 +122,11 @@ app_init_video:
     mov lr, pc
     ldr pc, QtmEmbedded_Init
 .endif
+
+.if AppConfig_UseRasterMan
+    bl rasters_init
+.endif
+
     ldr pc, [sp], #4
 
 ; TODO: Junk this for non_DEBUG?
@@ -224,10 +229,6 @@ app_init_audio:
 app_late_init:
     str lr, [sp, #-4]!
 
-.if AppConfig_UseRasterMan
-    bl rasters_init
-.endif
-
     ; Copy the logo to all of our screen buffers.
     .if _DEMO_PART==_PART_DONUT
     adr r0, app_logo_p
@@ -260,9 +261,9 @@ app_late_init:
 
 .if _DEMO_PART==_PART_DONUT
 app_logo_p:
-    .long temp_logo_no_adr  ; src ptr
+    .long three_logo_no_adr  ; src ptr
     .long 0                 ; offset
-    .long 48*Screen_Stride  ; length
+    .long 56*Screen_Stride  ; length
 .endif
 
 .if TipsyScrollerOnVsync
@@ -445,23 +446,37 @@ app_vsync_code:
 	mov r0, #0
 	str r0, pending_bank
 
-.if !AppConfig_UseRasterMan
-    ; Set palette for pending bank.
+    ; Done pending bank.
+.2:
+    ; NB. May want to set palette for pending bank or every vsync.
+
+.if !AppConfig_UseRasterMan || _DEMO_PART==_PART_DONUT
+    mov r11, pc                     ; Save processor mode.
+    orr r12, r11, #ProcMode_Svc
+    teqp r12, #0                    ; Set Supervisor mode.
+    mov r0, r0
+    str r11, [sp, #-4]!
+
+    ; Set palette for bank to be displayed.
 	mov r11, #VIDC_Write
     ldr r12, vidc_buffers_p
+    ldr r1, displayed_bank
     add r12, r12, r1, lsl #6        ; 64 bytes per bank.
     mov r1, #16
 .1:
     ldr r0, [r12], #4
     cmp r0, #-1
-    beq .3
+    beq .11
     str r0, [r11]                   ; VIDC_Write
     subs r1, r1, #1
     bne .1
+.11:
+    ldr r11, [sp], #4
+
+    teqp r11, #0                    ; Restore previous processor mode.
+    mov r0, r0
 .endif
 
-    ; Done pending bank.
-.2:
     .if TipsyScrollerOnVsync
     ; Do scrolltext?!
     ldr r0, app_ready
@@ -503,19 +518,26 @@ app_copy_to_screen:
 .if _DEMO_PART==_PART_TEST
 .include "src/fx/sine-scroller.asm"
 .endif
+
 .if _DEMO_PART==_PART_DONUT
-.include "src/fx/scene-3d.asm"
+    .include "src/fx/scene-3d.asm"
+    .if AppConfig_UseRasterMan
+    .include "src/rasters-donut.asm"
+    .endif
+.else
+    .if AppConfig_UseRasterMan
+    .include "src/rasters.asm"
+    .endif
 .endif
+
 .if TipsyScrollerOnVsync
 .include "src/fx/tipsy-scroller.asm"
 .endif
+
 .if _DEMO_PART==_PART_SPACE
 .include "src/fx/rotate.asm"
 .include "src/fx/uv-table.asm"
 .include "src/fx/lut-scroller.asm"
-.endif
-.if AppConfig_UseRasterMan
-.include "src/rasters.asm"
 .endif
 
 ; ============================================================================

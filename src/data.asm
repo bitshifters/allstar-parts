@@ -19,8 +19,11 @@ razor_font_no_adr:
 ; fx/scene-3d.asm
 .include "src/data/three-dee/3d-meshes.asm" ; TODO: Remove what's not used!
 
-temp_logo_no_adr:
-.incbin "build/temp-logo.bin"
+three_logo_no_adr:
+.incbin "build/three-logo.bin"
+
+three_logo_pal_no_adr:
+.incbin "build/three-logo.bin.pal"
 .endif
 
 .if TipsyScrollerOnVsync

@@ -460,15 +460,15 @@ DONUT PART
         - Update on vsync - STARTED
         - Use RasterMan to display a separate buffer?
         - Fixed single buffer that's updated at vsync.
-        => Would need to move the framework to all MEMC for buffer management.
+        => Would need to move the framework to all MEMC for buffer management. - DONE
         => Set Vinit per frame (Vptr gets loaded with Vinit at vsync)
         => When Vptr>Vend then Vptr=VStart
 
 To move to direct buffers.
 Turn off RasterMan for now to avoid complications.
-Obtain logical & physical RAM addresses for N banks at init.
-Use bank numbers to obtain relevant addresses.
-Set Vinit instead of calling OSByte_WriteDisplayBank.
+Obtain logical & physical RAM addresses for N banks at init. - DONE
+Use bank numbers to obtain relevant addresses. - DONE
+Set Vinit instead of calling OSByte_WriteDisplayBank. - DONE
 
 - Come up with at least four interesting variations.
     - Move

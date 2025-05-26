@@ -64,15 +64,16 @@ build:
 # ASSET LIST
 ##########################################################################
 
-./build/assets.txt: build ./build/music.mod ./build/razor-font.bin ./build/tunnel_uv.lz4 ./build/tunnel2_uv.lz4 \
-	./build/phong128.bin ./build/itm128.bin ./build/temp-logo.bin \
-	./build/fine-font.bin ./build/paul1_uv.lz4 ./build/paul2_uv.lz4 ./build/paul3_uv.lz4  ./build/paul4_uv.lz4 \
+./build/assets.txt: build ./build/music.mod ./build/razor-font.bin ./build/tunnel_uv.lz4 \
+	./build/phong128.bin ./build/itm128.bin ./build/temp-logo.bin ./build/fine-font.bin \
+	./build/paul1_uv.lz4 ./build/paul2_uv.lz4 ./build/paul3_uv.lz4  ./build/paul4_uv.lz4 \
 	./build/paul5_uv.lz4 ./build/Fire2.bin ./build/ShipIndex.lz4 ./build/bgtest4.bin \
 	./build/paul6_uv.lz4 ./build/paul7_uv.lz4 ./build/FlameIndex.lz4 ./build/CloudIndex.lz4 \
 	./build/DiskIndex.lz4 ./build/paul8_uv.lz4 ./build/paul9_uv.lz4 ./build/RocketIndex.lz4 \
 	./build/paul10_uv.lz4 ./build/SpaceIndex.lz4 ./build/paul11_uv.lz4 ./build/paul12_uv.lz4 \
 	./build/ApolloIndex.lz4 ./build/paul13_uv.lz4 ./build/WarpIndex.lz4 ./build/paul14_uv.lz4 \
-	./build/GreetsIndex.lz4 ./build/nasa-font.lz4 ./build/paul16_uv.lz4 ./build/paul17_uv.lz4
+	./build/GreetsIndex.lz4 ./build/nasa-font.lz4 ./build/paul16_uv.lz4 ./build/paul17_uv.lz4 \
+	./build/three-logo.bin
 	echo done > $@
 
 ##########################################################################
@@ -263,6 +264,9 @@ clean:
 ./build/paul17_uv.bin: ./data/uvs/LUT17.png $(UV_SHADER)	# workhole
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
+./build/nasa-font.bin: ./data/font/font_sprite_sheet_2.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC_FONT) -o $@ --glyph-dim 24 24 --store-as-byte-cols --double-pixels --flip-y $< 9
+
 ##########################################################################
 # DONUT ASSETS
 ##########################################################################
@@ -273,8 +277,8 @@ clean:
 ./build/fine-font.bin: ./data/font/Fine.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC_FONT) -o $@ --glyph-dim 8 8 --max-glyphs 96 $< 9
 
-./build/nasa-font.bin: ./data/font/font_sprite_sheet_2.png $(PNG2ARC_DEPS)
-	$(PYTHON2) $(PNG2ARC_FONT) -o $@ --glyph-dim 24 24 --store-as-byte-cols --double-pixels --flip-y $< 9
+./build/three-logo.bin: ./data/gfx/3-logos-v0.21.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC) -o $@ -p $@.pal $< 9
 
 ##########################################################################
 # MUSIC ASSETS

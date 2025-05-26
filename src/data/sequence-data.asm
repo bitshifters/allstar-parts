@@ -12,21 +12,20 @@ seq_donut_part:
 
     ; Init FX modules.
     call_0      scene3d_init
+    call_0      rasters_donut_init
     ;                               RingRadius          CircleRadius       RingSegments   CircleSegments   MeshPtr              Flat inner face?
     call_6      mesh_make_torus,    32.0*MATHS_CONST_1, 16.0*MATHS_CONST_1, 12,            8,              mesh_header_torus,   1
 
     write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, 0.0
 
     ; Show donut.
-    call_1      palette_set_block,  seq_palette_red_additive
+    ;call_1      palette_set_block,  three_logo_pal_no_adr
+    write_addr  palette_array_p,    three_logo_pal_no_adr
+    
 
     call_3      fx_set_layer_fns,   0, scene3d_rotate_entity,         screen_cls_from_line
 ;    call_3      fx_set_layer_fns,   1, scene3d_move_entity_to_target, 0
     call_3      fx_set_layer_fns,   3, scene3d_transform_entity,      scene3d_draw_entity_as_solid_quads
-    .if !TipsyScrollerOnVsync
-    ; TODO: Remove scroller for now.
-    ;call_3      fx_set_layer_fns,   2, tipsy_scroller_tick,        tipsy_scroller_draw
-    .endif
 
 ;    write_vec3  object_rot_speed,           0.5, 1.3, 2.9
     write_vec3  object_rot_speed,           1.0, 0.0, 2.0
@@ -38,7 +37,8 @@ seq_donut_part:
     ; Update a VECTOR3 using three math_funcs.
     ;math_make_vec3 torus_entity+Entity_Pos, my_func_for_x, my_func_for_y, my_func_for_z
 
-    math_make_vec3 light_direction, light_func_x, light_func_y, light_func_z
+    ; Don't move light for now.
+    ;math_make_vec3 light_direction, light_func_x, light_func_y, light_func_z
 
     end_script
 
