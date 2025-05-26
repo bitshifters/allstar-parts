@@ -32,6 +32,19 @@
 
 ; TODO: Update for _DEMO_PARTs
 
+.if _DEMO_PART==_PART_DONUT
+.equ SeqConfig_EnableLoop,              1
+.equ SeqConfig_MaxPatterns,             20
+
+.equ SeqConfig_ProTracker_Tempo,        125         ; Default = 125.
+.equ SeqConfig_ProTracker_TicksPerRow,  4
+
+.equ SeqConfig_PatternLength_Rows,      64
+.equ SeqConfig_PatternLength_Secs,      (2.5*SeqConfig_ProTracker_TicksPerRow*SeqConfig_PatternLength_Rows)/SeqConfig_ProTracker_Tempo
+.equ SeqConfig_PatternLength_Frames,    SeqConfig_PatternLength_Secs*50.0
+
+.equ SeqConfig_MaxFrames,               SeqConfig_MaxPatterns*SeqConfig_PatternLength_Frames
+.else
 .equ SeqConfig_EnableLoop,              0
 .equ SeqConfig_MaxPatterns,             22
 
@@ -43,6 +56,7 @@
 .equ SeqConfig_PatternLength_Frames,    SeqConfig_PatternLength_Secs*50.0
 
 .equ SeqConfig_MaxFrames,               SeqConfig_MaxPatterns*SeqConfig_PatternLength_Frames
+.endif
 
 ; ============================================================================
 ; Audio config.

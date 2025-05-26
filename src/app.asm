@@ -34,6 +34,7 @@ app_init_debug:
 
     DEBUG_REGISTER_VAR_EX debug_frame_rate, debug_plot_addr_as_dec4
     DEBUG_REGISTER_VAR_EX vsync_delta, debug_plot_addr_as_dec4
+    DEBUG_REGISTER_VAR music_pos
     DEBUG_REGISTER_VAR frame_counter
     .if _DEMO_PART==_PART_DONUT
     DEBUG_REGISTER_VAR scene3d_stats_quads_plotted

@@ -495,19 +495,28 @@ Set Vinit instead of calling OSByte_WriteDisplayBank. - DONE
     - What about dithering?
     - Any sync?
 - RasterMan for logo and scroller?
-    => Need vsync callback to run != 50Hz
+    => Need vsync callback to run != 50Hz - DONE
 
-To make it a demo?
-- Intro splash
-- Credits
-- Greets
-- Transitions
-- Tune
-- Size code down to 64Kb?
-- RasterMan or not? (Can't be 64Kb currently - need TinyQTM RM edition.)
-- Could also switch to 320x180 screen if desperate?
+Donut TODO
+~~~
+- MEMC writes to fix logo + buffered donut + single buffer scroller
+- Optimise scroller to unrolled pixel shift code and one column write
+- Make four palettes for donut + blend in sequence
+- Use of RasterMan on the donut - alt shade the faces?
+    Mental Hangover - rasters cycle through the hue table every 16 scanlines
+    Each colour is a darker version of the hue table
+    Would need to set 16 colours per scanline... = 8% of CPU!
+- Some sort of donut animation
+- Some sort of donut movement
 
+=> Perhaps just mix it up, so have the effectors layered at different rates.
+   - Move sequence happens every M patterns
+   - Animate sequence happens every A patterns
+   - Palette changes happen every P patterns
+   - Wibble happens every W patterns etc.
+   - 20 patterns total.
 
+Pre-Revision thought
 ---
 I wanna make another acid demo!!
 ---
