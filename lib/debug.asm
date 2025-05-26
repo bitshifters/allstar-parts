@@ -217,7 +217,6 @@ debug_handle_keypress:
     ldmfd sp!, {r3-r6}
     mov pc, lr
 
-
 debug_do_key_callbacks:
 	str lr, [sp, #-4]!
 

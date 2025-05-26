@@ -4,7 +4,7 @@
 ; ============================================================================
 
 .ifndef RasterMan_VersionNumber
-.equ RasterMan_VersionNumber, 0.37
+.equ RasterMan_VersionNumber, 0.38
 .endif
 
 ; ============================================================================
@@ -207,23 +207,32 @@
 .equ RasterMan_SWIBase,         0x47e80
 .endif
 
-.equ RasterMan_Install,         RasterMan_SWIBase+0
-.equ RasterMan_Release,         RasterMan_SWIBase+1
-.equ RasterMan_Wait,            RasterMan_SWIBase+2
-.equ RasterMan_SetTables,       RasterMan_SWIBase+3
-.equ RasterMan_Version,         RasterMan_SWIBase+4
-.equ RasterMan_ReadScanline,    RasterMan_SWIBase+5
-.equ RasterMan_SetVIDCRegister, RasterMan_SWIBase+6
-.equ RasterMan_SetMEMCRegister, RasterMan_SWIBase+7
-.equ RasterMan_Status,          RasterMan_SWIBase+8
-.equ RasterMan_ScanKeyboard,    RasterMan_SWIBase+9
-.equ RasterMan_ClearKeyBuffer,  RasterMan_SWIBase+10
-.equ RasterMan_ReadScanAddr,    RasterMan_SWIBase+11
-.equ RasterMan_HSyncWaitAddr,   RasterMan_SWIBase+12
-.equ RasterMan_Configure,       RasterMan_SWIBase+13
-.equ RasterMan_Mode,            RasterMan_SWIBase+14
-.equ RasterMan_Callback,        RasterMan_SWIBase+15
-.equ RasterMan_ReadSWIHandler,  RasterMan_SWIBase+16
+.equ RasterMan_Install,         RasterMan_SWIBase+0x0
+.equ RasterMan_Release,         RasterMan_SWIBase+0x1
+.equ RasterMan_Wait,            RasterMan_SWIBase+0x2
+.equ RasterMan_SetTables,       RasterMan_SWIBase+0x3
+.equ RasterMan_Version,         RasterMan_SWIBase+0x4
+.equ RasterMan_ReadScanline,    RasterMan_SWIBase+0x5
+.equ RasterMan_SetVIDCRegister, RasterMan_SWIBase+0x6
+.equ RasterMan_SetMEMCRegister, RasterMan_SWIBase+0x7
+.equ RasterMan_Status,          RasterMan_SWIBase+0x8
+.equ RasterMan_ScanKeyboard,    RasterMan_SWIBase+0x9
+
+.if RasterMan_VersionNumber <= 0.37
+.equ RasterMan_ClearKeyBuffer,  RasterMan_SWIBase+0xa
+.equ RasterMan_ReadScanAddr,    RasterMan_SWIBase+0xb
+.equ RasterMan_HSyncWaitAddr,   RasterMan_SWIBase+0xc
+.equ RasterMan_Configure,       RasterMan_SWIBase+0xd
+.equ RasterMan_Mode,            RasterMan_SWIBase+0xe
+.equ RasterMan_Callback,        RasterMan_SWIBase+0xf
+.equ RasterMan_ReadSWIHandler,  RasterMan_SWIBase+0x10
+.else
+.equ RasterMan_Callback,        RasterMan_SWIBase+0xa
+.equ RasterMan_ReadSWIAddress,  RasterMan_SWIBase+0xb
+.equ RasterMan_HSyncWait,       RasterMan_SWIBase+0xc
+.equ RasterMan_Configure,       RasterMan_SWIBase+0xd
+.equ RasterMan_ScreenMode,      RasterMan_SWIBase+0xe
+.endif
 ; ============================================================================
 
 ; ============================================================================

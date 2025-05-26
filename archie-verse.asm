@@ -173,7 +173,26 @@ main_loop:
     ;bl app_pre_tick_frame
 
     .if _DEBUG
+
+    .if AppConfig_UseRasterMan
+    swi RasterMan_ScanKeyboard
+    mov r1, r0, lsr #8
+    and r1, r1, #0xf
+    and r0, r0, #0xf
+    orrs r2, r1, r0, lsl #4
+    str r2, [sp, #-4]!
+    movne r1, #1  ; key down
+    blne debug_handle_keypress
+    .endif
+
     bl debug_do_key_callbacks
+
+    .if AppConfig_UseRasterMan
+    ldr r2, [sp], #4
+    cmp r2, #0
+    movne r1, #0    ; key up
+    blne debug_handle_keypress
+    .endif
 
     ldrb r0, debug_restart_flag
     cmp r0, #0

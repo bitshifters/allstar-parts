@@ -1,7 +1,7 @@
-RasterMan v0.37, 22nd May 2025               (c) Stephen Harrison, 2014-2025
+RasterMan v0.38, 23rd May 2025               (c) Stephen Harrison, 2014-2025
 ----------------------------------------------------------------------------
 
-New in v0.37 - officially allocated SWI base and error block!
+Now with officially allocated SWI base and error block! [since v0.37]
 
 NOTE: With the change to new SWI base, SWI RasterMan_QTMParamAddr has been
 removed. Its function is now fully covered by the new SWI RasterMan_Status,
@@ -9,11 +9,19 @@ but this is not a drop-in replacement. So if you are updating your code for
 the new SWI base and for some reason you used the old (very limited use)
 QTMParamAddr SWI, check out the new Status SWI and update to use this.
 
-Additional v0.37 - SWI RasterMan_Release now causes RasterMan to 'forget' any
-VIDC and MEMC tables, and any CallBack address. So you must set up your VIDC
-and MEMC tables again with SWI RasterMan_SetTables, if you intend to call SWI
-RasterMan_Install again. This minimises risk of 'old' addresses remaining in
-RasterMan's memory if/when another user calls RM.
+In RM v0.38, SWIs RasterMan_ClearKeyBuffer and RasterMan_ReadScanAddr have
+been removed as these are no longer needed. SWI RasterMan_ReadSWIHandler has
+been renamed RasterMan_ReadSWIAddress and scope expanded to cover individual
+SWI addresses. Finally RasterMan_HSyncWaitAddr has been renamed and
+repurposed as RasterMan_HSyncWait so you can now wait for HSync by issuing
+this SWI, or read the SWI address using RasterMan_ReadSWIAddress and call the
+HSync SWI code directly, to provide the same speed response as previously.
+
+Additional since v0.37, SWI RasterMan_Release now causes RasterMan to
+'forget' any VIDC and MEMC tables, and any CallBack address. So you must set
+up your VIDC and MEMC tables again with SWI RasterMan_SetTables, if you
+intend to call SWI RasterMan_Install again. This minimises risk of 'old'
+addresses remaining in RasterMan's memory if/when another user calls RM.
 
 RasterMan works on *REAL* Acorn Archimedes computers upto RISC OS 3.1x It
 will also run under emulation on Arculator v2.1 and later.
@@ -79,17 +87,21 @@ The author resides somewhere on the internet. Email me at sah3000@yahoo.com
 
 
 ----------------------------------------------------------------------------
-SWI documentation v0.37
+SWI documentation v0.38
 ----------------------------------------------------------------------------
 
-RasterMan v0.37 now has an offical RISC OS registered SWI base. This change
-since v0.36 means users moving their code to v0.37 will need to reassemble
-any existing ARM code that relied on the previous SWI numbers.
+RasterMan v0.38 now has an offical RISC OS registered SWI base, also two SWIs
+have been revised (RasterMan_ReadSWIHandler and RasterMan_HSyncWaitAddr) and
+three removed (RasterMan_ClearKeyBuffer, RasterMan_ReadScanAddr and
+RasterMan_QTMParamAddr). This change means users moving their code from
+earlier versions will need to reassemble any existing ARM code that relied on
+the previous SWI base numbers and, especially if you used the SWIs listed
+above, to check the SWI documentation for extended scope and new features.
 
 Allocated SWI base: &5A940
 
 
-SWI RasterMan_Install                                                 &5A900
+SWI RasterMan_Install                                                 &5A940
 ----------------------------------------------------------------------------
 
 Entry: -
@@ -118,7 +130,7 @@ An error will be generated, and RasterMan will not be enabled, if the VIDC or
 MEMC tables have not been defined using SWI RasterMan_SetTables.
 
 
-SWI RasterMan_Release                                                 &5A901
+SWI RasterMan_Release                                                 &5A941
 ----------------------------------------------------------------------------
 
 Entry: -
@@ -139,7 +151,7 @@ Remember: You must call this SWI if your code wants to load any data from
 disc, or use any OS SWI which is not IRQ compatible.
 
 
-SWI RasterMan_Wait                                                    &5A902
+SWI RasterMan_Wait                                                    &5A942
 ----------------------------------------------------------------------------
 
 Entry: -
@@ -157,7 +169,7 @@ RasterMan is initialised as well as when it is not.
 this OS SWI will crash the computer, use SWI RasterMan_Wait instead).
 
 
-SWI RasterMan_SetTables                                               &5A903
+SWI RasterMan_SetTables                                               &5A943
 ----------------------------------------------------------------------------
 
 Entry: R0=vidc table 1 [4/8/16 regs per interrupt], or -1 to read current
@@ -247,7 +259,7 @@ Raster   1: Word    2, Word    3
 Raster 255: Word  510, Word  511
 
 
-SWI RasterMan_Version                                                 &5A904
+SWI RasterMan_Version                                                 &5A944
 ----------------------------------------------------------------------------
 
 Entry: -
@@ -256,7 +268,7 @@ Exit:  R0=version*100 (eg. 011 for v0.11)
 Used to read the version of RasterMan loaded.
 
 
-SWI RasterMan_ReadScanline                                            &5A905
+SWI RasterMan_ReadScanline                                            &5A945
 ----------------------------------------------------------------------------
 
 Entry: -
@@ -271,7 +283,7 @@ This SWI only works when RasterMan is installed and will return an error if
 RasterMan H-Sync interrupts are not enabled (see SWI RasterMan_Install).
 
 
-SWI RasterMan_SetVIDCRegister                                         &5A906
+SWI RasterMan_SetVIDCRegister                                         &5A946
 ----------------------------------------------------------------------------
 
 Entry: R0=VIDC register to send to VIDC
@@ -285,7 +297,7 @@ invalid register to the VIDC could result in an immediate complete system
 crash.
 
 
-SWI RasterMan_SetMEMCRegister                                         &5A907
+SWI RasterMan_SetMEMCRegister                                         &5A947
 ----------------------------------------------------------------------------
 
 Entry: R0=MEMC register to send to MEMC
@@ -299,7 +311,7 @@ invalid register to the MEMC will almost certainly result in an immediate
 complete system crash.
 
 
-SWI RasterMan_Status                                                  &5A908
+SWI RasterMan_Status                                                  &5A948
 ----------------------------------------------------------------------------
 
 **NOTE this SWI has changed since v0.36 and is not backwards compatible**
@@ -319,7 +331,7 @@ an external routine (registered with RasterMan_CallBack) will be called after
 all VSync processing (including music/DMA IRQs).
 
 
-SWI RasterMan_ScanKeyboard                                            &5A909
+SWI RasterMan_ScanKeyboard                                            &5A949
 ----------------------------------------------------------------------------
 
 Entry: -
@@ -328,42 +340,77 @@ Exit:  R0=two byte keyboard code
 This SWI reads the curent two-byte keyboard key code.
 
 
-SWI RasterMan_ClearKeyBuffer (temp SWI, may be removed in future)     &5A90A
+SWI RasterMan_CallBack                                                &5A94A
+----------------------------------------------------------------------------
+
+Entry: R0=address of routine to be called once RM VSync processing is
+complete, 0 to clear the callback, or -1 to read current callback addr.
+Exit:  R0=previous address or 0 if not in use
+
+The callback routine will be called with processor in IRQ mode and IRQs
+disabled. On entry R13 points to IRQ stack, R14 contains return address+4.
+The routine must complete quickly, preserve all registers, and exit with SUBS
+PC,R14,#4. The routine must not call any SWIs, or enable IRQs, as this will
+crash RM.
+
+
+SWI RasterMan_ReadSWIAddress                                          &5A94B
+----------------------------------------------------------------------------
+
+Entry: R0=RasterMan SWI offset number &00-&3F (ie. SWI number minus &5A940)
+          or -1 to read SWI handler address
+Exit:  R0=address of RM SWI code or SWI handler code
+
+If R0=&00 to &3F, this returns the address of the SWI's code within
+RasterMan's codespace. You can then store this address and use it to call the
+SWI directly (saving time by avoiding the RISC OS SWI handler) as needed, by
+first setting R14 to PC, then loading the SWI address into PC. To use this
+method of calling RasterMan's SWIs directly, your code must be running in SVC
+mode (or if an interrupt, in IRQ mode), or most will fail and hang the
+system.
+
+eg.
+ <setup code>
+ MOV R0,#x
+ SWI RasterMan_ReadSWIAddress
+ STR R0,swi_hsyncwait
+ ...
+ ...
+ MOV R14,PC           ;set return address (2 instructions ahead) and flags
+ LDR PC,swi_hsyncwait ;jump directly to the SWI code
+ <continue>           ;SWI returns here after completion
+
+Alternatively if R0=-1, this returns the address of RM's SWI handler code, so
+you can call the handler directly from your ARM code providing you are in SVC
+mode or IRQ mode, to save time. [a few SWIs will work from USR mode, tbc]
+
+To use the SWI handler address returned by R0, you must only call it from SVC
+or IRQ mode, and you must set R11 = <required SWI number>-<RM SWI base> (ie.
+use the final 2 digits of the number shown to the right of each SWI in this
+ReadMe, and subtract &40) eg. to call RasterMan_Version, set R11=&04.
+
+Some RM SWIs must never be called from within an interrupt or a callback:
+Install, Release, Wait, Configure and Mode, or will lead to a system hang.
+Others should be OK, if used appropriately (eg. don't call the HSyncWait code
+if you are in a VSync callback...).
+
+
+SWI RasterMan_HSyncWait                                               &5A94C
 ----------------------------------------------------------------------------
 
 Entry: -
-Exit:  -
+Exit:  R0,R1 corrupted
 
-This SWI clears the current RM keyboard buffer.
+This SWI waits for completion of next RM interrupt (equivalent of HSync, if
+one int per line), but *WARNING* this will only work if RM is configured for
+8 or 16 VIDC changes per line, otherwise it will hang until reset!
 
-
-SWI RasterMan_ReadScanAddr                                            &5A90B
-----------------------------------------------------------------------------
-
-Entry: -
-Exit:  R0=address of 'swi_scankeyboard' routine
-
-This SWI returns the address of the scan keyboard routine - so this can be
-called directly, avoiding the need to call the SWI as the OS SWI routines may
-disable interrupts briefly.
+This SWI can be best used if the SWI code is called directly using the
+address returned by SWI ReadSWIAddress, which avoids the delay of RISC OS SWI
+handler eating into the horizontal retract time after HSync. 
 
 
-SWI RasterMan_HSyncWaitAddr                                           &5A90C
-----------------------------------------------------------------------------
-
-Entry: -
-Exit:  R0=address of code to call for HSync Wait (R5 & R6 will be corrupted
-on calling)
-
-Returns address of short code routine that can be called directly to wait for
-completion of next RM interrupt (equivalent of HSync, if one int per line).
-
-Note: if the routine at R0 is called from USR mode, it will only work if RM
-configured for >4 VIDC changes per line, otherwise it will hang until reset!
-Calling from SVC or IRQ mode will work for any RM setting.
-
-
-SWI RasterMan_Configure                                               &5A90D
+SWI RasterMan_Configure                                               &5A94D
 ----------------------------------------------------------------------------
 
 Entry: R0=0, 4, 8, 16 VIDC register changes per H-interrupt, -1 to read
@@ -388,45 +435,14 @@ it will likely crash.
 Default settup: R0=16 VIDC changes, R1=2 MEMC changes, R2=1 scanline per int
 
 
-SWI RasterMan_Mode                                                    &5A90E
+SWI RasterMan_ScreenMode                                              &5A94E
 ----------------------------------------------------------------------------
 
-Entry: R0=new screen mode number
+Entry: R0=new screen mode number (0-255)
 Exit:  R0 preserved
 
-This SWI changes mode. Don't use if RM is installed.
+This SWI changes the screen mode. In future it may be expanded to allow user
+to specify variable X, Y dimensions and colour depth. 
 
-
-SWI RasterMan_CallBack                                                &5A90F
-----------------------------------------------------------------------------
-
-Entry: R0=address of routine to be called once RM VSync processing is
-complete, 0 to clear the callback, or -1 to read current callback addr.
-Exit:  R0=previous address or 0 if not in use
-
-The callback routine will be called with processor in IRQ mode and IRQs
-disabled. On entry R13 points to IRQ stack, R14 contains return address+4.
-The routine must complete quickly, preserve all registers, and exit with SUBS
-PC,R14,#4. The routine must not call any SWIs, or enable IRQs, as this will
-crash RM.
-
-
-SWI RasterMan_ReadSWIHandler                                          &5A910
-----------------------------------------------------------------------------
-
-Entry: -
-Exit:  R0=address of RM SWI handler code
-
-This returns the address of RM's SWI handler code, so you can call directly
-from your code, or from IRQs to save time.
-
-To use the address returned by R0, you must only call it from SVC or IRQ
-mode, and you must set R11 = <required SWI number>-<RM SWI base> (or use the
-final 2 digits of the number shown to the right of each SWI in this ReadMe).
-eg. to call RasterMan_Version, set R11=&04.
-
-Some RM SWIs must never be called from within an interrupt or callback:
-Install, Release, Wait, Configure and Mode, or will lead to system hang.
-Others should be OK, if used appropriately (eg. don't call the HSync wait
-code returned by HSyncWaitAddr if you are in a VSync callback...).
+Don't use when RM is installed (or issue SWI RasterMan_Release first).
 
