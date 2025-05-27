@@ -3,7 +3,9 @@
 ; Hack as necessary per prod.
 ; ============================================================================
 
-.equ TipsyScrollerOnVsync,      0;_DEMO_PART==_PART_DONUT ; <= makes RasterMan wobble
+.equ TipsyScrollerOnVsync,      _DEMO_PART==_PART_DONUT ; <= makes RasterMan wobble
+.equ TipsyTempHack,             (TipsyScrollerOnVsync && 1) ; FIXME: optimise or remove!
+
 .equ RasterSplitLine,           56+90			; 56 lines from vsync to screen start
 
 ; ============================================================================
@@ -231,23 +233,22 @@ app_init_audio:
 app_late_init:
     str lr, [sp, #-4]!
 
-    ; Copy the logo to all of our screen buffers.
+    ; Custom init for Donut.
+
     .if _DEMO_PART==_PART_DONUT
+    ; Copy logo to static buffer.
     adr r0, app_logo_p
-    ldmia r0, {r0-r2}
-    bl app_copy_to_screen
+    ldmia r0, {r0-r3}
+    mov r1, r3                  ; logical addr
+    mov r2, r2, lsr #2          ; #words
+    bl mem_copy_words
 
-    bl get_next_bank_for_writing
-
-    adr r0, app_logo_p
-    ldmia r0, {r0-r2}
-    bl app_copy_to_screen
-
-    bl get_next_bank_for_writing
-
-    adr r0, app_logo_p
-    ldmia r0, {r0-r2}
-    bl app_copy_to_screen
+    .if TipsyTempHack
+    ; Plot some text into the scroller buffer for now.
+    bl tipsy_scroller_tick
+    ldr r12, app_scroller_logical
+    bl tipsy_scroller_draw
+    .endif
     .endif
 
     .if TipsyScrollerOnVsync
@@ -266,6 +267,16 @@ app_logo_p:
     .long three_logo_no_adr  ; src ptr
     .long 0                 ; offset
     .long 56*Screen_Stride  ; length
+    .long MEMC_PhysRam - TotalScreenSize + 192*Screen_Stride ; logical 
+
+app_logo_phys:
+    .long 192*Screen_Stride >> 4                             ; physical
+
+app_scroller_phys:
+    .long 248*Screen_Stride >> 4                             ; physical
+
+app_scroller_logical:
+    .long MEMC_PhysRam - TotalScreenSize + 248*Screen_Stride ; logical 
 .endif
 
 .if TipsyScrollerOnVsync
@@ -426,7 +437,7 @@ app_vsync_code:
 	beq .2
 
     ; Set MEMC Vinit here if we're managing screen buffers manually.
-    .if AppConfig_UseMemcBanks
+    .if AppConfig_UseMemcBanks && _DEMO_PART!=_PART_DONUT
     adr r12, screen_addr_phys
     ldr r0, [r12, r1, lsl #2]       ; physical RAM address of pending bank
     mov r0, r0, lsl #2
@@ -459,6 +470,42 @@ app_vsync_code:
     mov r0, r0
     str r11, [sp, #-4]!
 
+    .if _DEMO_PART==_PART_DONUT
+    ; Custom screen split code for donut.
+
+    ; Set Vinit to const logo addr.
+    ldr r11, app_logo_phys
+    mov r0, r11, lsl #2
+    orr r0, r0, #MEMC_Vinit
+    str r0, [r0]
+
+    ; Set Vend to end of logo.
+    ldr r0, app_scroller_phys
+    sub r0, r0, #1
+    mov r0, r0, lsl #2
+    orr r0, r0, #MEMC_Vend
+    str r0, [r0]
+
+    ; Set Vstart to start of screen buffer.
+    adr r12, screen_addr_phys
+    ldr r1, displayed_bank
+    ldr r0, [r12, r1, lsl #2]       ; physical RAM address of pending bank
+    add r1, r0, r11                 ; size of donut area for future Vend
+
+    mov r0, r0, lsl #2
+    orr r0, r0, #MEMC_Vinit
+    orr r0, r0, #MEMC_Vstart^MEMC_Vinit
+    str r0, [r0]
+
+    ; Inside donut space (line 128) set Vend to end of screen buffer.
+    sub r0, r1, #1
+    mov r0, r0, lsl #2
+    orr r0, r0, #MEMC_Vend
+
+    ldr r12, raster_table_memc_p
+    str r0, [r12, #128*8]           ; line 128
+    .endif
+
     ; Set palette for bank to be displayed.
 	mov r11, #VIDC_Write
     ldr r12, vidc_buffers_p
@@ -479,16 +526,15 @@ app_vsync_code:
     mov r0, r0
 .endif
 
-    .if TipsyScrollerOnVsync
+    .if TipsyScrollerOnVsync && !TipsyTempHack
     ; Do scrolltext?!
     ldr r0, app_ready
     cmp r0, #0
     beq .4
     stmfd sp!, {r2-r10}
     bl tipsy_scroller_tick
-    ldr r1, displayed_bank          ; write to screen actually displayed.
-    adr r12, screen_addr_logical
-    ldr r12, [r12, r1, lsl #2]
+    ; Write scroller to static buffer.
+    ldr r12, app_scroller_logical
     bl tipsy_scroller_draw
     ldmfd sp!, {r2-r10}
     .4:
@@ -531,7 +577,7 @@ app_copy_to_screen:
     .include "src/rasters.asm"
     .endif
 .endif
-
+ 
 .if TipsyScrollerOnVsync
 .include "src/fx/tipsy-scroller.asm"
 .endif

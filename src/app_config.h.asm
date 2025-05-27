@@ -103,8 +103,8 @@
 
 ; Clear screen (clipping)               ; TODO: This is ick.
 .if _DEMO_PART==_PART_DONUT             ; donut
-.equ Cls_FirstLine,                     56              ; inclusive
-.equ Cls_LastLine,                      255-8           ; inclusive
+.equ Cls_FirstLine,                     0              ; inclusive
+.equ Cls_LastLine,                      191            ; inclusive
 .else
 .equ Cls_FirstLine,                     0               ; inclusive
 .equ Cls_LastLine,                      Screen_Height-1 ; inclusive

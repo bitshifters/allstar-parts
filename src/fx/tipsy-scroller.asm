@@ -5,7 +5,7 @@
 ; ============================================================================
 
 .equ TipsyScroller_MaxGlyphs,   96
-.equ TipsyScroller_Y_Pos,       256-8
+.equ TipsyScroller_Y_Pos,       0   ; in own buffer now.
 
 .equ TipsyScroller_DropShadow,  0
 .equ TipsyScroller_MaskPlot,    0

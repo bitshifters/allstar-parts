@@ -92,8 +92,16 @@ vidc_buffers_no_adr:
 
 .if AppConfig_UseRasterMan
 .p2align 2
+.if _DEMO_PART==_PART_TEST
 vidc_table_1_no_adr:
-	.skip 256*4*4 * 2
+	.skip 256*4*4*2     ; 4 regs per scanline.
+.else
+vidc_table_1_no_adr:
+	.skip 256*4*4       ; 4 regs per scanline.
+.endif
+
+memc_table_no_adr:
+    .skip 256*2*4       ; 2 regs per scaline.
 .endif
 
 ; ============================================================================
