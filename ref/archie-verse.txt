@@ -499,13 +499,12 @@ Set Vinit instead of calling OSByte_WriteDisplayBank. - DONE
 
 Donut TODO
 ~~~
-- MEMC writes to fix logo + buffered donut + single buffer scroller
+- MEMC writes to fix logo + buffered donut + single buffer scroller - DONE
     - Screen buffers every 40K = 0x0000, 0xa000, 0x14000 (bytes)
         - Vend = 0x77f0, 0x117f0, 0x1b7f0
     - Screen buffers are 192 lines long = 0x7800 (bytes)
     - Logo at screen buffer 1, line 192 = 0x7800 (Vend=0x9af0)
     - Scroller at screen buffer 1, line 248 = 0x9b00
-    - 
 - Optimise scroller to unrolled pixel shift code and one column write
 - Make four palettes for donut + blend in sequence
 - Use of RasterMan on the donut - alt shade the faces?
@@ -514,6 +513,7 @@ Donut TODO
     Would need to set 16 colours per scanline... = 8% of CPU!
 - Some sort of donut animation
 - Some sort of donut movement
+- Moving the light source requires a SQRT.
 
 => Perhaps just mix it up, so have the effectors layered at different rates.
    - Move sequence happens every M patterns

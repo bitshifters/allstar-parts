@@ -8,6 +8,14 @@
 ; ============================================================================
 
 .if _DEMO_PART==_PART_DONUT
+.macro donut_lerp_over_secs palette_A, palette_B, secs
+    math_make_var seq_palette_blend, 0.0, 1.0, math_clamp, 0.0, 1.0/(\secs*50.0)  ; seconds.
+    math_make_palette seq_palette_id, \palette_A, \palette_B, seq_palette_blend, seq_palette_lerped
+    write_addr raster_donut_osword_p, seq_palette_lerped
+    fork_and_wait \secs*50.0-1, seq_unlink_palette_lerp
+    ; NB. Subtract a frame to avoid race condition.
+.endm
+
 seq_donut_part:
 
     ; Init FX modules.
@@ -16,29 +24,49 @@ seq_donut_part:
     ;                               RingRadius          CircleRadius       RingSegments   CircleSegments   MeshPtr              Flat inner face?
     call_6      mesh_make_torus,    32.0*MATHS_CONST_1, 16.0*MATHS_CONST_1, 12,            8,              mesh_header_torus,   1
 
-    write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, 0.0
+    ; Reset logo palette in Vsync.
+    write_addr  palette_array_p,    three_logo_pal_no_adr
 
     ; Show donut.
-    ;call_1      palette_set_block,  three_logo_pal_no_adr
-    write_addr  palette_array_p,    three_logo_pal_no_adr
-    
-
     call_3      fx_set_layer_fns,   0, scene3d_rotate_entity,         screen_cls_from_line
 ;    call_3      fx_set_layer_fns,   1, scene3d_move_entity_to_target, 0
+    call_3      fx_set_layer_fns,   1, rasters_tick,                  0
     call_3      fx_set_layer_fns,   3, scene3d_transform_entity,      scene3d_draw_entity_as_solid_quads
 
-;    write_vec3  object_rot_speed,           0.5, 1.3, 2.9
+    write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, 0.0
     write_vec3  object_rot_speed,           1.0, 0.0, 2.0
-
-;    write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, -26.0
-;    math_make_var torus_entity+Entity_PosX, 0.0, 32.0, math_cos, 0.0, 0.006
-;    math_make_var torus_entity+Entity_PosY, 0.0, 32.0, math_sin, 0.0, 0.004
 
     ; Update a VECTOR3 using three math_funcs.
     ;math_make_vec3 torus_entity+Entity_Pos, my_func_for_x, my_func_for_y, my_func_for_z
 
     ; Don't move light for now.
     ;math_make_vec3 light_direction, light_func_x, light_func_y, light_func_z
+
+    write_vec3 light_direction, 0.577, 0.577, -0.577
+
+    wait_secs 5.0
+    donut_lerp_over_secs seq_palette_red_additive, seq_palette_green_white_ramp, 5.0
+
+    wait_secs 5.0
+    write_addr raster_donut_osword_p, 0
+
+    wait_secs 5.0
+    donut_lerp_over_secs seq_palette_blue_cyan_ramp, seq_palette_green_white_ramp, 5.0
+
+    wait_secs 5.0
+    write_addr raster_donut_osword_p, 0
+
+    wait_secs 5.0
+    donut_lerp_over_secs seq_palette_green_white_ramp, seq_palette_red_magenta_ramp, 5.0
+
+    wait_secs 5.0
+    write_addr raster_donut_osword_p, 0
+
+    wait_secs 5.0
+    donut_lerp_over_secs seq_palette_red_magenta_ramp, seq_palette_red_additive, 5.0
+
+    wait_secs 5.0
+    write_addr raster_donut_osword_p, 0
 
     end_script
 
@@ -49,16 +77,17 @@ my_func_for_y:
     math_func   0.0,    40.0,      math_cos,   0.0,    1.0/(MATHS_2PI*30.0)
 
 my_func_for_z:
-    math_func   0.0,    26.0,      math_cos,   0.0,    1.0/(MATHS_2PI*90.0)
+    math_func   0.0,    26.0,      math_cos,   0.0,    1.0/(MATHS_2PI*900.0)
 
 light_func_x:
-    math_func   0.0,    1.0,       math_sin,   0.0,    1.0/(MATHS_2PI*20.0)
+    math_func   0.0,    1.0,       math_sin,   0.0,    1.0/(MATHS_2PI*200.0)
 
 light_func_y:
-    math_func   0.0,    1.0,       math_cos,   0.0,    1.0/(MATHS_2PI*20.0)
+    math_func   0.0,    1.0,       math_cos,   0.0,    1.0/(MATHS_2PI*200.0)
 
 light_func_z:
     math_const  0.0
+
 .endif
 
 ; ============================================================================
@@ -506,7 +535,7 @@ seq_greets_text_no_adr:
     .byte "CRTC - DESiRE - Hooy Program - Inverse Phase - Logicoma - Loonies - "
     .byte "Proxima - Pulpo Corrosivo - Rabenauge - RiFT - Slipstream - YM Rockerz - "
     .byte "NOVA orgas - IRIS - Defekt - Epoch & Ivory - Bus Error Collective - "
-    .byte "Evvvil (not a pity greet :)"
+    .byte "Evvvil (not a pity greet :) - TTE - Spreadpoint - SMFX"
     .byte "          "
     .byte 0 ; end.
 .p2align 2
@@ -609,7 +638,7 @@ seq_palette_red_additive:
     .long 0x00c0e0e0                    ; 14 = 1110 = oranges
     .long 0x00f0f0f0                    ; 15 = 1111 = white
 
-.if 0
+.if 1
 seq_palette_grey:
     .long 0x00000000                    ; 00 = 0000 = black
     .long 0x00101010                    ; 01 = 0001 =
@@ -769,7 +798,7 @@ gradient_grey:
 ; Palette blending - required if using palette_lerp_over_secs macro.
 ; ============================================================================
 
-.if _DEMO_PART==_PART_SPACE
+.if _DEMO_PART==_PART_SPACE || _DEMO_PART==_PART_DONUT
 seq_unlink_palette_lerp:
     math_kill_var seq_palette_blend
     math_kill_var seq_palette_id

@@ -35,7 +35,7 @@
 
 .equ DebugDefault_PlayPause,    1		; play
 .equ DebugDefault_ShowRasters,  0
-.equ DebugDefault_ShowVars,     1		; slow
+.equ DebugDefault_ShowVars,     0		; slow
 
 .equ Debug_TopOfWimpSlot,       0x8000 + _WIMP_SLOT
 
@@ -569,6 +569,7 @@ mark_write_bank_as_pending_display:
 
     ; TODO: Could think about a palette dirty flag.
     ; TODO: Stop needlessly converting between OSWORD and VIDC formats.
+    ; TODO: Code is duplicated in rasters_convert_osword_to_vidc.
 
     mov r4, #0
 .3:
