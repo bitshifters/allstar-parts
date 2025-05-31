@@ -35,7 +35,7 @@ seq_donut_part:
     call_3      fx_set_layer_fns,   2, scene3d_bodge_torus_draw_order,0                 ; Must come before transform.
     call_3      fx_set_layer_fns,   3, scene3d_transform_entity,      scene3d_draw_entity_as_solid_quads
 
-    write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, 0.0
+    write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, -24.0
     write_vec3  object_rot_speed,           1.0, 0.0, 2.0
 
     ; Update a VECTOR3 using three math_funcs.

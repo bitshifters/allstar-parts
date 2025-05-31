@@ -4,7 +4,7 @@
 ; ============================================================================
 
 .equ TipsyScrollerOnVsync,      _DEMO_PART==_PART_DONUT ; <= makes RasterMan wobble
-.equ TipsyTempHack,             (TipsyScrollerOnVsync && 1) ; FIXME: optimise or remove!
+.equ TipsyTempHack,             (TipsyScrollerOnVsync && 0) ; FIXME: optimise or remove!
 
 .equ RasterSplitLine,           56+90			; 56 lines from vsync to screen start
 
@@ -282,6 +282,9 @@ app_scroller_logical:
 .if TipsyScrollerOnVsync
 app_ready:
     .long 0
+
+tipsy_r14_irq:
+    .long 0
 .endif
 
 ; ============================================================================
@@ -531,12 +534,22 @@ app_vsync_code:
     ldr r0, app_ready
     cmp r0, #0
     beq .4
-    stmfd sp!, {r2-r10}
+
+    ; Switch to SVC mode with IRQs enabled.
+    str r14, tipsy_r14_irq
+	TEQP PC,#FIQ_Disable | ProcMode_Svc
+    mov r0, r0
+
+    stmfd sp!, {r0-r12,lr}
     bl tipsy_scroller_tick
     ; Write scroller to static buffer.
     ldr r12, app_scroller_logical
-    bl tipsy_scroller_draw
-    ldmfd sp!, {r2-r10}
+    bl tipsy_scroller_draw  ; TODO: Optimise.
+    ldmfd sp!, {r0-r12,lr}
+
+	TEQP PC,#IRQ_Disable | FIQ_Disable | ProcMode_IRQ
+    mov r0, r0
+    ldr r14, tipsy_r14_irq
     .4:
     .endif
 

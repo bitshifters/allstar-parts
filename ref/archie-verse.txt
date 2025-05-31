@@ -499,6 +499,14 @@ Set Vinit instead of calling OSByte_WriteDisplayBank. - DONE
     - Any sync?
 - RasterMan for logo and scroller?
     => Need vsync callback to run != 50Hz - DONE
+For the 50Hz scroller, if you're worried about overrunning the available time,
+you could store entry R14_IRQ locally (not using IRQ stack) switch over to SVC mode
+and then re-enable IRQs. I think that will be ok with RM and would allow your
+scroller code to continue to execute as screen redraw and RM IRQs begin.
+You just need to ensure you complete before redraw gets to the scroller...
+although, at the extreme, you could test/set a re-entrancy semaphore flag when
+your scroller code is called and immediately exit if already running. That would
+allow you to take as long as you like, dropping to 25Hz if you don't complete in time.
 
 Donut TODO
 ~~~
