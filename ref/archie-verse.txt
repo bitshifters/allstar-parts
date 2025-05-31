@@ -489,6 +489,9 @@ Set Vinit instead of calling OSByte_WriteDisplayBank. - DONE
         - Multiple light sources? => NOT ENOUGH COLOURS (TOO MANY FACES)
         - Draw the light source
     - Triangle wibble by offseting X start by Y index into table..
+    - Looks nicer without flat inner face but need 2x face draw order lists.
+        Standard: R8=0,7,1,6,2,5,3,4
+        Flipped presumably: 7,0,6,1,5,2,4,3
 - Colours
     - Some nicer palettes.
     - Some palette blends.
@@ -527,7 +530,7 @@ Pre-Revision thought
 I wanna make another acid demo!!
 ---
 
-Riffing with Paul
+Riffing with Paul on LUTs.
 ~~~
 screen[i++] = texture[0x23f5]
 screen[i++] = shade_table[texture[0x23f5] + shade_const]

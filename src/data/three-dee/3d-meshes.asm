@@ -237,6 +237,14 @@ mesh_header_torus:
     .long  mesh_torus_faces_no_adr      ; Ptr to Face Indices array for Quads
     .long  mesh_torus_colours_no_adr    ; Ptr to Face Colours array
 
+mesh_header_torus_flipped:
+    .long  0                            ; NumVerts
+    .long  0                            ; NumFaces
+    .long  mesh_torus_flipped_verts_no_adr      ; Ptr to Verts array
+    .long  mesh_torus_flipped_normals_no_adr    ; Ptr to Face array
+    .long  mesh_torus_flipped_faces_no_adr      ; Ptr to Face Indices array for Quads
+    .long  mesh_torus_flipped_colours_no_adr    ; Ptr to Face Colours array
+
 ; ============================================================================
 
 ; Wireframe outlines for group names used in Mikroreise! Exported OBJs.

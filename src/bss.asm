@@ -16,13 +16,21 @@ sine_wave_table_no_adr:
 
 .if _DEMO_PART==_PART_DONUT
 
+; ====================================
+; TORUS WITH REGULAR DRAW ORDER
+; ====================================
+
 ; fx/scene-3d.asm
+; !VERTEX AND NORMAL ARRAYS MUST BE CONSECUTIVE!
+
 mesh_torus_verts_no_adr:
     .skip MeshTorus_NumVerts * VECTOR3_SIZE
 
-; NB. Must follow verts!
+; NB. Must follow verts!  <=== I'm an idiot.
 mesh_torus_normals_no_adr:
     .skip MeshTorus_NumFaces * VECTOR3_SIZE
+
+; !VERTEX AND NORMAL ARRAYS MUST BE CONSECUTIVE!
 
 mesh_torus_faces_no_adr:
     .skip MeshTorus_NumFaces * 4
@@ -30,6 +38,34 @@ mesh_torus_faces_no_adr:
 mesh_torus_colours_no_adr:
     .skip MeshTorus_NumFaces
 .p2align 2
+
+; ====================================
+; TORUS WITH FLIPPED DRAW ORDER
+; ====================================
+
+; !VERTEX AND NORMAL ARRAYS MUST BE CONSECUTIVE!
+
+mesh_torus_flipped_verts_no_adr:
+    .skip MeshTorus_NumVerts * VECTOR3_SIZE
+
+; NB. Must follow verts!  <=== I'm an idiot.
+mesh_torus_flipped_normals_no_adr:
+    .skip MeshTorus_NumFaces * VECTOR3_SIZE
+
+; !VERTEX AND NORMAL ARRAYS MUST BE CONSECUTIVE!
+
+mesh_torus_flipped_faces_no_adr:
+    .skip MeshTorus_NumFaces * 4
+
+mesh_torus_flipped_colours_no_adr:
+    .skip MeshTorus_NumFaces
+.p2align 2
+
+; ====================================
+; TRANSFORMED VERTICES AND NORMALS
+; ====================================
+
+; !VERTEX AND NORMAL ARRAYS MUST BE CONSECUTIVE!
 
 transformed_verts_no_adr:
     .skip OBJ_MAX_VERTS * VECTOR3_SIZE

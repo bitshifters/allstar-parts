@@ -81,7 +81,13 @@ torus_entity:
     VECTOR3 0.0, 0.0, 0.0       ; object_pos
     VECTOR3 0.0, 0.0, 0.0       ; object_rot
     FLOAT_TO_FP 1.0             ; object_scale
+    .long mesh_header_torus_flipped     ; mesh ptr
+
+torus_mesh_regular_p:
     .long mesh_header_torus     ; mesh ptr
+
+torus_mesh_flipped_p:
+    .long mesh_header_torus_flipped     ; mesh ptr
 
 ; ============================================================================
 ; Ptrs to buffers / tables.
@@ -120,6 +126,9 @@ scene3d_init:
 
 ;    DEBUG_REGISTER_VEC3 object_target_pos
 ;    DEBUG_REGISTER_VEC3 torus_entity+Entity_Pos
+
+    ; SHOW normal_transform Z vector!!
+    DEBUG_REGISTER_VEC3 normal_transform+MATRIX_20
 
     ldr pc, [sp], #4
 
@@ -389,6 +398,17 @@ object_target_pos:
 
 object_target_lerp_factor:
     FLOAT_TO_FP 0.1
+
+scene3d_bodge_torus_draw_order:
+    adr r10, torus_entity
+    ldr r0, normal_transform+MATRIX_22   ; norm[z].z
+    cmp r0, #0
+    ; MI=use regular
+    ldrmi r1, torus_mesh_regular_p
+    ; PL=use flipped
+    ldrpl r1, torus_mesh_flipped_p
+    str r1,  [r10, #Entity_MeshPtr]     ; torus_entity.meshptr
+    mov pc, lr
 
 ; Lerp the entity towards a target position.
 scene3d_move_entity_to_target:

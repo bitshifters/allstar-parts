@@ -35,6 +35,9 @@ torus_circlesegments:
 torus_mesh_p:
     .long 0
 
+torus_flags:
+    .long 0
+
 torus_circleradius_recip:
     .long 0                             ; 1/b
 
@@ -43,14 +46,14 @@ torus_circleradius_recip:
 ; R2=ring segments
 ; R3=circle segments
 ; R4=ptr to mesh header (assumes the BSS is preallocated!)
-; R5=flat inner face flag
+; R5=flags 0x1=flat inner face, 0x2=flip face order
 mesh_make_torus:
     str lr, [sp, #-4]!
 
     ; Cache parameters.
 
     adr r6, torus_ringradius
-    stmia r6, {r0-r4}
+    stmia r6, {r0-r5}                       ; str r4, torus_mesh_p!
 
     ; Calculate num verts/faces.
 
@@ -62,7 +65,7 @@ mesh_make_torus:
     swigt OS_GenerateError
     .endif
 
-    ; Calculate all vertices.
+    ; Fill out the mesh header.
 
     mov r12, r4
     str r6, [r12, #MeshHeader_NumVerts]
@@ -70,9 +73,37 @@ mesh_make_torus:
     ldr r11, [r12, #MeshHeader_VertsPtr]    ; ptr to verts
 
     ; Normals must come after verts.
+
     add r3, r11, r6, lsl #3
     add r3, r3, r6, lsl #2
     str r3, [r12, #MeshHeader_NormalsPtr]   ; ptr to normals
+
+    ; Calculate all vertices.
+
+    bl mesh_make_torus_verts
+
+    ; Calculate the face indices and colours.
+
+    ldr r12, torus_mesh_p
+    ldr r11, [r12, #MeshHeader_FaceIndices] ; face indices array [4 bytes]
+    ldr r5, torus_flags
+    bl mesh_make_torus_faces_and_colours
+
+    ; Calculate normals.
+
+    ldr r12, torus_mesh_p
+    ldr r0, [r12, #MeshHeader_NormalsPtr]  ; normals array [3*4 bytes]
+    bl mesh_calc_normals_from_faces
+
+    ; TODO: Perhaps sort out the ptrs that get passed into these functions.
+
+    ldr pc, [sp], #4
+
+; Assumes that torus params are cached.
+; R5=flat inner face flag.
+; R11=ptr to verts array
+mesh_make_torus_verts:
+    str lr, [sp, #-4]!
 
     ; Calculate reciprocals.
 
@@ -89,7 +120,7 @@ mesh_make_torus:
     mov r6, r0                              ; dp = 1.0/d
 
     ; Flat inner face flag.
-    cmp r5, #0
+    tst r5, #0x1            ; and
     moveq r3, #0
     movne r3, r6, asr #1
 
@@ -153,17 +184,32 @@ mesh_make_torus:
     add r10, r10, r7                          ; theta+=dt
     cmp r10, #MATHS_CONST_1
     blt .1
+    ldr pc, [sp], #4
+
+; Assumes that torus params are cached.
+; R0=regular or flipped (non-zero) face order
+; R11=ptr to face indices array [4 bytes per face]
+; R12=mesh header.
+; Trashes: R12
+mesh_make_torus_faces_and_colours:
+    str lr, [sp, #-4]!
 
     ; Pre-sort the face order to avoid sorting at render time!
     ; NB. This isn't strictly possible with a fully symmetric torus.
-    ; TODO: Two sort orders for use when the torus is face up/down.
+    ;     So we can create two with the two possible draw orders and
+    ;     Flip between them at render time depending on rotation.
+
+    tst r5, #0x2    ; and
+    adreq r1, mesh_make_torus_regular_face_order
+    adrne r1, mesh_make_torus_flipped_face_order
+    ldmia r1, {r2-r3}
+    adr r0, .333
+    stmia r0, {r2-r3}
 
     ; Calculate vertices per face.
     ; 'd' verts per ring repeated 'c' times.
     ; Each face will be made of verts:
     ;   n, (n+1) MOD d (around the circle), (n+d) MOD c (next segment of the ring), (n+d+1) MOD c
-    ldr r12, torus_mesh_p
-    ldr r11, [r12, #MeshHeader_FaceIndices] ; face indices array [4 bytes]
     ldr r10, [r12, #MeshHeader_FaceColours] ; face colours array [1 byte]
     ldr r14, [r12, #MeshHeader_NumVerts]
 
@@ -177,6 +223,9 @@ mesh_make_torus:
 
     mov r8, r12, lsr #1                     ; i DIV 2
     tst r12, #1 ; NE=bit set
+
+    ; NB. Just flip this condition to 'eq' to switch draw order.
+.333:
     subne r8, r6, r8
     subne r8, r8, #1                        ; (N-1)-(i DIV 2)
 
@@ -234,11 +283,15 @@ mesh_make_torus:
     cmp r12, r6
     blt .3
 
-    ; Calculate normals.
-    ldr r12, torus_mesh_p
-    bl mesh_calc_normals_from_faces
-
     ldr pc, [sp], #4
+
+mesh_make_torus_regular_face_order:
+    subne r8, r6, r8
+    subne r8, r8, #1                        ; (N-1)-(i DIV 2)
+
+mesh_make_torus_flipped_face_order:
+    subeq r8, r6, r8
+    subeq r8, r8, #1                        ; (N-1)-(i DIV 2)
 
 ; ============================================================================
 ; ============================================================================
@@ -254,6 +307,7 @@ mesh_make_torus:
 ; ============================================================================
 ; ============================================================================
 
+; R0 = ptr to normals array.
 ; R12 = ptr to mesh header.
 ; Compute normals from vertex array and mesh faces indices.
 mesh_calc_normals_from_faces:
@@ -262,7 +316,7 @@ mesh_calc_normals_from_faces:
     ldr r8, [r12, #MeshHeader_NumFaces]     ; number normals
     ldr r10, [r12, #MeshHeader_VertsPtr]    ; vertex array [3*4 bytes]
     ldr r11, [r12, #MeshHeader_FaceIndices] ; face indices array [4 bytes]
-    ldr r12, [r12, #MeshHeader_NormalsPtr]  ; normals array [3*4 bytes]
+    mov r12, r0
 
     ; Assume R0-R7, R9 gets trashed!
 
