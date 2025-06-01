@@ -28,7 +28,7 @@ three_logo_pal_no_adr:
 
 .if TipsyScrollerOnVsync
 fine_font_no_adr:
-.incbin "build/fine-font.bin"
+.incbin "build/donut-font.bin"
 .endif
 
 ; ===========================================================================

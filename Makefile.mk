@@ -73,7 +73,7 @@ build:
 	./build/paul10_uv.lz4 ./build/SpaceIndex.lz4 ./build/paul11_uv.lz4 ./build/paul12_uv.lz4 \
 	./build/ApolloIndex.lz4 ./build/paul13_uv.lz4 ./build/WarpIndex.lz4 ./build/paul14_uv.lz4 \
 	./build/GreetsIndex.lz4 ./build/nasa-font.lz4 ./build/paul16_uv.lz4 ./build/paul17_uv.lz4 \
-	./build/three-logo.bin
+	./build/three-logo.bin ./build/donut-font.bin
 	echo done > $@
 
 ##########################################################################
@@ -279,6 +279,9 @@ clean:
 
 ./build/three-logo.bin: ./data/gfx/3-logos-v0.21.png $(PNG2ARC_DEPS)
 	$(PYTHON2) $(PNG2ARC) -o $@ -p $@.pal $< 9
+
+./build/donut-font.bin: ./data/font/donut-font-v2-final.png $(PNG2ARC_DEPS)
+	$(PYTHON2) $(PNG2ARC_FONT) -o $@ --loud --glyph-dim 8 8 $< 9
 
 ##########################################################################
 # MUSIC ASSETS

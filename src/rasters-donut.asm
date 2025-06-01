@@ -76,7 +76,11 @@ rasters_donut_init:
     ldmia r1!, {r2-r9}          ; 8 words
     stmia r0!, {r2-r9}
 
-    add r0, r0, #16*(248-4-RastersDonut_PaletteLine)
+    add r0, r0, #16*(248-5-RastersDonut_PaletteLine)
+
+    adr r1, raster_scroller_fg
+    ldmia r1, {r2-r5}           ; 4 words
+    stmia r0!, {r2-r5}
 
     adr r1, raster_scroller_bg
     ldmia r1, {r2-r9}           ; 8 words
@@ -173,5 +177,11 @@ raster_scroller_bg:
     .long           VIDC_Col0 | 0xb00
     .long           VIDC_Col0 | 0xd00
     .long           VIDC_Col0 | 0xf00
+
+raster_scroller_fg:
+    .long           VIDC_Col1 | 0x048
+    .long           VIDC_Col2 | 0x06c
+    .long           VIDC_Col3 | 0x6df
+    .long           VIDC_Col4 | 0x9ef
 
 ; ============================================================================

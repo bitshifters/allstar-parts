@@ -44,32 +44,36 @@ seq_donut_part:
     ; Don't move light for now.
     ;math_make_vec3 light_direction, light_func_x, light_func_y, light_func_z
 
+    ; 20 patterns at 5.12s per pattern = 102.4s for loop.
+
     write_vec3 light_direction, 0.577, 0.577, -0.577
 
-    wait_secs 5.0
-    donut_lerp_over_secs seq_palette_red_additive, seq_palette_green_white_ramp, 5.0
+seq_donut_loop:
+    wait_patterns 4.0
+    donut_lerp_over_secs seq_palette_red_additive, seq_palette_green_white_ramp, SeqConfig_PatternLength_Secs
 
-    wait_secs 5.0
+    wait_patterns 1.0
     write_addr raster_donut_osword_p, 0
 
-    wait_secs 5.0
-    donut_lerp_over_secs seq_palette_blue_cyan_ramp, seq_palette_green_white_ramp, 5.0
+    wait_patterns 4.0
+    donut_lerp_over_secs seq_palette_green_white_ramp, seq_palette_blue_cyan_ramp, SeqConfig_PatternLength_Secs
 
-    wait_secs 5.0
+    wait_patterns 1.0
     write_addr raster_donut_osword_p, 0
 
-    wait_secs 5.0
-    donut_lerp_over_secs seq_palette_green_white_ramp, seq_palette_red_magenta_ramp, 5.0
+    wait_patterns 4.0
+    donut_lerp_over_secs seq_palette_blue_cyan_ramp, seq_palette_red_magenta_ramp, SeqConfig_PatternLength_Secs
 
-    wait_secs 5.0
+    wait_patterns 1.0
     write_addr raster_donut_osword_p, 0
 
-    wait_secs 5.0
-    donut_lerp_over_secs seq_palette_red_magenta_ramp, seq_palette_red_additive, 5.0
+    wait_patterns 4.0
+    donut_lerp_over_secs seq_palette_red_magenta_ramp, seq_palette_red_additive, SeqConfig_PatternLength_Secs
 
-    wait_secs 5.0
+    wait_patterns 1.0
     write_addr raster_donut_osword_p, 0
 
+    goto seq_donut_loop
     end_script
 
 my_func_for_x:

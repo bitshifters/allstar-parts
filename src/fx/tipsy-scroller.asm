@@ -129,8 +129,10 @@ tipsy_scroller_draw:
     ldreq r12, tipsy_scroller_base_p
     beq .1
 
+    cmp r0, #0x60
+    bicgt r0, r0, #0x20             ; force upper case
     sub r0, r0, #32                 ; ascii space
-    add r14, r9, r0, lsl #5          ; assumes 32 bytes per glyph.
+    add r14, r9, r0, lsl #5         ; assumes 32 bytes per glyph.
 
     .if TipsyScroller_UnrollPlot
     ; R14=temp
@@ -302,9 +304,11 @@ tipsy_scroller_message_no_adr:
 ;                                                                                                             1
 ;                   1         2         3         4         5         6         7         8         9         0
 ;          1........0.........0.........0.........0.........0.........0.........0.........0.........0.........0
-    .byte "  Is it a terrible twister?  No... this is the fir"
-    .byte "st ever tipsy cube intro for the Acorn Archimedes!  Brought to you by Bitshifters & Slipstream for t"
-    .byte "he FieldFX 2022 New Year's demostream.  Inspired by the Gerp 2014 rubber vector challenge, just rock"
+    .byte "    Eat my doughnut! This is a typically belated entry to the Buxton Bytes cracktro showcase to show"
+    .byte " how much better the mightly Acorn Archimedes is than your puny Atari ST machines at 8MHz! ARM FTW :)"
+    .byte " Gfx by Hammerfist, music by ne7, code by kieran."
+    .byte " Elite greets go out to Tom, SMFX, Desire, Spice Boys (is that chip spice?),"
+    .byte " and all doughnut lovers from around the scene."
     .byte 0
     .p2align 2
 

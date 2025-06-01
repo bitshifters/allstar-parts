@@ -517,7 +517,7 @@ Donut TODO
     - Logo at screen buffer 1, line 192 = 0x7800 (Vend=0x9af0)
     - Scroller at screen buffer 1, line 248 = 0x9b00
 - Optimise scroller to unrolled pixel shift code and one column write
-- Make four palettes for donut + blend in sequence
+- Make four palettes for donut + blend in sequence - DONE
 - Use of RasterMan on the donut - alt shade the faces?
     Mental Hangover - rasters cycle through the hue table every 16 scanlines
     Each colour is a darker version of the hue table
@@ -525,6 +525,16 @@ Donut TODO
 - Some sort of donut animation
 - Some sort of donut movement
 - Moving the light source requires a SQRT.
+- Add Hammerfist's donut font. - DONE
+- Better ramps for the colour palettes... - HAMMERFIST?
+
+1) start the scene with the logo, donut and scroller in the orange/browns, then 
+2) switch donut and/or scroller to the greys from the logo (or a 16c gradient that matches it)  and finally
+3) pick any gradient for the donut, like this magnificent purple selection, but also recolor the logo and scroller to match. 
+(We should definitely check if the purples and whatever you come up with look good enough, but technically they should work…)
+Also, while the little background gradient for the scroller is an idea I am 100% ok with, it should also match the rest. I.e., in the screenshot oranges and   blues under greys and purples is too much.
+You could always go for safe and just use greys for that gradient behind the scroller, matching with the greys from the logo.
+Oh btw, for point 3), I meant changes the oranges in the logo to purples, but leave the greys grey. That sort of anchors it, makes it at least a little bit more subtle 🙂
 
 => Perhaps just mix it up, so have the effectors layered at different rates.
    - Move sequence happens every M patterns
