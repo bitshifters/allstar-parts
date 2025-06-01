@@ -516,7 +516,7 @@ Donut TODO
     - Screen buffers are 192 lines long = 0x7800 (bytes)
     - Logo at screen buffer 1, line 192 = 0x7800 (Vend=0x9af0)
     - Scroller at screen buffer 1, line 248 = 0x9b00
-- Optimise scroller to unrolled pixel shift code and one column write
+- Optimise scroller to unrolled pixel shift code and one column write - DONE
 - Make four palettes for donut + blend in sequence - DONE
 - Use of RasterMan on the donut - alt shade the faces?
     Mental Hangover - rasters cycle through the hue table every 16 scanlines
