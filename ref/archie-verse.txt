@@ -455,7 +455,7 @@ UV PART
 
 DONUT PART
 - Add logo. - BODGED
-- Add scroller.
+- Add scroller. - DONE
     - Scroller at 50Hz how?
         - Update on vsync - STARTED
         - Use RasterMan to display a separate buffer?
@@ -475,6 +475,7 @@ Set Vinit instead of calling OSByte_WriteDisplayBank. - DONE
         - Defining paths with individual math_vars is tedious.
           Now need to define a math_vec_func !? - DONE
           Could also have a 'move to target' tick? - STARTED
+          Bounce up and down in Y?
     - Morph
     - Animate
         => Need to be careful with sorting order
@@ -488,7 +489,9 @@ Set Vinit instead of calling OSByte_WriteDisplayBank. - DONE
         - Move the light source - DONE
         - Multiple light sources? => NOT ENOUGH COLOURS (TOO MANY FACES)
         - Draw the light source
-    - Triangle wibble by offseting X start by Y index into table..
+    - Triangle wibble by offseting X start by Y index into table.. - DONE
+        - Sine wave and random.
+        - Think this needs a bit more exploration and would be better as part of a larger 3D demo.
     - Looks nicer without flat inner face but need 2x face draw order lists.
         Standard: R8=0,7,1,6,2,5,3,4
         Flipped presumably: 7,0,6,1,5,2,4,3

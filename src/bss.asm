@@ -80,6 +80,11 @@ transformed_verts_no_adr:
 projected_verts_no_adr:
     .skip OBJ_MAX_VERTS * VECTOR2_SIZE
 
+.if LibTriangle_EnableFutz
+futz_table_no_adr:
+    .skip 512*4
+.endif
+
 .endif
 
 ; ============================================================================

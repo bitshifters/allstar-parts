@@ -21,6 +21,9 @@ seq_donut_part:
     ; Init FX modules.
     call_0      scene3d_init
     call_0      rasters_donut_init
+    .if LibTriangle_EnableFutz
+    call_0      futz_table_init
+    .endif
     ;                               RingRadius          CircleRadius        RingSegments   CircleSegments  MeshPtr                      Flags
     call_6      mesh_make_torus,    32.0*MATHS_CONST_1, 16.0*MATHS_CONST_1, 12,            8,              mesh_header_torus,           0x0 ; not flat inner
     call_6      mesh_make_torus,    32.0*MATHS_CONST_1, 16.0*MATHS_CONST_1, 12,            8,              mesh_header_torus_flipped,   0x2 ; flipped
@@ -29,13 +32,13 @@ seq_donut_part:
     write_addr  palette_array_p,    three_logo_pal_no_adr
 
     ; Show donut.
-    call_3      fx_set_layer_fns,   0, scene3d_rotate_entity,         screen_cls_from_line
-;    call_3      fx_set_layer_fns,   1, scene3d_move_entity_to_target, 0
-    call_3      fx_set_layer_fns,   1, rasters_tick,                  0
-    call_3      fx_set_layer_fns,   2, scene3d_bodge_torus_draw_order,0                 ; Must come before transform.
-    call_3      fx_set_layer_fns,   3, scene3d_transform_entity,      scene3d_draw_entity_as_solid_quads
+    call_3      fx_set_layer_fns,   0, scene3d_rotate_entity,           screen_cls_from_line
+;    call_3      fx_set_layer_fns,   1, scene3d_move_entity_to_target,  0
+    call_3      fx_set_layer_fns,   1, rasters_tick,                    0
+    call_3      fx_set_layer_fns,   2, scene3d_bodge_torus_draw_order,  0                 ; Must come before transform.
+    call_3      fx_set_layer_fns,   3, scene3d_transform_entity,        scene3d_draw_entity_as_solid_quads
 
-    write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, -24.0
+    write_vec3  torus_entity+Entity_Pos,    0.0, 0.0, -16.0
     write_vec3  object_rot_speed,           1.0, 0.0, 2.0
 
     ; Update a VECTOR3 using three math_funcs.

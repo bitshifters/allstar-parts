@@ -3,6 +3,8 @@
 ; Not using a span buffer. Uses bottom flat, top flat algorithm.
 ; ============================================================================
 
+.equ LibTriangle_EnableFutz,        0               ; Needs more work I think...
+
 .equ LibTriangle_IncludeQuadPlot,   1
 .equ LibTriangle_IncludeBatchPlot,  0
 .equ LibTriangle_IncludeNicksCode,  0
@@ -22,10 +24,62 @@ triangle_reciprocal_table_p:
 
 ; ============================================================================
 
+.if LibTriangle_EnableFutz
+futz_table_p:
+    .long futz_table_no_adr
+
+futz_table_base_p:
+    .long futz_table_no_adr
+
+futz_table_top_p:
+    .long futz_table_no_adr + 256*4
+
+futz_table_init:
+    str lr, [sp, #-4]!
+
+    ldr r10, futz_table_p
+    mov r11, #0
+    mov r12, #0
+.1:
+    mov r0, r11
+    bl sine                    ; sine curve
+    ;bl math_rand                ; random
+    mov r0, r0, asr #12
+    str r0, [r10], #4
+    add r11, r11, #MATHS_CONST_1/128
+    add r12, r12, #1
+    cmp r12, #512
+    blt .1
+
+    ldr pc, [sp], #4
+
+futz_table_tick:
+    str lr, [sp, #-4]!
+    .if 1                       ; scroll through table
+    ldr r0, futz_table_p
+    ldr r1, futz_table_top_p
+    add r0, r0, #4
+    cmp r0, r1
+    ldrge r0, futz_table_base_p
+    str r0, futz_table_p
+    .else                       ; jump into table
+    bl math_rand
+    mov r0, r0, asr #8
+    ldr r1, futz_table_base_p
+    add r1, r1, r0, lsl #2
+    str r1, futz_table_p
+    .endif
+    ldr pc, [sp], #4
+.endif
+
 ; R12=screen addr
 triangle_prepare:
     str r12, triangle_screen_addr
+    .if LibTriangle_EnableFutz
+    b futz_table_tick
+    .else
     mov pc, lr
+    .endif
 
 ; ============================================================================
 
@@ -227,11 +281,23 @@ triangle_plot_bottom_flat:
     blt .2                      ; skip line
 
     movs r1, r6, asr #16        ; Xend in pixels
+
+    .if LibTriangle_EnableFutz
+    ldr r4, futz_table_p
+    ldr r4, [r4, r14, lsl #2]   ; futz[y]
+    adds r1, r1, r4
+    .endif
+
     movlt r1, #0
     cmp r1, #Screen_Width
     movgt r1, #Screen_Width
 
     movs r3, r0, asr #16         ; Xstart in pixels
+
+    .if LibTriangle_EnableFutz
+    adds r3, r3, r4
+    .endif
+
     movlt r3, #0
     cmp r3, #Screen_Width
     movgt r3, #Screen_Width
@@ -369,11 +435,23 @@ triangle_plot_top_flat:
     blt .2                      ; skip line
 
     movs r1, r6, asr #16         ; Xend in pixels
+
+    .if LibTriangle_EnableFutz
+    ldr r4, futz_table_p
+    ldr r4, [r4, r14, lsl #2]   ; futz[y]
+    adds r1, r1, r4
+    .endif
+
     movlt r1, #0
     cmp r1, #Screen_Width
     movgt r1, #Screen_Width
 
     movs r3, r0, asr #16         ; Xstart in pixels
+
+    .if LibTriangle_EnableFutz
+    adds r3, r3, r4
+    .endif
+
     movlt r3, #0
     cmp r3, #Screen_Width
     movgt r3, #Screen_Width

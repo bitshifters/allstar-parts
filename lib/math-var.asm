@@ -509,6 +509,7 @@ rnd_bit:
     .long 0x11111111
 
 ; R0=[0,1)
+; Trashes: R3, R4
 math_rand:
     ldr r0, rnd_seed
     ldr r3, rnd_bit
