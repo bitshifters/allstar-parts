@@ -73,7 +73,8 @@ build:
 	./build/paul10_uv.lz4 ./build/SpaceIndex.lz4 ./build/paul11_uv.lz4 ./build/paul12_uv.lz4 \
 	./build/ApolloIndex.lz4 ./build/paul13_uv.lz4 ./build/WarpIndex.lz4 ./build/paul14_uv.lz4 \
 	./build/GreetsIndex.lz4 ./build/nasa-font.lz4 ./build/paul16_uv.lz4 ./build/paul17_uv.lz4 \
-	./build/three-logo.bin ./build/donut-font.bin
+	./build/three-logo.bin ./build/donut-font.bin ./build/paul15_uv.lz4 ./build/AstroIndex.lz4 \
+	./build/ApolloIndex_384.lz4 ./build/SpaceIndex_512.lz4
 	echo done > $@
 
 ##########################################################################
@@ -197,13 +198,22 @@ clean:
 ./build/SpaceIndex.bin: ./data/gfx/SpaceIndex.png $(PNG2ARC_DEPS)		# index in red
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
 
+./build/SpaceIndex_512.bin: ./data/gfx/SpaceIndex_512.png $(PNG2ARC_DEPS)		# index in red
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
+
 ./build/ApolloIndex.bin: ./data/gfx/ApolloIndex.png $(PNG2ARC_DEPS)		# index in red
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
+
+./build/ApolloIndex_384.bin: ./data/gfx/ApolloIndex_384.png $(PNG2ARC_DEPS)		# index in red
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
 
 ./build/WarpIndex.bin: ./data/gfx/WarpIndex.png $(PNG2ARC_DEPS)		# index in red
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
 
 ./build/GreetsIndex.bin: ./data/gfx/GreetsIndex.png $(PNG2ARC_DEPS)		# index in red
+	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
+
+./build/AstroIndex.bin: ./data/gfx/AstroIndex.png $(PNG2ARC_DEPS)		# index in red
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
 
 ##########################################################################
@@ -258,10 +268,13 @@ clean:
 ./build/paul14_uv.bin: ./data/uvs/LUT14.png $(UV_SHADER)	# greets
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
+./build/paul15_uv.bin: ./data/uvs/LUT15.png $(UV_SHADER)	# wormhole
+	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
+
 ./build/paul16_uv.bin: ./data/uvs/LUT16.png $(UV_SHADER)	# fractal
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
-./build/paul17_uv.bin: ./data/uvs/LUT17.png $(UV_SHADER)	# workhole
+./build/paul17_uv.bin: ./data/uvs/LUT17.png $(UV_SHADER)	# relax
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
 ./build/nasa-font.bin: ./data/font/font_sprite_sheet_2.png $(PNG2ARC_DEPS)
