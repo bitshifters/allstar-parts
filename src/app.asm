@@ -63,19 +63,15 @@ app_init_debug:
 ; App video code.
 ; ============================================================================
 
-vdu_screen_disable_cursor:
-.byte 22, VideoConfig_VduMode, 23,1,0,0,0,0,0,0,0,0,17,7
-.p2align 2
-
 ; R12=top of RAM used.
 app_init_video:
     str lr, [sp, #-4]!
 
 	; Set screen MODE & disable cursor
-	adr r0, vdu_screen_disable_cursor
-	mov r1, #14
-	swi OS_WriteN
-
+    swi OS_WriteI+22
+    swi OS_WriteI+VideoConfig_VduMode
+    swi OS_RemoveCursors
+    
 	; Set screen size for number of buffers
 	MOV r0, #DynArea_Screen
 	SWI OS_ReadDynamicArea
@@ -92,6 +88,7 @@ app_init_video:
 	SWICC OS_GenerateError
 
 	; Clear all screen buffers
+    ldr r10, vidc_buffers_p
 	mov r1, #1
 .1:
 	str r1, write_bank
@@ -100,6 +97,10 @@ app_init_video:
 	mov r0, #OSByte_WriteVduBank
 	swi OS_Byte
 	SWI OS_WriteI + 12		; cls
+
+    ; Void VIDC buffer for bank N.
+    mov r0, #-1
+    str r0, [r10, r1, lsl #6]            ; 64 bytes per bank
 
 	add r1, r1, #1
 	cmp r1, #VideoConfig_ScreenBanks
@@ -463,8 +464,12 @@ app_vsync_code:
 	str r0, pending_bank
 
     ; Done pending bank.
-.2:
+
     ; NB. May want to set palette for pending bank or every vsync.
+    ; TODO: Sort out all this crap of conditionally assembled code.
+    .if _DEMO_PART==_PART_DONUT
+    .2:     ; always set palette for donut.
+    .endif
 
 .if !AppConfig_UseRasterMan || _DEMO_PART==_PART_DONUT
     mov r11, pc                     ; Save processor mode.
@@ -513,6 +518,8 @@ app_vsync_code:
 	mov r11, #VIDC_Write
     ldr r12, vidc_buffers_p
     ldr r1, displayed_bank
+    cmp r1, #0                      ; avoid idiocy but make this better.
+    beq .11
     add r12, r12, r1, lsl #6        ; 64 bytes per bank.
     mov r1, #16
 .1:
@@ -528,6 +535,10 @@ app_vsync_code:
     teqp r11, #0                    ; Restore previous processor mode.
     mov r0, r0
 .endif
+
+    .if _DEMO_PART!=_PART_DONUT
+    .2:     ; only set palette for a new frame otherwise.
+    .endif
 
     .if TipsyScrollerOnVsync && !TipsyTempHack
     ; Do scrolltext?!

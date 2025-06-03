@@ -31,6 +31,8 @@
 .equ OS_ReadEscapeState, 0x2c
 .equ OS_ReadVduVariables, 0x31
 .equ XOS_ReadVduVariables, OS_ReadVduVariables | (1 << 17)
+.equ OS_RemoveCursors, 0x36
+.equ OS_RestoreCursors, 0x37
 .equ OS_ReadMonotonicTime, 0x42
 .equ OS_Plot, 0x45
 .equ OS_AddToVector, 0x47
