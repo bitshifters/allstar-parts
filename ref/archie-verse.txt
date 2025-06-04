@@ -648,6 +648,15 @@ Paul's TODOs:
 - Double height LUT table.. => NEXT TIME?
     => Check max code size.
     => Put gen code at end of bss.
+- Long textures
+    Code size for Apollo = 149K
+    Code size for Relax = 183K
+- Palette revert glitch for one frame on boot only
+    => Setting palette to black shows a one frame of black
+    => Presumably as not going through OS palette calls?
+    => Some weird RISCOS delay after MODE change thing?
+    => Issue a wait before we start the demo? FFS!
+- Palette jump after long setup => reset vsync_delta before math_var tick.
 
 RAM:
 - Code = 15680 bytes

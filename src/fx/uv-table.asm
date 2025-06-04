@@ -4,7 +4,8 @@
 ;
 ; ============================================================================
 
-.equ UV_Table_CodeSize,             0x4a274 ; 335876 (0x52004) THEORETICAL MAX
+.equ UV_Table_CodeSize,             0x48bc0 ; (ship)
+                                            ; THEORETICAL MAX is 0x52004 (335876~=328K)
 .equ UV_Table_Columns,              160
 .equ UV_Table_Rows,                 128     ; or 120?
 
@@ -18,6 +19,7 @@
 .equ UV_Table_TexDim_128_64,        3
 .equ UV_Table_TexDim_8_256,         4
 .equ UV_Table_TexDim_32_256,        5
+.equ UV_Table_TexDim_128_512,       6
 
 .equ UV_Table_FixedPointUV,         1
 
@@ -69,6 +71,7 @@ uv_table_code_max:
 
 ; Copies 16Kb of texture data to buffer twice (so texture lookup can wrap in V).
 ; R0=src ptr.
+.if 0
 uv_texture_set_data:
     ldr r1, uv_table_texture_data_p
     str r1, uv_table_texture_p
@@ -76,6 +79,7 @@ uv_texture_set_data:
     bl mem_copy_16K_fast
     ldmfd sp!, {r0,lr}
     b mem_copy_16K_fast
+.endif
 
 ; R0=compressed src ptr.
 ; R1=decompressed size
@@ -125,6 +129,19 @@ uv_table_tick_texture_wrap:         ; copied over from tex_dim below.
     add r11, r10, #4096         ; 4*4096 = 16384 = 128*128
 
     ldr pc, uv_table_code_p     ; pops return from stack.
+
+; ============================================================================
+
+; R0 = texture dimensions as enum
+uv_table_set_texture_wrap:
+    adr r2, uv_table_tick_texture_wrap
+    adr r1, uv_table_tex_dim_128_128
+    add r1, r1, r0, lsl #4          ; enum*6*4
+    add r1, r1, r0, lsl #3          ; enum*6*4
+    ldmia r1, {r3-r8}               ; copy 6 instrutions
+    stmia r2, {r3-r8}
+    mov pc, lr
+
 
 ; ============================================================================
 
@@ -194,6 +211,14 @@ uv_table_tex_dim_32_256:            ; 32x256=8192 (13 bits)
     orr r2, r2, r3, lsr #20         ; v0 | u0           12 bits
     and r3, r1, #0x00ff             ; v0<<0  [0, 255]   8 bits
     mov r3, r3, lsr #7              ; top 1 bits of v0
+
+uv_table_tex_dim_128_512:           ; 128x512=65536 (16 bits)
+    and r2, r0, #0x007f             ; u0<<0  [0, 127]   7 bits
+    mov r3, r1, lsl #32-9           ; bottom 9 bits of v0
+    mov r3, r3, lsr #32-9-7         ; v0 * 128
+    add r2, r2, r3                  ; u0 + v0 * 128
+    mov r2, r2                      ; NOP
+    mov r3, #0                      ; zero these bits.
 
 ; ============================================================================
 ; Calculate the byte offset into a texture from the UV parameters.

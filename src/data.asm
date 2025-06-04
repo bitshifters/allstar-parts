@@ -55,8 +55,16 @@ uv_space_texture_no_adr:
 .incbin "build/SpaceIndex.lz4"          ; 16K
 
 .p2align 2
+uv_space_512_texture_no_adr:
+.incbin "build/SpaceIndex_512.lz4"      ; 64K
+
+.p2align 2
 uv_apollo_texture_no_adr:
 .incbin "build/ApolloIndex.lz4"         ; 16K
+
+.p2align 2
+uv_apollo_384_texture_no_adr:
+.incbin "build/ApolloIndex_384.lz4"     ; 48K
 
 .p2align 2
 uv_ship_texture_no_adr:
@@ -69,10 +77,6 @@ uv_warp_texture_no_adr:
 .p2align 2
 uv_greets_texture_no_adr:
 .incbin "build/GreetsIndex.lz4"         ; 8K
-
-.p2align 2
-uv_astro_texture_no_adr:
-.incbin "build/AstroIndex.lz4"         ; 16K
 
 ; ====================================
 

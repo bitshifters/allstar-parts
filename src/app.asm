@@ -71,6 +71,10 @@ app_init_video:
     swi OS_WriteI+22
     swi OS_WriteI+VideoConfig_VduMode
     swi OS_RemoveCursors
+
+    ; Blank our palette for 
+    ldr r0, black_palette_p
+    bl palette_set_block
     
 	; Set screen size for number of buffers
 	MOV r0, #DynArea_Screen
@@ -141,6 +145,8 @@ error_noscreenmem:
 	.p2align 2
 	.long 0
 
+black_palette_p:
+    .long seq_palette_all_black
 
 ; ============================================================================
 ; App audio code.

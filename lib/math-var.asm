@@ -537,4 +537,11 @@ math_clamp:
     movgt r0, #MATHS_CONST_1
     mov pc, lr
 
+; R0=value
+math_modfp:
+    bic r0, r0, #0xff000000
+    bic r0, r0, #0x00ff0000
+    ; Returns fractional part only (no sign).
+    mov pc, lr
+
 ; ============================================================================

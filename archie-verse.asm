@@ -35,7 +35,7 @@
 
 .equ DebugDefault_PlayPause,    1		; play
 .equ DebugDefault_ShowRasters,  0
-.equ DebugDefault_ShowVars,     0		; slow
+.equ DebugDefault_ShowVars,     1		; slow
 
 .equ Debug_TopOfWimpSlot,       0x8000 + _WIMP_SLOT
 

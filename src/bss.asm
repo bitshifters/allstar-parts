@@ -93,12 +93,14 @@ futz_table_no_adr:
 uv_table_data_no_adr:
     .skip UV_Table_Size*3
 
-uv_texture_data_no_adr:
-    .skip UV_Texture_MaxSize*2
-
 uv_table_unrolled_code_no_adr:
     .skip UV_Table_CodeSize
 uv_table_code_max_no_adr:
+
+; Sometimes steal space from the code buffer for additional textures. :)
+
+uv_texture_data_no_adr:
+    .skip UV_Texture_MaxSize*2
 .endif
 
 ; ============================================================================
