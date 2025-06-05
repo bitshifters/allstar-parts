@@ -149,6 +149,10 @@ uv_relax_map_no_adr:
 .p2align 2
 nasa_font_no_adr:
 .incbin "build/nasa-font.lz4"
+
+nasa_prop_no_adr:
+.include "build/nasa-prop.asm"
+.p2align 2
 .endif
 
 ; ============================================================================

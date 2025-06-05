@@ -278,7 +278,7 @@ clean:
 	$(PYTHON2) $(UV_SHADER) -o $@ --tex-size 128 $<
 
 ./build/nasa-font.bin: ./data/font/font_sprite_sheet_2.png $(PNG2ARC_DEPS)
-	$(PYTHON2) $(PNG2ARC_FONT) -o $@ --glyph-dim 24 24 --store-as-byte-cols --double-pixels --flip-y $< 9
+	$(PYTHON2) $(PNG2ARC_FONT) -o $@ --glyph-dim 24 24 --store-as-byte-cols --double-pixels --flip-y --proportional build/nasa-prop.asm $< 9
 
 ##########################################################################
 # DONUT ASSETS

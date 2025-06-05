@@ -486,7 +486,7 @@ seq_space_torus:
     ; ================================
 seq_space_greets:
     write_fp    uv_table_fp_v,        0.0
-    call_2      lut_scroller_init,    nasa_font_no_adr,         seq_greets_text_no_adr
+    call_3      lut_scroller_init,    nasa_font_no_adr,         seq_greets_text_no_adr, nasa_prop_no_adr
     call_3      fx_set_layer_fns,     1, lut_scroller_tick,     0
 
     call_2      palette_from_gradient,gradient_default,         seq_palette_gradient
@@ -506,7 +506,9 @@ seq_space_greets:
     wait_secs   5.0
 ;   write_fp    seq_dv,               4.0
     math_make_var seq_dv, 2.0, 2.0,   math_clamp, 0.0, 1.0/(4.0*50.0)
-    wait_secs   32.0
+    wait_secs   21.0
+    math_make_var seq_dv, 4.0, -2.0,  math_clamp, 0.0, 1.0/(4.0*50.0)
+    wait_secs   6.0
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
@@ -642,7 +644,8 @@ seq_greets_text_no_adr:
     .byte "TTE - "
     .byte "YM Rockerz - "
     .byte "Evvvil (not a pity greet :) - "
-    .byte "          "
+    .byte "      Now let's take some more space selfies..."
+    .byte "             "
     .byte 0 ; end.
 .p2align 2
 .endif

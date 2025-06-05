@@ -30,11 +30,16 @@ lut_scroller_col:
 lut_scroller_texture_p:
     .long uv_texture_data_no_adr
 
+lut_scroller_prop_p:
+    .long 0
+
 ; R0=compressed font data.
 ; R1=ptr to scroll text.
+; R2=ptr to proportional glyph data.
 lut_scroller_init:
     str r1, lut_scroller_text_base_p
     str r1, lut_scroller_text_p
+    str r2, lut_scroller_prop_p
 
     ldr r2, uv_table_fp_v
     mov r2, r2, asr #16
@@ -62,29 +67,31 @@ err_fonthituvcode:
 .endif
 
 lut_scroller_tick:
+    str lr, [sp, #-4]!
+
     ; R0-R5 = texture col
     ; R6 = number cols to plot
     ; R7 = current glyph column
     ; R8 = v pos
     ; R9 = glyph ptr
-    ; R10 = glyph no.
+    ; R10 = glyph no. / glyph width
     ; R11 = text ptr
     ; R12 = write
+    ; R14 = prop data ptr.
 
     ldr r8, uv_table_fp_v
     mov r8, r8, asr #16
     and r8, r8, #0xff               ; relies on TextureHeight==256
     ldr r7, lut_scroller_v_pos
     subs r6, r8, r7  ; number of cols to plot
-    bpl .999
     addmi r6, r6, #LUTScroller_TextureHeight
-    .999:
     str r8, lut_scroller_v_pos      ; end v pos
     mov r8, r7                      ; start from prev v pos
 
     ldr r9, lut_scroller_font_p     ; R9=glyph read addr
     ldr r11, lut_scroller_text_p
     ldr r12, lut_scroller_texture_p
+    ldr r14, lut_scroller_prop_p
 
     ; Plot into texture at old v pos
     add r12, r12, r7, lsl #5        ; 32 byte stride
@@ -101,6 +108,10 @@ lut_scroller_tick:
     add r9, r9, r7, lsl #4          ; +16
     add r9, r9, r7, lsl #3          ; +8 = 24 bytes per column
 
+    ; r10=glyph width
+    add r10, r14, r10, lsl #1
+    ldrb r10, [r10, #1]             ; end
+
     ; For each column.
 .3:
     ; Plot a column (twice).
@@ -112,10 +123,8 @@ lut_scroller_tick:
 
     ; Next column in glyph.
     add r7, r7, #1
-    cmp r7, #LUTScroller_GlyphWidth
-    blt .2
-
-    mov r7, #0
+    cmp r7, r10                     ; #LUTScroller_GlyphWidth
+    ble .2
 
     ; Next char in text.
     ldrb r10, [r11, #1]!
@@ -128,6 +137,11 @@ lut_scroller_tick:
     ldr r9, lut_scroller_font_p     ; R9=glyph read addr
     add r9, r9, r10, lsl #9         ; +512
     add r9, r9, r10, lsl #6         ; +64 =576 bytes per glyph.
+
+    ; r10=glyph width
+    add r10, r14, r10, lsl #1
+    ldrb r7, [r10, #0]              ; start
+    ldrb r10, [r10, #1]             ; end
 
 .2:
     ; Next column in texture.
@@ -146,4 +160,4 @@ lut_scroller_tick:
     str r7, lut_scroller_col
     str r11, lut_scroller_text_p
 
-    mov pc, lr
+    ldr pc, [sp], #4

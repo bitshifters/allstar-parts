@@ -144,6 +144,7 @@ def main(options):
     pixel_data=[]
     num_glyphs=0
     padding=0
+    proportional_pairs=[]
 
     # Assume this is a standard block of glyphs.
     for glyph_top in range(0,src_height,options.glyph_dim[1]):
@@ -152,9 +153,14 @@ def main(options):
             if options.max_glyphs is not None and num_glyphs>=options.max_glyphs:
                 break
 
+            cur_x=0
+            min_x=0
+            max_x=options.glyph_dim[0]-1
+
             # One glyph.
             if options.store_as_byte_cols:
                 for x in range(0,options.glyph_dim[0],int(pixels_per_byte*step_x)):
+                    xt=0
                     for y in range(0,options.glyph_dim[1]):
                         if options.flip_y:
                             row=pixels[glyph_top+options.glyph_dim[1]-1-y]
@@ -162,13 +168,22 @@ def main(options):
                             row=pixels[glyph_top+y]
                         assert(len(row)==src_width)
                         xs=[]
-
                         for p in range(0,int(pixels_per_byte*step_x)):
-                            xs.append(row[glyph_left+x+p])
+                            pixel=row[glyph_left+x+p]
+                            xt+=pixel
+                            xs.append(pixel)
                             if options.double_pixels:
-                                xs.append(row[glyph_left+x+p])
+                                xs.append(pixel)
                         assert len(xs)==pixels_per_byte
                         pixel_data.append(pack(xs))
+
+                    if min_x==0 and xt!=0:
+                        min_x=cur_x
+                    
+                    if xt!=0:
+                        max_x=cur_x
+
+                    cur_x+=1
 
                     # Pad byte columns to whole words.
                     if (options.glyph_dim[1] & 0x3) != 0:
@@ -178,6 +193,7 @@ def main(options):
             else:
                 assert options.double_pixels is False
                 assert options.flip_y is False
+                assert options.prop_path is None
                 for y in range(0,options.glyph_dim[1]):
                     row=pixels[glyph_top+y]
                     assert(len(row)==src_width)
@@ -189,6 +205,9 @@ def main(options):
                         pixel_data.append(pack(xs))
             
             num_glyphs+=1
+            min_x-=2
+            max_x+=2
+            proportional_pairs.append([max(min_x,0), min(max_x,options.glyph_dim[0]-1)])
 
     glyph_size+=padding/num_glyphs
 
@@ -212,6 +231,13 @@ def main(options):
         assert(len(pixel_data)==num_glyphs*glyph_size)
         save_file(pixel_data,options.output_path)
         print 'Wrote {0} glyphs at {1} bytes per glyph for a total of {2} bytes of Arc data includes {3} bytes padding.'.format(num_glyphs, glyph_size, len(pixel_data), padding)
+
+    if options.prop_path is not None:
+        # print(proportional_pairs)
+        with open(options.prop_path,'w') as f:
+            f.write('; File: {0} with {1} glyphs dimensions {2} x {3}\n'.format(options.input_path, num_glyphs, options.glyph_dim[0], options.glyph_dim[1]))
+            for pair in proportional_pairs:
+                f.write('.byte {0}, {1}\n'.format(pair[0], pair[1]))
 
     if options.palette_path is not None:
         pal_data=[]
@@ -254,6 +280,7 @@ if __name__=='__main__':
                         help='maximum number of glyphs to save')
     parser.add_argument('--use-palette',dest='use_palette',metavar='FILE',help='use palette binary data from %(metavar)s')
     parser.add_argument('--closest-match',action='store_true',help='match closest entry in palette if not exact.')
+    parser.add_argument('--proportional',dest='prop_path',metavar='FILE',help='output proportion data to %(metavar)s')
     parser.add_argument('input_path',metavar='FILE',help='load PNG data from %(metavar)s')
     parser.add_argument('mode',type=int,help='screen mode')
     main(parser.parse_args())
