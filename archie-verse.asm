@@ -286,10 +286,17 @@ main_loop_skip_tick:
 	; bl get_next_bank_for_writing
 
 	; Useful to determine frame rate for debug or frame-rate independent animation.
+
 	ldr r1, last_vsync
 	ldr r2, vsync_count
 	sub r0, r2, r1
 	str r2, last_vsync
+
+    ldr r1, reset_vsync_delta
+    cmp r1, #0
+    movne r0, #1
+    mov r1, #0
+    str r1, reset_vsync_delta
 	str r0, vsync_delta
 
     .if _DEBUG
@@ -487,6 +494,9 @@ last_vsync:
 
 vsync_delta:
 	.long 0
+
+reset_vsync_delta:
+    .long 0
 
 .if _DEBUG
 vsyncs_missed:

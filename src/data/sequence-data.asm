@@ -102,6 +102,10 @@ light_func_z:
 ; ============================================================================
 
 .if _DEMO_PART==_PART_SPACE
+.equ SpaceScene_Short,      4.0
+.equ SpaceScene_Medium,     8.0
+.equ SpaceScene_Long,       12.0
+
 seq_space_part:
 
     ; Init FX modules.
@@ -111,8 +115,9 @@ seq_space_part:
     call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
 
     .if _DEBUG
+    ;goto seq_space_warp
     ;goto seq_space_greets
-    ;goto seq_space_relax
+    goto seq_space_relax
     ;goto seq_space_torus
     ;goto seq_space_monolith
     .endif
@@ -121,7 +126,8 @@ seq_space_part:
     ; Apollo
     ; ================================
     call_2      palette_from_gradient,gradient_grey,            seq_palette_gradient
-    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   2.0
+    fork_and_wait_secs                2.0,                      seq_set_pal_to_gradient
 
     ; Decomp the UV data.
     call_2      unlz4,                uv_apollo_map_no_adr,     uv_table_data_no_adr
@@ -142,15 +148,16 @@ seq_space_part:
     write_fp    uv_table_fp_u,        0.0
     write_fp    uv_table_fp_v,        0.0
 
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
+    write_addr  reset_vsync_delta,    1
 
-    math_make_var uv_table_fp_v,      0.0, 384.0, math_clamp, 0.0, 1.0/(384)    ; v=i/200
-;    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
+    wait_secs   2.0
 
-    wait_secs   6.0
-    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
+    math_make_var uv_table_fp_v,      0.0, 384.0, math_clamp, 0.0, 1.0/(2*384)    ; v=i/200
+
+    wait        2*384
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  2.0
+
+    wait_secs   3.0
     math_kill_var uv_table_fp_v
     ; ================================
 
@@ -158,24 +165,21 @@ seq_space_part:
     ; Ship over surface.
     ; ================================
     call_2      palette_from_gradient,gradient_ship,            seq_palette_gradient
-    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,     1.0
+    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,     4.0
+    fork_and_wait_secs                4.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_ship_map_no_adr,       uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_64
     call_2      uv_texture_unlz4,     uv_ship_texture_no_adr,   8192
 
-    ; TODO: Reset vsync_delta after long setup!
     write_fp    uv_table_fp_u,        0.0
-    math_make_var seq_dv, 0.0, 1.0, math_clamp, 0.0, 1.0/(4.0*50.0)
+    math_make_var seq_dv, 1.0, 3.0, math_clamp, 0.0, 1.0/(SpaceScene_Medium*50.0)
     math_add_vars uv_table_fp_v, seq_dv, 1.0, uv_table_fp_v       ; v'=1.0+1.0*v
 
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
+    write_addr  reset_vsync_delta,    1
 
-    wait_secs   2.0
-    math_make_var seq_dv, 1.0, 3.0, math_clamp, 0.0, 1.0/(4.0*50.0)
-    wait_secs   6.0
+    wait_secs   SpaceScene_Medium
 
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
@@ -188,6 +192,7 @@ seq_space_part:
     ; ================================
     call_2      palette_from_gradient,gradient_space,     seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_planet_map_no_adr,     uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
@@ -197,19 +202,22 @@ seq_space_part:
     write_fp    uv_table_fp_u,        0.0
     math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
 
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
+    write_addr  reset_vsync_delta,    1
+
+    wait_secs   SpaceScene_Short
+
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
     ; ================================
 
+seq_space_warp:
     ; ================================
     ; Warp.
     ; ================================
     call_2      palette_from_gradient,gradient_sun,             seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_warp_map_no_adr,       uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
@@ -220,12 +228,11 @@ seq_space_part:
     write_fp    seq_dv,               1.0
     math_add_vars uv_table_fp_v, seq_dv, 1.0, uv_table_fp_v       ; v'=1.0+1.0*v
 
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
+    write_addr  reset_vsync_delta,    1
 
     ; Gets faster over time.
     math_make_var seq_dv, 1.0, 9.0, math_clamp, 0.0, 1.0/(8.0*50.0)
-    wait_secs   8.0
+    wait_secs   SpaceScene_Medium
 
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
@@ -237,7 +244,8 @@ seq_space_part:
     ; Black hole.
     ; ================================
     call_2      palette_from_gradient,gradient_black_hole,      seq_palette_gradient
-    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+    palette_lerp_over_secs            seq_palette_all_white,    seq_palette_gradient,   0.25
+    fork_and_wait_secs                0.25,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_black_hole_map_no_adr, uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
@@ -247,9 +255,10 @@ seq_space_part:
     write_fp    uv_table_fp_u,        0.0
     math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
 
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
+    write_addr  reset_vsync_delta,    1
+
+    wait_secs   SpaceScene_Long
+
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
@@ -260,6 +269,7 @@ seq_space_part:
     ; ================================
     call_2      palette_from_gradient,gradient_default,         seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_wormhole_map_no_adr,   uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
@@ -269,9 +279,10 @@ seq_space_part:
     write_fp    uv_table_fp_u,        0.0
     math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
 
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
+    write_addr  reset_vsync_delta,    1
+
+    wait_secs   SpaceScene_Short
+
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
@@ -281,7 +292,8 @@ seq_space_part:
     ; Tunnel.
     ; ================================
     call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
-    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+    palette_lerp_over_secs            seq_palette_all_white,    seq_palette_gradient,   0.25
+    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_tunnel_map_no_adr,     uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
@@ -291,9 +303,10 @@ seq_space_part:
     write_fp    uv_table_fp_u,        0.0
     math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
 
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
+    write_addr  reset_vsync_delta,    1
+
+    wait_secs   SpaceScene_Medium
+
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
@@ -304,6 +317,7 @@ seq_space_part:
     ; ================================
     call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,    1.0
+    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
     
     call_2      unlz4,                uv_fractal_map_no_adr,    uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
@@ -316,9 +330,10 @@ seq_space_part:
     math_make_var uv_table_fp_u,      0.0, 1.0, 0, 0.0, -1.0
     math_make_var uv_table_fp_v,      0.0, 1.0, 0, 0.0, 1.0
 
-    wait_secs   1.0
-    call_1      palette_set_block,    seq_palette_gradient
-    wait_secs   8.0
+    write_addr  reset_vsync_delta,    1
+
+    wait_secs   SpaceScene_Medium
+
     palette_lerp_over_secs            seq_palette_gradient,      seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_u
@@ -329,8 +344,9 @@ seq_space_torus:
     ; ================================
     ; Torus.
     ; ================================
-    call_2      palette_from_gradient,gradient_red_alert,         seq_palette_gradient
+    call_2      palette_from_gradient,gradient_red_alert,       seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,    1.0
+    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
     
     call_2      unlz4,                uv_torus_map_no_adr,      uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
@@ -343,9 +359,10 @@ seq_space_torus:
     math_make_var uv_table_fp_u,      0.0, -1.0, 0, 0.0, 1.0
     math_make_var uv_table_fp_v,      0.0, 1.0, 0, 0.0, 1.0
 
-    wait_secs   1.0
-    call_1      palette_set_block,    seq_palette_gradient
-    wait_secs   8.0
+    write_addr  reset_vsync_delta,    1
+
+    wait_secs   SpaceScene_Medium
+
     palette_lerp_over_secs            seq_palette_gradient,      seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_u
@@ -357,6 +374,7 @@ seq_space_torus:
     ; ================================
     call_2      palette_from_gradient,gradient_red_alert,       seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      uv_texture_unlz4,     rotate_texture_no_adr,    16384
     call_3      fx_set_layer_fns, 0,  rotate_tick,              rotate_draw
@@ -364,9 +382,10 @@ seq_space_torus:
     math_make_var rotate_angle,       0.0,   1.5, 0,            0.0,    1.0    ; speed 1.0 brad / frame
     math_make_var rotate_scale,       0.1,   4.6, math_clamp,   0.0,    1.0/(50.0*9.0) ; zoom out
     
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
+    write_addr  reset_vsync_delta,    1
+    
+    wait_secs   SpaceScene_Medium
+
     ; Spinning
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
@@ -383,6 +402,7 @@ seq_space_torus:
     ; ================================
     call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_spin_map_no_adr,       uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
@@ -392,9 +412,10 @@ seq_space_torus:
     write_fp    uv_table_fp_u,        0.0
     math_link_vars uv_table_fp_v,     2.0, 1.0, uv_table_fp_v   ; v'=1.0+1.0*v
 
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
+    write_addr  reset_vsync_delta,    1
+
+    wait_secs   SpaceScene_Medium
+
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
@@ -422,10 +443,12 @@ seq_space_torus:
     write_fp    uv_table_fp_u,        0.0
     math_link_vars uv_table_fp_v,     3.0, 1.0, uv_table_fp_v   ; v'=3.0+1.0*v
 
+    write_addr  reset_vsync_delta,    1
+
     wait_secs   5.0
     write_addr  palette_array_p,      seq_palette_copy
 
-    wait_secs   4.0
+    wait_secs   SpaceScene_Short
     palette_lerp_over_secs            seq_palette_copy,         seq_palette_all_black,  1.0
     wait_secs   1.0
 
@@ -439,6 +462,7 @@ seq_space_torus:
     ; ================================
     call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_spin_map_no_adr,       uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
@@ -447,11 +471,12 @@ seq_space_torus:
 
     write_fp    uv_table_fp_u,        0.0
     math_add_vars uv_table_fp_v, seq_dv, 1.0, uv_table_fp_v       ; v'=1.0+1.0*v
-    math_make_var seq_dv, 1.0, -1.0, math_clamp, 0.0, 1.0/(8.0*50.0)
+    math_make_var seq_dv, 2.0, -2.0, math_clamp, 0.0, 1.0/(SpaceScene_Short*50.0)
 
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
+    write_addr  reset_vsync_delta,    1
+
+    wait_secs   SpaceScene_Short
+
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
@@ -463,6 +488,7 @@ seq_space_torus:
     ; ================================
     call_2      palette_from_gradient,gradient_ship,            seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_reactor_ok_map_no_adr, uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
@@ -472,9 +498,10 @@ seq_space_torus:
     write_fp    uv_table_fp_u,        0.0
     math_link_vars uv_table_fp_v,     2.0, 1.0, uv_table_fp_v   ; v'=2.0+1.0*v
 
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
+    write_addr  reset_vsync_delta,    1
+
+    wait_secs   SpaceScene_Medium
+
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
@@ -491,6 +518,7 @@ seq_space_greets:
 
     call_2      palette_from_gradient,gradient_default,         seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_greets_map_no_adr,     uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
@@ -501,14 +529,14 @@ seq_space_greets:
     write_fp    seq_dv,               2.0
     math_add_vars uv_table_fp_v, seq_dv, 1.0, uv_table_fp_v       ; v'=1.0+1.0*v
 
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   5.0
-;   write_fp    seq_dv,               4.0
+    write_addr  reset_vsync_delta,    1
+
+    wait_secs   6.0
     math_make_var seq_dv, 2.0, 2.0,   math_clamp, 0.0, 1.0/(4.0*50.0)
     wait_secs   21.0
     math_make_var seq_dv, 4.0, -2.0,  math_clamp, 0.0, 1.0/(4.0*50.0)
     wait_secs   6.0
+
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
@@ -522,7 +550,8 @@ seq_space_monolith:
     ; Monolith.
     ; ================================
     call_2      palette_from_gradient,gradient_default,         seq_palette_gradient
-    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+    palette_lerp_over_secs            seq_palette_all_white,    seq_palette_gradient,   0.25
+    fork_and_wait_secs                0.25,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_monolith_map_no_adr,   uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
@@ -533,9 +562,10 @@ seq_space_monolith:
     math_add_vars uv_table_fp_v, seq_dv, 1.0, uv_table_fp_v       ; v'=1.0+1.0*v
     math_make_var seq_dv, 0.5, -0.4, math_cos, 0.0, 1.0/(6.0*50.0)
 
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
+    write_addr  reset_vsync_delta,    1
+
+    wait_secs   SpaceScene_Long
+
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
@@ -546,19 +576,21 @@ seq_space_monolith:
     ; Sun.
     ; ================================
     call_2      palette_from_gradient,gradient_sun,             seq_palette_gradient
-    palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+    palette_lerp_over_secs            seq_palette_all_white,    seq_palette_gradient,   0.25
+    fork_and_wait_secs                0.25,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_sun_map_no_adr,        uv_table_data_no_adr
     write_addr  uv_table_map_p,       uv_table_data_no_adr
     call_1      uv_table_init_shader, UV_Table_TexDim_128_64
     call_2      uv_texture_unlz4,     uv_ship_texture_no_adr,   8192
 
+    write_addr  reset_vsync_delta,    1
+
     write_fp    uv_table_fp_u,        0.0
     math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=0.25+1.0*v
 
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
-    wait_secs   8.0
+    wait_secs   SpaceScene_Long
+
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
     math_kill_var uv_table_fp_v
@@ -570,6 +602,7 @@ seq_space_relax:
     ; ================================
     call_2      palette_from_gradient,gradient_ship,            seq_palette_gradient
     palette_lerp_over_secs            seq_palette_all_black,    seq_palette_gradient,   1.0
+    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     ; Create code from UV data.
     call_2      unlz4,                uv_relax_map_no_adr,      uv_table_data_no_adr
@@ -587,26 +620,30 @@ seq_space_relax:
 
     ; Scroll V with wrapping.
     write_fp    uv_table_fp_u,        0.0
-    math_make_var uv_table_fp_v,      0.0, 128.0, math_modfp, 0.0, 1.0/(128)    ; v=i/200
+    math_make_var uv_table_fp_v,      0.0, 128.0, math_modfp, 0.0, 1.0/(256)    ; v=i/200
 
-    wait_secs   1.0
-    write_addr  palette_array_p,      seq_palette_gradient
+    write_addr  reset_vsync_delta,    1
 
-    wait        256-50
+    wait        256
 
     ; Reset texture base pointer to start of our oversized texture.
     write_addr  uv_table_texture_p,   uv_texture_data_no_adr-(512*128)
     ; Override the intial texture offset calculation.
     call_1      uv_table_set_texture_wrap, UV_Table_TexDim_128_512
 
-    math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=0.25+1.0*v
+    math_link_vars uv_table_fp_v,     0.5, 1.0, uv_table_fp_v   ; v'=0.25+1.0*v
 
-    wait_secs   8.0
-    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
+    wait_secs   16.0
+
+    palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  4.0
+    wait_secs   4.0
     math_kill_var uv_table_fp_v
     ; ================================
 
+    end_script
+
+seq_set_pal_to_gradient:
+    write_addr  palette_array_p,      seq_palette_gradient
     end_script
 
 seq_dv:
@@ -844,17 +881,17 @@ seq_palette_all_black:
     .long 0x00000000
     .endr
 
+seq_palette_all_white:
+    .rept 16
+    .long 0x00ffffff
+    .endr
+
 .if 0
 seq_palette_single_white:
     .rept 15
     .long 0x00000000
     .endr
     .long 0x00ffffff
-
-seq_palette_all_white:
-    .rept 16
-    .long 0x00ffffff
-    .endr
 .endif
 
 ; ============================================================================
@@ -909,6 +946,7 @@ gradient_grey:
 
 .if _DEMO_PART==_PART_SPACE || _DEMO_PART==_PART_DONUT
 seq_unlink_palette_lerp:
+    write_fp      seq_palette_blend, 1.0
     math_kill_var seq_palette_blend
     math_kill_var seq_palette_id
     end_script
