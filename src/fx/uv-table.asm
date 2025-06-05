@@ -4,7 +4,7 @@
 ;
 ; ============================================================================
 
-.equ UV_Table_CodeSize,             0x48bc0 ; (ship)
+.equ UV_Table_CodeSize,             0x48bc0 ; Max code size (ship scene)
                                             ; THEORETICAL MAX is 0x52004 (335876~=328K)
 .equ UV_Table_Columns,              160
 .equ UV_Table_Rows,                 128     ; or 120?

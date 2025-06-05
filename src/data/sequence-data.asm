@@ -111,6 +111,7 @@ seq_space_part:
     call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
 
     .if _DEBUG
+    ;goto seq_space_greets
     ;goto seq_space_relax
     ;goto seq_space_torus
     ;goto seq_space_monolith
@@ -484,6 +485,7 @@ seq_space_torus:
     ; Greets
     ; ================================
 seq_space_greets:
+    write_fp    uv_table_fp_v,        0.0
     call_2      lut_scroller_init,    nasa_font_no_adr,         seq_greets_text_no_adr
     call_3      fx_set_layer_fns,     1, lut_scroller_tick,     0
 
@@ -502,7 +504,8 @@ seq_space_greets:
     wait_secs   1.0
     write_addr  palette_array_p,      seq_palette_gradient
     wait_secs   5.0
-    write_fp    seq_dv,               4.0
+;   write_fp    seq_dv,               4.0
+    math_make_var seq_dv, 2.0, 2.0,   math_clamp, 0.0, 1.0/(4.0*50.0)
     wait_secs   32.0
     palette_lerp_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
@@ -614,11 +617,31 @@ seq_panic_offset:
     FLOAT_TO_FP 0.0
 
 seq_greets_text_no_adr:
-    .byte "SPACE GREETS GO OUT TO... Alcatraz - Ate-Bit - AttentionWhore - "
-    .byte "CRTC - DESiRE - Hooy Program - Inverse Phase - Logicoma - Loonies - "
-    .byte "Proxima - Pulpo Corrosivo - Rabenauge - RiFT - Slipstream - YM Rockerz - "
-    .byte "NOVA orgas - IRIS - Defekt - Epoch & Ivory - Bus Error Collective - "
-    .byte "Evvvil (not a pity greet :) - TTE - Spreadpoint - SMFX"
+    .byte "SPACE GREETS GO OUT TO... "
+    .byte "Alcatraz - "
+    .byte "Ate-Bit - "
+    .byte "AttentionWhore - "
+;   .byte "Bus Error Collective - "
+    .byte "CRTC - "
+    .byte "Defekt - "
+    .byte "DESiRE - " 
+    .byte "Epoch & Ivory - "
+    .byte "Hooy Program - "
+    .byte "Inverse Phase - "
+    .byte "IRIS - "
+;   .byte "Logicoma - "
+    .byte "Loonies - "
+;   .byte "NOVA orgas - "
+    .byte "Proxima - "
+    .byte "Pulpo Corrosivo - "
+    .byte "Rabenauge - "
+    .byte "RiFT - "
+    .byte "Slipstream - "
+    .byte "SMFX - "
+    .byte "Spreadpoint - "
+    .byte "TTE - "
+    .byte "YM Rockerz - "
+    .byte "Evvvil (not a pity greet :) - "
     .byte "          "
     .byte 0 ; end.
 .p2align 2

@@ -76,8 +76,11 @@ lut_scroller_tick:
     and r8, r8, #0xff               ; relies on TextureHeight==256
     ldr r7, lut_scroller_v_pos
     subs r6, r8, r7  ; number of cols to plot
+    bpl .999
     addmi r6, r6, #LUTScroller_TextureHeight
-    str r8, lut_scroller_v_pos      ; prev v pos
+    .999:
+    str r8, lut_scroller_v_pos      ; end v pos
+    mov r8, r7                      ; start from prev v pos
 
     ldr r9, lut_scroller_font_p     ; R9=glyph read addr
     ldr r11, lut_scroller_text_p
