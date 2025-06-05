@@ -90,17 +90,19 @@ futz_table_no_adr:
 ; ============================================================================
 
 .if _DEMO_PART==_PART_SPACE
-uv_table_data_no_adr:
-    .skip UV_Table_Size*3
-
 uv_table_unrolled_code_no_adr:
     .skip UV_Table_CodeSize
 uv_table_code_max_no_adr:
 
 ; Sometimes steal space from the code buffer for additional textures. :)
 
+uv_table_data_no_adr:
 uv_texture_data_no_adr:
-    .skip UV_Texture_MaxSize*2
+    .skip UV_Table_Size*3
+
+.if UV_Texture_MaxSize*2 > UV_Table_Size*3
+    .err "Not enough space for UV texture!"
+.endif
 .endif
 
 ; ============================================================================
