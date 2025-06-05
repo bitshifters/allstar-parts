@@ -210,7 +210,7 @@ clean:
 ./build/WarpIndex.bin: ./data/gfx/WarpIndex.png $(PNG2ARC_DEPS)		# index in red
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
 
-./build/GreetsIndex.bin: ./data/gfx/GreetsIndex.png $(PNG2ARC_DEPS)		# index in red
+./build/GreetsIndex.bin: ./data/gfx/GreetsIndex_Blank.png $(PNG2ARC_DEPS)		# index in red
 	$(PYTHON2) $(PNG2ARC) --loud -o $@ --double-pixels --is-index $< 9
 
 ./build/AstroIndex.bin: ./data/gfx/AstroIndex.png $(PNG2ARC_DEPS)		# index in red

@@ -10,4 +10,5 @@ SpaceIndex.png
 SpaceIndex_512.png
 WarpIndex.png
 GreetsIndex.png
+GreetsIndex_Blank.png
 AstroIndex.png
