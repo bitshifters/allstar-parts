@@ -117,7 +117,7 @@ seq_space_part:
     .if _DEBUG
     ;goto seq_space_warp
     ;goto seq_space_greets
-    goto seq_space_relax
+    ;goto seq_space_relax
     ;goto seq_space_torus
     ;goto seq_space_monolith
     .endif
