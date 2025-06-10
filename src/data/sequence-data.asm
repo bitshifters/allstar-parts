@@ -115,6 +115,8 @@ seq_space_part:
     call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
 
     .if _DEBUG
+    ;goto seq_space_tunnel
+    ;goto seq_space_black_hole
     ;goto seq_space_spin
     ;goto seq_space_warp
     ;goto seq_space_greets
@@ -192,12 +194,6 @@ seq_space_part:
 
     gosub seq_unlink_palette_lerp
 
-    ; TODO: Make palette fade ups slower to account for init time. - DONE
-    ;       Sort out additive palette shift for reactor panic scene fade up. - DONE
-    ;       Photo flash and pause effect for selfies.
-    ;       Slower fade in for relax.
-    ;       Wait before fade out for relax. - 
-
     ; ================================
     ; Planet, flying away from.
     ; ================================
@@ -257,6 +253,7 @@ seq_space_warp:
 
     gosub seq_unlink_palette_lerp
 
+seq_space_black_hole:
     ; ================================
     ; Black hole.
     ; ================================
@@ -274,11 +271,11 @@ seq_space_warp:
 
 ;    write_addr  reset_vsync_delta,    1
 
-    wait_secs   SpaceScene_Long
+    wait_secs   SpaceScene_Long - 4.0
+    gosub       seq_space_do_flash
 
     gradient_fade_down_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
-    math_kill_var uv_table_fp_v
     ; ================================
 
     gosub seq_unlink_palette_lerp
@@ -309,6 +306,7 @@ seq_space_warp:
 
     gosub seq_unlink_palette_lerp
 
+seq_space_tunnel:
     ; ================================
     ; Tunnel.
     ; ================================
@@ -327,6 +325,9 @@ seq_space_warp:
 ;    write_addr  reset_vsync_delta,    1
 
     wait_secs   SpaceScene_Medium
+
+; Flash doesn't look very good with this gradient.
+;    gosub       seq_space_do_flash
 
     gradient_fade_down_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
@@ -544,7 +545,8 @@ seq_space_spin:
 
 ;    write_addr  reset_vsync_delta,    1
 
-    wait_secs   SpaceScene_Medium
+    wait_secs   SpaceScene_Medium - 4.0
+    gosub       seq_space_do_flash
 
     gradient_fade_down_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
@@ -612,7 +614,8 @@ seq_space_monolith:
 
 ;    write_addr  reset_vsync_delta,    1
 
-    wait_secs   SpaceScene_Long
+    wait_secs   SpaceScene_Long - 4.0
+    gosub       seq_space_do_flash
 
     gradient_fade_down_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
@@ -639,7 +642,8 @@ seq_space_monolith:
     write_fp    uv_table_fp_u,        0.0
     math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=0.25+1.0*v
 
-    wait_secs   SpaceScene_Long
+    wait_secs   SpaceScene_Long - 4.0
+    gosub       seq_space_do_flash
 
     gradient_fade_down_over_secs            seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
@@ -698,6 +702,14 @@ seq_space_relax:
 
 seq_set_pal_to_gradient:
     write_addr  palette_array_p,      seq_palette_gradient
+    end_script
+
+seq_space_do_flash:
+    math_make_var seq_palette_blend,   0.0, 15.0, math_clamp, 0.0,  1.0/16.0
+    wait 16
+    math_kill_var uv_table_fp_v     ; pause motion
+    math_make_var seq_palette_blend,   15.0, -15.0, math_clamp, 0.0,  1.0/4.0
+    wait 4.0*50-20
     end_script
 
 seq_dv:

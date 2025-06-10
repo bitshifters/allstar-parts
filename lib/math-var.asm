@@ -435,7 +435,7 @@ math_evaluate_palette_offset:
     ldr r1, [r10, #0]           ; palette_A
     ldr r5, [r10, #12]          ; dest_palette
 
-    mov r0, #1                  ; palette index
+    mov r0, #0                  ; palette index NB. Start from zero!
 .1:
 
     adds r2, r0, r3             ; lookup_index = palette_index + offset
