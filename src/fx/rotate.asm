@@ -21,6 +21,12 @@ rotate_sinus_table_p:
 rotate_texture_p:
     .long uv_texture_data_no_adr
 
+rotate_tl_x:
+    FLOAT_TO_FP -80.0
+
+rotate_tl_y:
+    FLOAT_TO_FP -64.0
+
 ; ============================================================================
 
 ; dudy = sin(a) / scale; // horizontal step on image per vertical step on screen
@@ -60,8 +66,15 @@ rotate_draw:
     ; Rotate vector to TL corner by -a.
     ; u = x*cos(-a) - y*sin(-a) = x*cos(a) + y*sin(a)
     ; v = x*sin(-a) + y*cos(-a) = -x*sin(a) + y*cos(a)
+    .if 0
     mov r3, #-80                        ; TL x
     mov r4, #-64                        ; TL y
+    .else
+    ldr r3, rotate_tl_x
+    ldr r4, rotate_tl_y
+    mov r3, r3, asr #16
+    mov r4, r4, asr #16
+    .endif
 
     mul r5, r2, r3                      ; x*cos(-a)
     mla r5, r1, r4, r5                  ; -y*sin(-a)

@@ -116,6 +116,7 @@ seq_space_part:
     call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
 
     .if _DEBUG
+    ;goto seq_space_rotate
     ;goto seq_space_tunnel
     ;goto seq_space_black_hole
     ;goto seq_space_spin
@@ -396,6 +397,7 @@ seq_space_torus:
 
     gosub seq_unlink_palette_lerp
 
+seq_space_rotate:
     ; ================================
     ; Rotate & scale.
     ; ================================
@@ -407,8 +409,15 @@ seq_space_torus:
     call_3      fx_set_layer_fns, 0,  rotate_tick,              rotate_draw
 
     math_make_var rotate_angle,       0.0,   1.5, 0,            0.0,    1.0    ; speed 1.0 brad / frame
-    math_make_var rotate_scale,       0.1,   4.6, math_clamp,   0.0,    1.0/(50.0*9.0) ; zoom out
-    
+    math_make_var rotate_scale,       0.1,   2.0, math_clamp,   0.0,    1.0/(50.0*9.0) ; zoom out
+;    write_fp      rotate_scale,     1.0
+;    write_fp      rotate_angle,     32
+
+    math_make_var rotate_tl_x,      -80,   -32, math_sin,   0.0,    1.0/(50.0*8.0)
+    math_make_var rotate_tl_y,      -64,   -32, math_cos,   0.0,    1.0/(50.0*8.0)
+;    write_fp rotate_tl_x,      -64-80
+;    write_fp rotate_tl_y,      -64-64
+
 ;    write_addr  reset_vsync_delta,    1
     
     wait_secs   SpaceScene_Medium
@@ -419,6 +428,8 @@ seq_space_torus:
 
     math_kill_var rotate_scale
     math_kill_var rotate_angle
+    math_kill_var rotate_tl_x
+    math_kill_var rotate_tl_y
 
     ; Back to LUT FX
     call_3      fx_set_layer_fns,     0, uv_table_tick          uv_table_draw
