@@ -102,10 +102,10 @@ light_func_z:
 ; ============================================================================
 
 .if _DEMO_PART==_PART_SPACE
-.equ SpaceScene_Flash,      4.0
-.equ SpaceScene_Short,      4.0
+.equ SpaceScene_Flash,      3.0
+.equ SpaceScene_Short,      6.0
 .equ SpaceScene_Medium,     8.0
-.equ SpaceScene_Long,       16.0
+.equ SpaceScene_Long,       12.0
 
 seq_space_part:
 
@@ -272,7 +272,7 @@ seq_space_black_hole:
 
 ;    write_addr  reset_vsync_delta,    1
 
-    wait_secs   SpaceScene_Long - SpaceScene_Flash
+    wait        50*(SpaceScene_Long-SpaceScene_Flash)
     gosub       seq_space_do_flash
 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
@@ -325,7 +325,7 @@ seq_space_tunnel:
 
 ;    write_addr  reset_vsync_delta,    1
 
-    wait_secs   SpaceScene_Medium - SpaceScene_Flash
+    wait        50*(SpaceScene_Long-SpaceScene_Flash)
     gosub       seq_space_do_flash
 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
@@ -483,7 +483,7 @@ seq_space_spin:
 
 ;    write_addr  reset_vsync_delta,    1
 
-    wait_secs   SpaceScene_Long
+    wait_secs   SpaceScene_Medium
 
     math_make_var seq_palette_blend,    0.0, -15.0, math_clamp, 0.0,  1.0/(1.0*50.0)
     ; RGB[d][i] = RGB[a][i+c]
@@ -544,7 +544,7 @@ seq_space_spin:
 
 ;    write_addr  reset_vsync_delta,    1
 
-    wait_secs   SpaceScene_Medium - SpaceScene_Flash
+    wait        50*(SpaceScene_Long-SpaceScene_Flash)
     gosub       seq_space_do_flash
 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
@@ -582,7 +582,7 @@ seq_space_greets:
     math_make_var seq_dv, 2.0, 2.0,   math_clamp, 0.0, 1.0/(4.0*50.0)
     wait_secs   22.0
     math_make_var seq_dv, 4.0, -2.0,  math_clamp, 0.0, 1.0/(4.0*50.0)
-    wait_secs   6.0
+    wait_secs   7.0
 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
     wait_secs   1.0
@@ -613,7 +613,7 @@ seq_space_monolith:
 
 ;    write_addr  reset_vsync_delta,    1
 
-    wait_secs   SpaceScene_Long - SpaceScene_Flash
+    wait        50*(SpaceScene_Long-SpaceScene_Flash)
     gosub       seq_space_do_flash
 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
@@ -641,7 +641,7 @@ seq_space_monolith:
     write_fp    uv_table_fp_u,        0.0
     math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=0.25+1.0*v
 
-    wait_secs   SpaceScene_Long - SpaceScene_Flash
+    wait        50*(SpaceScene_Long-SpaceScene_Flash)
     gosub       seq_space_do_flash
 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
@@ -708,7 +708,7 @@ seq_space_do_flash:
     wait 16
     math_kill_var uv_table_fp_v     ; pause motion
     math_make_var seq_palette_blend,   15.0, -15.0, math_clamp, 0.0,  1.0/SpaceScene_Flash
-    wait SpaceScene_Flash*50-20
+    wait 50*SpaceScene_Flash-16
     end_script
 
 seq_dv:
