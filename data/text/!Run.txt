@@ -6,9 +6,13 @@ If "<RISCOS$version>"<>"3.1" Then Error This will only run on Archimedes compute
 Set CPU$Type ARM3
 RMEnsure Arm3Support 0.0 Set CPU$Type ARM2
 |
+RMLOAD <Obey$Dir>.MemAlloc { > null: }
 RMLOAD <Obey$Dir>.QTM149rm48 { > null: }
 RMLOAD <Obey$Dir>.RasterM38 { > null: }
 |
+ScreenSize 128K
+FontSize 0K
+SpriteSize 0K
 wimpslot -min 1200K
 |
 Load <Obey$Dir>.!RunImage 10000
@@ -16,3 +20,4 @@ Go 10000
 |
 RMKILL RasterMan
 RMKILL QTMTracker
+RMKILL MemAlloc

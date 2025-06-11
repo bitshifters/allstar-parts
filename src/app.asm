@@ -76,6 +76,7 @@ app_init_video:
     ldr r0, black_palette_p
     bl palette_set_block
     
+    .if !AppConfig_ReturnMainToCaller   ; assume caller handles this for us.
 	; Set screen size for number of buffers
 	MOV r0, #DynArea_Screen
 	SWI OS_ReadDynamicArea
@@ -90,6 +91,7 @@ app_init_video:
 	CMP r1, r2
 	ADRCC r0, error_noscreenmem
 	SWICC OS_GenerateError
+    .endif
 
 	; Clear all screen buffers
     ldr r10, vidc_buffers_p
