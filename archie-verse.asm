@@ -67,12 +67,10 @@
 Start:
 main:
     .if AppConfig_ReturnMainToCaller
-    mov r12, sp                 ; TODO: Use caller's stack!
+    str lr, [sp, #-4]!
+    str sp, callers_stack_p
     .endif
     ldr sp, stack_p
-    .if AppConfig_ReturnMainToCaller
-    stmfd sp!, {r12,lr}
-    .endif
 
 	; Claim the Error vector.
     .if _DEBUG
@@ -417,8 +415,9 @@ exit:
     ; Goodbye.
     .if AppConfig_ReturnMainToCaller
     ; For Megademo need to exit to caller with R0=0.
+    ldr sp, callers_stack_p
     mov r0, #0
-    ldmfd sp!, {sp, pc}
+    ldr pc, [sp], #4
     .else
 	SWI OS_Exit
     .endif
@@ -485,6 +484,11 @@ debug_skip_to_next_pattern:
 
 stack_p:
 	.long stack_base_no_adr
+
+.if AppConfig_ReturnMainToCaller
+callers_stack_p:
+    .long 0
+.endif
 
 screen_addr_input:
 	.long VD_ScreenStart, -1
