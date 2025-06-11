@@ -103,8 +103,8 @@
 
 ; Clear screen (clipping)               ; TODO: This is ick.
 .if _DEMO_PART==_PART_DONUT             ; donut
-.equ Cls_FirstLine,                     2              ; inclusive
-.equ Cls_LastLine,                      189            ; inclusive
+.equ Cls_FirstLine,                     2               ; inclusive
+.equ Cls_LastLine,                      189             ; inclusive
 .else
 .equ Cls_FirstLine,                     0               ; inclusive
 .equ Cls_LastLine,                      Screen_Height-1 ; inclusive
@@ -117,7 +117,11 @@
 .equ Mode_Bytes,                        Screen_Stride*VideoConfig_ModeHeight
 .equ Cls_Bytes,                         (Cls_LastLine+1-Cls_FirstLine)*Screen_Stride
 
+.if AppConfig_ReturnMainToCaller
+.equ TotalScreenSize,                   384*1024        ; assume caller is managing screen RAM allocation.
+.else
 .equ TotalScreenSize,                   (Mode_Bytes*VideoConfig_ScreenBanks+Machine_PageSize-1)&~(Machine_PageSize-1)
+.endif
 
 ; ============================================================================
 ; QTM Embedded entry points.

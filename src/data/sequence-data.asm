@@ -609,7 +609,7 @@ seq_space_monolith:
 
     write_fp    uv_table_fp_u,        0.0
     math_add_vars uv_table_fp_v, seq_dv, 1.0, uv_table_fp_v       ; v'=1.0+1.0*v
-    math_make_var seq_dv, 0.5, -0.4, math_cos, 0.0, 1.0/(6.0*50.0)
+    math_make_var seq_dv, 0.9, -0.4, math_cos, 0.0, 1.0/(6.0*50.0)
 
 ;    write_addr  reset_vsync_delta,    1
 
@@ -688,7 +688,7 @@ seq_space_relax:
 
     math_link_vars uv_table_fp_v,     0.5, 1.0, uv_table_fp_v   ; v'=0.25+1.0*v
 
-    wait_secs   18.0
+    wait_secs   22.0
 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  4.0
     wait_secs   4.0
