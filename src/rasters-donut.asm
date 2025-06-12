@@ -169,14 +169,14 @@ raster_donut_bg:
     .long           VIDC_Col15 | 0xfff
 
 raster_scroller_bg:
-    .long           VIDC_Col0 | 0x100
-    .long           VIDC_Col0 | 0x300
-    .long           VIDC_Col0 | 0x500
-    .long           VIDC_Col0 | 0x700
-    .long           VIDC_Col0 | 0x900
-    .long           VIDC_Col0 | 0xb00
-    .long           VIDC_Col0 | 0xd00
-    .long           VIDC_Col0 | 0xf00
+    .long           VIDC_Col0 | 0x111
+    .long           VIDC_Col0 | 0x222
+    .long           VIDC_Col0 | 0x333
+    .long           VIDC_Col0 | 0x444
+    .long           VIDC_Col0 | 0x555
+    .long           VIDC_Col0 | 0x666
+    .long           VIDC_Col0 | 0x777
+    .long           VIDC_Col0 | 0x888
 
 raster_scroller_fg:
     .long           VIDC_Col1 | 0x048

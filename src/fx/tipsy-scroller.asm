@@ -20,7 +20,7 @@ tipsy_scroller_base_p:
     .long tipsy_scroller_message_no_adr
 
 tipsy_scroller_speed:
-    .long 1
+    .long 2
 
 tipsy_scroller_column:
     .long 0
@@ -393,25 +393,5 @@ tipsy_scroller_draw_fast:
 
 tipsy_scroller_column_buffer:
     .skip 8*4
-
-; ============================================================================
-; SCROLLTEXT TEXT. TODO: Move to data segment.
-; ============================================================================
-
-tipsy_scroller_message_no_adr:
-; At 1 pixel/frame = 6.4s to traverse the screen.
-; Speed = 40 chars/6.4s = 6.25 chars/s
-; 16 patterns at 6 ticks/row = 122.88s
-; So in 122.88s 122.88s * 6.25 chars/s = 768 chars.
-;                                                                                                             1
-;                   1         2         3         4         5         6         7         8         9         0
-;          1........0.........0.........0.........0.........0.........0.........0.........0.........0.........0
-    .byte "    Eat my doughnut! This is a typically belated entry to the Buxton Bytes cracktro showcase to show"
-    .byte " how much better the mightly Acorn Archimedes is than your puny Atari ST machines at 8MHz! ARM FTW :)"
-    .byte " Gfx by Hammerfist, music by ne7, code by kieran."
-    .byte " Elite greets go out to Tom, SMFX, Desire, Spice Boys (is that chip spice?),"
-    .byte " and all doughnut lovers from around the scene."
-    .byte 0
-    .p2align 2
 
 ; ============================================================================
