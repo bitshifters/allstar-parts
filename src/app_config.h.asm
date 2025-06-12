@@ -15,7 +15,7 @@
 .equ AppConfig_UseQtmEmbedded,          0
 .equ AppConfig_UseArchieKlang,          (_SMALL_EXE && 0)
 .equ AppConfig_UseRasterMan,            _DEMO_PART!=_PART_SPACE     ; removes event / IRQ handler.
-.equ AppConfig_ReturnMainToCaller,      1       ; desktop by default
+.equ AppConfig_ReturnMainToCaller,      (!_DEBUG && 1)       ; desktop by default
 .equ AppConfig_UseMemcBanks,            1       ; not currently compatible with IrqHandler.
 
 ; ============================================================================
@@ -46,10 +46,10 @@
 .equ SeqConfig_MaxFrames,               SeqConfig_MaxPatterns*SeqConfig_PatternLength_Frames
 .else
 .equ SeqConfig_EnableLoop,              0
-.equ SeqConfig_MaxPatterns,             30
+.equ SeqConfig_MaxPatterns,             51
 
-.equ SeqConfig_ProTracker_Tempo,        112         ; Default = 125.
-.equ SeqConfig_ProTracker_TicksPerRow,  6           ; House tune is actually 3 :)
+.equ SeqConfig_ProTracker_Tempo,        143         ; Default = 125.
+.equ SeqConfig_ProTracker_TicksPerRow,  4           ; House tune is actually 3 :)
 
 .equ SeqConfig_PatternLength_Rows,      64
 .equ SeqConfig_PatternLength_Secs,      (2.5*SeqConfig_ProTracker_TicksPerRow*SeqConfig_PatternLength_Rows)/SeqConfig_ProTracker_Tempo

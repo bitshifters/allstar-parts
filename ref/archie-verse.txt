@@ -525,11 +525,12 @@ Donut TODO
     Mental Hangover - rasters cycle through the hue table every 16 scanlines
     Each colour is a darker version of the hue table
     Would need to set 16 colours per scanline... = 8% of CPU!
-- Some sort of donut animation
-- Some sort of donut movement
+- Some sort of donut animation - NOPES
+- Some sort of donut movement - NOPES
 - Moving the light source requires a SQRT.
 - Add Hammerfist's donut font. - DONE
 - Better ramps for the colour palettes... - HAMMERFIST?
+- Update scrolltext to include credits, greets and Hammerfists's stuff.
 
 1) start the scene with the logo, donut and scroller in the orange/browns, then 
 2) switch donut and/or scroller to the greys from the logo (or a 16c gradient that matches it)  and finally

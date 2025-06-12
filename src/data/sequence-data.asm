@@ -102,10 +102,14 @@ light_func_z:
 ; ============================================================================
 
 .if _DEMO_PART==_PART_SPACE
-.equ SpaceScene_Flash,      3.0
-.equ SpaceScene_Short,      6.0
-.equ SpaceScene_Medium,     8.0
-.equ SpaceScene_Long,       12.0
+; SeqConfig_PatternLength_Secs = 4.48s
+
+.equ SpaceScene_FadeUp,     1.12
+.equ SpaceScene_FadeDown,   1.12
+.equ SpaceScene_Flash,      2.24
+.equ SpaceScene_Short,      1.0*SeqConfig_PatternLength_Secs-SpaceScene_FadeDown
+.equ SpaceScene_Medium,     2.0*SeqConfig_PatternLength_Secs-SpaceScene_FadeDown
+.equ SpaceScene_Long,       3.0*SeqConfig_PatternLength_Secs-SpaceScene_FadeDown
 
 seq_space_part:
 
@@ -159,10 +163,10 @@ seq_space_part:
 
     math_make_var uv_table_fp_v,      0.0, 384.0, math_clamp, 0.0, 1.0/(2*384)    ; v=i/200
 
-    wait        2*384
+    wait        668;    2*384
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  2.0
 
-    wait_secs   3.0
+    wait_secs   2.56
     math_kill_var uv_table_fp_v
     ; ================================
 
@@ -200,7 +204,7 @@ seq_space_part:
     ; Planet, flying away from.
     ; ================================
     call_2      palette_from_gradient,gradient_space,           seq_palette_gradient
-    gradient_fade_up_over_secs        seq_palette_all_black,    seq_palette_gradient,   1.2
+    gradient_fade_up_over_secs        seq_palette_all_black,    seq_palette_gradient,   SpaceScene_FadeUp
 ;    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_planet_map_no_adr,     uv_table_data_no_adr
@@ -215,8 +219,8 @@ seq_space_part:
 
     wait_secs   SpaceScene_Short
 
-    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
+    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
+    wait_secs   SpaceScene_FadeDown
     math_kill_var uv_table_fp_v
     ; ================================
 
@@ -227,7 +231,7 @@ seq_space_warp:
     ; Warp.
     ; ================================
     call_2      palette_from_gradient,gradient_sun,             seq_palette_gradient
-    gradient_fade_up_over_secs        seq_palette_all_black,    seq_palette_gradient,   1.2
+    gradient_fade_up_over_secs        seq_palette_all_black,    seq_palette_gradient,   SpaceScene_FadeUp
 ;    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_warp_map_no_adr,       uv_table_data_no_adr
@@ -247,8 +251,8 @@ seq_space_warp:
     math_make_var seq_dv, 10.0, -9.0, math_clamp, 0.0, 1.0/(4.0*50.0)
     wait_secs   SpaceScene_Medium/2
 
-    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
+    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
+    wait_secs   SpaceScene_FadeDown
     math_kill_var uv_table_fp_v
     math_kill_var seq_dv
     ; ================================
@@ -260,7 +264,7 @@ seq_space_black_hole:
     ; Black hole.
     ; ================================
     call_2      palette_from_gradient,gradient_black_hole,      seq_palette_gradient
-    gradient_fade_up_over_secs        seq_palette_all_white,    seq_palette_gradient,   1.2
+    gradient_fade_up_over_secs        seq_palette_all_white,    seq_palette_gradient,   SpaceScene_FadeUp
 ;    fork_and_wait_secs                0.25,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_black_hole_map_no_adr, uv_table_data_no_adr
@@ -276,8 +280,8 @@ seq_space_black_hole:
     wait        50*(SpaceScene_Long-SpaceScene_Flash)
     gosub       seq_space_do_flash
 
-    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
+    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
+    wait_secs   SpaceScene_FadeDown
     ; ================================
 
     gosub seq_unlink_palette_lerp
@@ -286,7 +290,7 @@ seq_space_black_hole:
     ; Wormhole.
     ; ================================
     call_2      palette_from_gradient,gradient_wormhole,        seq_palette_gradient
-    gradient_fade_up_over_secs        seq_palette_all_black,    seq_palette_gradient,   1.2
+    gradient_fade_up_over_secs        seq_palette_all_black,    seq_palette_gradient,   SpaceScene_FadeUp
 ;    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_wormhole_map_no_adr,   uv_table_data_no_adr
@@ -301,8 +305,8 @@ seq_space_black_hole:
 
     wait_secs   SpaceScene_Short
 
-    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
+    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
+    wait_secs   SpaceScene_FadeDown
     math_kill_var uv_table_fp_v
     ; ================================
 
@@ -313,7 +317,7 @@ seq_space_tunnel:
     ; Tunnel.
     ; ================================
     call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
-    gradient_fade_up_over_secs        seq_palette_all_white,    seq_palette_gradient,   1.2
+    gradient_fade_up_over_secs        seq_palette_all_white,    seq_palette_gradient,   SpaceScene_FadeUp
 ;    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_tunnel_map_no_adr,     uv_table_data_no_adr
@@ -329,8 +333,8 @@ seq_space_tunnel:
     wait        50*(SpaceScene_Long-SpaceScene_Flash)
     gosub       seq_space_do_flash
 
-    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
+    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
+    wait_secs   SpaceScene_FadeDown
     math_kill_var uv_table_fp_v
     ; ================================
 
@@ -358,8 +362,8 @@ seq_space_tunnel:
 
     wait_secs   SpaceScene_Medium
 
-    gradient_fade_down_over_secs      seq_palette_gradient,      seq_palette_all_black,  1.0
-    wait_secs   1.0
+    gradient_fade_down_over_secs      seq_palette_gradient,      seq_palette_all_black,  SpaceScene_FadeDown
+    wait_secs   SpaceScene_FadeDown
     math_kill_var uv_table_fp_u
     math_kill_var uv_table_fp_v
     ; ================================
@@ -389,8 +393,8 @@ seq_space_torus:
 
     wait_secs   SpaceScene_Medium
 
-    gradient_fade_down_over_secs      seq_palette_gradient,      seq_palette_all_black,  1.0
-    wait_secs   1.0
+    gradient_fade_down_over_secs      seq_palette_gradient,      seq_palette_all_black,  SpaceScene_FadeDown
+    wait_secs   SpaceScene_FadeDown
     math_kill_var uv_table_fp_u
     math_kill_var uv_table_fp_v
     ; ================================
@@ -402,7 +406,7 @@ seq_space_rotate:
     ; Rotate & scale.
     ; ================================
     call_2      palette_from_gradient,gradient_red_alert,       seq_palette_gradient
-    gradient_fade_up_over_secs        seq_palette_all_black,    seq_palette_gradient,   1.2
+    gradient_fade_up_over_secs        seq_palette_all_black,    seq_palette_gradient,   SpaceScene_FadeUp
 ;    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      uv_texture_unlz4,     rotate_texture_no_adr,    16384
@@ -423,8 +427,8 @@ seq_space_rotate:
     wait_secs   SpaceScene_Medium
 
     ; Spinning
-    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
+    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
+    wait_secs   SpaceScene_FadeDown
 
     math_kill_var rotate_scale
     math_kill_var rotate_angle
@@ -442,7 +446,7 @@ seq_space_spin:
     ; Spinning ship.
     ; ================================
     call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
-    gradient_fade_up_over_secs        seq_palette_all_black,    seq_palette_gradient,   1.2
+    gradient_fade_up_over_secs        seq_palette_all_black,    seq_palette_gradient,   SpaceScene_FadeUp
 ;    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_spin_map_no_adr,       uv_table_data_no_adr
@@ -457,8 +461,8 @@ seq_space_spin:
 
     wait_secs   SpaceScene_Medium
 
-    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
+    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
+    wait_secs   SpaceScene_FadeDown
     math_kill_var uv_table_fp_v
     ; ================================
 
@@ -496,10 +500,10 @@ seq_space_spin:
 
     wait_secs   SpaceScene_Medium
 
-    math_make_var seq_palette_blend,    0.0, -15.0, math_clamp, 0.0,  1.0/(1.0*50.0)
+    math_make_var seq_palette_blend,    0.0, -15.0, math_clamp, 0.0,  1.0/(SpaceScene_FadeDown*50.0)
     ; RGB[d][i] = RGB[a][i+c]
     call_7      math_var_register_ex, seq_palette_id, seq_palette_gradient, 0, seq_panic_combined, seq_palette_lerped, 0, math_evaluate_palette_offset    
-    wait_secs   1.0
+    wait_secs   SpaceScene_FadeDown
 
     math_kill_var seq_panic_speed
     math_kill_var seq_panic_offset
@@ -514,7 +518,7 @@ seq_space_spin:
     ; Spinning to stop.
     ; ================================
     call_2      palette_from_gradient,gradient_tunnel,          seq_palette_gradient
-    gradient_fade_up_over_secs        seq_palette_all_black,    seq_palette_gradient,   1.2
+    gradient_fade_up_over_secs        seq_palette_all_black,    seq_palette_gradient,   SpaceScene_FadeUp
 ;    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_spin_map_no_adr,       uv_table_data_no_adr
@@ -530,8 +534,8 @@ seq_space_spin:
 
     wait_secs   SpaceScene_Short
 
-    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
+    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
+    wait_secs   SpaceScene_FadeDown
     math_kill_var uv_table_fp_v
     math_kill_var seq_dv
     ; ================================
@@ -542,7 +546,7 @@ seq_space_spin:
     ; Reactor core.
     ; ================================
     call_2      palette_from_gradient,gradient_ship,            seq_palette_gradient
-    gradient_fade_up_over_secs        seq_palette_all_black,    seq_palette_gradient,   1.2
+    gradient_fade_up_over_secs        seq_palette_all_black,    seq_palette_gradient,   SpaceScene_FadeUp
 ;    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_reactor_ok_map_no_adr, uv_table_data_no_adr
@@ -558,8 +562,8 @@ seq_space_spin:
     wait        50*(SpaceScene_Long-SpaceScene_Flash)
     gosub       seq_space_do_flash
 
-    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
+    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
+    wait_secs   SpaceScene_FadeDown
     math_kill_var uv_table_fp_v
     ; ================================
 
@@ -575,7 +579,7 @@ seq_space_greets:
     call_3      fx_set_layer_fns,     1, lut_scroller_tick,     0
 
     call_2      palette_from_gradient,gradient_default,         seq_palette_gradient
-    gradient_fade_up_over_secs        seq_palette_all_black,    seq_palette_gradient,   1.2
+    gradient_fade_up_over_secs        seq_palette_all_black,    seq_palette_gradient,   SpaceScene_FadeUp
 ;    fork_and_wait_secs                1.0,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_greets_map_no_adr,     uv_table_data_no_adr
@@ -591,12 +595,12 @@ seq_space_greets:
 
     wait_secs   6.0
     math_make_var seq_dv, 2.0, 2.0,   math_clamp, 0.0, 1.0/(4.0*50.0)
-    wait_secs   22.0
+    wait_secs   21.72
     math_make_var seq_dv, 4.0, -2.0,  math_clamp, 0.0, 1.0/(4.0*50.0)
     wait_secs   7.0
 
-    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
+    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
+    wait_secs   SpaceScene_FadeDown
     math_kill_var uv_table_fp_v
     math_kill_var seq_dv
 
@@ -610,7 +614,7 @@ seq_space_monolith:
     ; Monolith.
     ; ================================
     call_2      palette_from_gradient,gradient_default,         seq_palette_gradient
-    gradient_fade_up_over_secs        seq_palette_all_white,    seq_palette_gradient,   1.2
+    gradient_fade_up_over_secs        seq_palette_all_white,    seq_palette_gradient,   SpaceScene_FadeUp
 ;    fork_and_wait_secs                0.25,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_monolith_map_no_adr,   uv_table_data_no_adr
@@ -627,8 +631,8 @@ seq_space_monolith:
     wait        50*(SpaceScene_Long-SpaceScene_Flash)
     gosub       seq_space_do_flash
 
-    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
+    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
+    wait_secs   SpaceScene_FadeDown
     math_kill_var uv_table_fp_v
     math_kill_var seq_dv
     ; ================================
@@ -639,7 +643,7 @@ seq_space_monolith:
     ; Sun.
     ; ================================
     call_2      palette_from_gradient,gradient_sun,             seq_palette_gradient
-    gradient_fade_up_over_secs        seq_palette_all_white,    seq_palette_gradient,   1.2
+    gradient_fade_up_over_secs        seq_palette_all_white,    seq_palette_gradient,   SpaceScene_FadeUp
 ;    fork_and_wait_secs                0.25,                      seq_set_pal_to_gradient
 
     call_2      unlz4,                uv_sun_map_no_adr,        uv_table_data_no_adr
@@ -655,8 +659,8 @@ seq_space_monolith:
     wait        50*(SpaceScene_Long-SpaceScene_Flash)
     gosub       seq_space_do_flash
 
-    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  1.0
-    wait_secs   1.0
+    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
+    wait_secs   SpaceScene_FadeDown
     math_kill_var uv_table_fp_v
     ; ================================
 
@@ -699,7 +703,7 @@ seq_space_relax:
 
     math_link_vars uv_table_fp_v,     0.5, 1.0, uv_table_fp_v   ; v'=0.25+1.0*v
 
-    wait_secs   22.0
+    wait_secs   22.24
 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  4.0
     wait_secs   4.0
