@@ -109,10 +109,6 @@ main:
     ; Allocate and clear screen buffers etc.
     bl app_init_video
 
-    mov r0, #19
-    swi OS_Byte
-    swi OS_Byte
-
     ; Initialise the music player etc.
 	; Param R12=top of RAM used.
     bl app_init_audio

@@ -728,8 +728,13 @@ seq_space_monolith:
 
 ;    write_addr  reset_vsync_delta,    1
 
-    wait        50*(SpaceScene_Medium-SpaceScene_Flash)
-    gosub       seq_space_do_flash
+    wait        50*(4.48)         ; second pattern
+;    gosub       seq_space_do_flash
+    math_make_var seq_palette_blend,   0.0, 15.0, math_clamp, 0.0,  1.0/16.0
+    wait 16
+    math_kill_var uv_table_fp_v     ; pause motion
+    math_make_var seq_palette_blend,   15.0, -15.0, math_clamp, 0.0,  1.0/SpaceScene_FlashDown
+    wait 50*3.36-16
 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
     wait_secs   SpaceScene_FadeDown
@@ -756,8 +761,13 @@ seq_space_monolith:
     write_fp    uv_table_fp_u,        0.0
     math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=0.25+1.0*v
 
-    wait        50*(SpaceScene_Medium-SpaceScene_Flash)
-    gosub       seq_space_do_flash
+    wait        50*(4.48)         ; second pattern
+;    gosub       seq_space_do_flash
+    math_make_var seq_palette_blend,   0.0, 15.0, math_clamp, 0.0,  1.0/16.0
+    wait 16
+    math_kill_var uv_table_fp_v     ; pause motion
+    math_make_var seq_palette_blend,   15.0, -15.0, math_clamp, 0.0,  1.0/SpaceScene_FlashDown
+    wait 50*3.36-16
 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
     wait_secs   SpaceScene_FadeDown

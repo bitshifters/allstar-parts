@@ -210,7 +210,7 @@ music_mod_no_adr:
 .if _DEMO_PART==_PART_SPACE
 ;.incbin "data/music/unused/Revision_house_06.mod"
 ;.incbin "data/music/Space-Trip-Runner.mod"
-.incbin "data/music/space_trip_fatman_08.mod"
+.incbin "data/music/space_trip_fatman_10.mod"
 .endif
 .if _DEMO_PART==_PART_DONUT
 .incbin "data/music/ne7-hammer_on.mod"
