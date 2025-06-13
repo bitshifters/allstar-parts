@@ -112,8 +112,8 @@ tipsy_scroller_message_no_adr:
     .byte "    Eat my doughnut! This is a typically belated entry to the Buxton Bytes cracktro showcase to show "
     .byte "how much better the mightly Acorn Archimedes is than your puny Atari ST machines at 8MHz! ARM FTW :) "
     .byte "Gfx by Hammerfist, music by ne7, code by kieran, and the soft-copper magic (RasterMan) by "
-    .byte "Phoenix^Quantum. Tasty sprinkles go out to Tom, SMFX, Desire, Spice Boys (is that chip spice?), and all "
-    .byte "doughnut lovers from around the scene. "
+    .byte "Phoenix^Quantum. Tasty sprinkles go out to Tom, SMFX, Desire, Spice Boys (is that chip spice?), "
+    .byte "Evvvil (not a pity greet :) and all doughnut lovers from around the scene. "
     .byte "Apologies to Hammerfist for keeping the awful programmer colours - I just ran "
     .byte "out of time... the doughnut was also supposed to do loads of fun things but never mind!! "
     .byte "Speaking of Hammerfist, you better strap yourselves in...                    "
@@ -185,7 +185,7 @@ tipsy_scroller_message_no_adr:
 
 .equ SpaceScene_FadeUp,     1.12
 .equ SpaceScene_FadeDown,   1.12
-.equ SpaceScene_Flash,      2.24
+.equ SpaceScene_Flash,      4.04
 .equ SpaceScene_Short,      1.0*SeqConfig_PatternLength_Secs-SpaceScene_FadeDown
 .equ SpaceScene_Medium,     2.0*SeqConfig_PatternLength_Secs-SpaceScene_FadeDown
 .equ SpaceScene_Long,       3.0*SeqConfig_PatternLength_Secs-SpaceScene_FadeDown
@@ -296,7 +296,7 @@ seq_space_part:
 
 ;    write_addr  reset_vsync_delta,    1
 
-    wait_secs   SpaceScene_Short
+    wait_secs   SpaceScene_Medium
 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
     wait_secs   SpaceScene_FadeDown
@@ -356,7 +356,7 @@ seq_space_black_hole:
 
 ;    write_addr  reset_vsync_delta,    1
 
-    wait        50*(SpaceScene_Long-SpaceScene_Flash)
+    wait        50*(SpaceScene_Medium-SpaceScene_Flash)
     gosub       seq_space_do_flash
 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
@@ -652,6 +652,8 @@ seq_space_spin:
     ; New: Space Travel II - More space travel (reusue warp again or something new),
     ; Greets
     ; ================================
+.equ ShortGreets, 1
+
 seq_space_greets:
     write_fp    uv_table_fp_v,        0.0
     call_3      lut_scroller_init,    nasa_font_no_adr,         seq_greets_text_no_adr, nasa_prop_no_adr
@@ -672,11 +674,19 @@ seq_space_greets:
 
 ;    write_addr  reset_vsync_delta,    1
 
+.if ShortGreets
+    wait_secs   1.0
+    math_make_var seq_dv, 2.0, 2.0,   math_clamp, 0.0, 1.0/(2.0*50.0)
+    wait_secs   14.8
+    math_make_var seq_dv, 4.0, -2.0,  math_clamp, 0.0, 1.0/(2.0*50.0)
+    wait_secs   1.0
+.else
     wait_secs   6.0
     math_make_var seq_dv, 2.0, 2.0,   math_clamp, 0.0, 1.0/(4.0*50.0)
     wait_secs   21.72
     math_make_var seq_dv, 4.0, -2.0,  math_clamp, 0.0, 1.0/(4.0*50.0)
     wait_secs   7.0
+.endif
 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
     wait_secs   SpaceScene_FadeDown
@@ -707,7 +717,7 @@ seq_space_monolith:
 
 ;    write_addr  reset_vsync_delta,    1
 
-    wait        50*(SpaceScene_Long-SpaceScene_Flash)
+    wait        50*(SpaceScene_Medium-SpaceScene_Flash)
     gosub       seq_space_do_flash
 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
@@ -735,7 +745,7 @@ seq_space_monolith:
     write_fp    uv_table_fp_u,        0.0
     math_link_vars uv_table_fp_v,     1.0, 1.0, uv_table_fp_v   ; v'=0.25+1.0*v
 
-    wait        50*(SpaceScene_Long-SpaceScene_Flash)
+    wait        50*(SpaceScene_Medium-SpaceScene_Flash)
     gosub       seq_space_do_flash
 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
@@ -821,6 +831,37 @@ seq_panic_combined:
     FLOAT_TO_FP 0.0
 
 seq_greets_text_no_adr:
+.if ShortGreets
+    .byte "Alcatraz - "
+;    .byte "Ate-Bit - "
+    .byte "AttentionWhore - "
+    .byte "Bus Error - ";Collective - "
+    .byte "CRTC - "
+    .byte "Defekt - "
+    .byte "DESiRE - " 
+    .byte "Epoch & Ivory - "
+    .byte "Gasman - "
+    .byte "Inverse Phase - "
+    .byte "IRIS - "
+;   .byte "Logicoma - "
+;   .byte "Loonies - "
+;   .byte "NOVA orgas - "
+    .byte "Proxima - "
+;    .byte "Pulpo Corrosivo - "
+;    .byte "Quantum - "
+    .byte "Rabenauge - "
+    .byte "RiFT - "
+    .byte "Slipstream - "
+    .byte "SMFX - "
+    .byte "Spreadpoint - "
+    .byte "TTE - "
+    .byte "YM Rockerz "
+;    .byte "Evvvil (not a pity greet :) - "
+;    .byte "      Now let's take some more space selfies..."
+    .byte "             "
+    .byte 0 ; end.
+.p2align 2
+.else
     .byte "SPACE GREETS GO OUT TO... "
     .byte "Alcatraz - "
     .byte "Ate-Bit - "
@@ -851,6 +892,8 @@ seq_greets_text_no_adr:
     .byte "             "
     .byte 0 ; end.
 .p2align 2
+.endif
+
 .endif
 
 ; ============================================================================
