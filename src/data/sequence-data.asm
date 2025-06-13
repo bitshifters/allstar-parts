@@ -186,6 +186,7 @@ tipsy_scroller_message_no_adr:
 .equ SpaceScene_FadeUp,     1.12
 .equ SpaceScene_FadeDown,   1.12
 .equ SpaceScene_Flash,      4.04
+.equ SpaceScene_FlashDown,  2.24
 .equ SpaceScene_Short,      1.0*SeqConfig_PatternLength_Secs-SpaceScene_FadeDown
 .equ SpaceScene_Medium,     2.0*SeqConfig_PatternLength_Secs-SpaceScene_FadeDown
 .equ SpaceScene_Long,       3.0*SeqConfig_PatternLength_Secs-SpaceScene_FadeDown
@@ -409,8 +410,13 @@ seq_space_tunnel:
 
 ;    write_addr  reset_vsync_delta,    1
 
-    wait        50*(SpaceScene_Long-SpaceScene_Flash)
-    gosub       seq_space_do_flash
+    wait        50*(2*4.48+0.96)         ; second pattern
+;    gosub       seq_space_do_flash
+    math_make_var seq_palette_blend,   0.0, 15.0, math_clamp, 0.0,  1.0/16.0
+    wait 16
+    math_kill_var uv_table_fp_v     ; pause motion
+    math_make_var seq_palette_blend,   15.0, -15.0, math_clamp, 0.0,  1.0/SpaceScene_FlashDown
+    wait 50*2.4-16
 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
     wait_secs   SpaceScene_FadeDown
@@ -638,9 +644,14 @@ seq_space_spin:
 
 ;    write_addr  reset_vsync_delta,    1
 
-    wait        50*(SpaceScene_Long-SpaceScene_Flash)
-    gosub       seq_space_do_flash
-
+    wait        50*(2*4.48)         ; second pattern
+;    gosub       seq_space_do_flash
+    math_make_var seq_palette_blend,   0.0, 15.0, math_clamp, 0.0,  1.0/16.0
+    wait 16
+    math_kill_var uv_table_fp_v     ; pause motion
+    math_make_var seq_palette_blend,   15.0, -15.0, math_clamp, 0.0,  1.0/SpaceScene_FlashDown
+    wait 50*3.36-16
+ 
     gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  SpaceScene_FadeDown
     wait_secs   SpaceScene_FadeDown
     math_kill_var uv_table_fp_v
@@ -792,14 +803,16 @@ seq_space_relax:
 
     math_link_vars uv_table_fp_v,     0.5, 1.0, uv_table_fp_v   ; v'=0.25+1.0*v
 
-    wait_secs   22.24
+    wait_secs   21.76
 
-    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  4.0
-    wait_secs   4.0
+    gradient_fade_down_over_secs      seq_palette_gradient,     seq_palette_all_black,  4.48
+    wait_secs   4.48
     math_kill_var uv_table_fp_v
     ; ================================
 
     gosub seq_unlink_palette_lerp
+
+    write_addr end_the_demo, 1
 
     end_script
 
@@ -811,7 +824,7 @@ seq_space_do_flash:
     math_make_var seq_palette_blend,   0.0, 15.0, math_clamp, 0.0,  1.0/16.0
     wait 16
     math_kill_var uv_table_fp_v     ; pause motion
-    math_make_var seq_palette_blend,   15.0, -15.0, math_clamp, 0.0,  1.0/SpaceScene_Flash
+    math_make_var seq_palette_blend,   15.0, -15.0, math_clamp, 0.0,  1.0/SpaceScene_FlashDown
     wait 50*SpaceScene_Flash-16
     end_script
 

@@ -4,7 +4,7 @@
 
 ; TODO: Allow configuration of more than one screen mode for code gen etc.?
 
-.equ LibConfig_ShowInitProgress,        1
+.equ LibConfig_ShowInitProgress,        0
 
 .equ LibConfig_IncludeMem,              1
 .equ LibConfig_IncludeSqrt,             _DEMO_PART==_PART_DONUT

@@ -230,10 +230,11 @@ main_loop:
     .if SeqConfig_EnableLoop
     movge r0, #0
     str r0, frame_counter
+    .if _DEMO_PART != _PART_DONUT
     blge sequence_init
+    .endif
     .else
     str r0, frame_counter
-    bge exit
     .endif
 
     .if _DEBUG
@@ -346,6 +347,10 @@ main_loop_skip_tick:
     ;     This also now fetches the next bank to write to.
 	bl mark_write_bank_as_pending_display
 
+    ldr r1, end_the_demo
+    cmp r1, #0
+    bne exit
+
 	; repeat!
     .if AppConfig_UseRasterMan
 	swi RasterMan_ScanKeyboard
@@ -384,7 +389,9 @@ exit:
 	mov r2, #0
 	swi OS_Release
     .else
+	swi RasterMan_Wait
   	swi RasterMan_Release
+	swi RasterMan_Wait
 	swi RasterMan_Wait
     .endif
 
@@ -530,6 +537,9 @@ frame_counter:
 
 max_frames:
     .long SeqConfig_MaxFrames
+
+end_the_demo:
+    .long 0
 
 .if _DEBUG
 music_pos:

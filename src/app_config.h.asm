@@ -46,7 +46,7 @@
 .equ SeqConfig_MaxFrames,               SeqConfig_MaxPatterns*SeqConfig_PatternLength_Frames
 .else
 .equ SeqConfig_EnableLoop,              0
-.equ SeqConfig_MaxPatterns,             44
+.equ SeqConfig_MaxPatterns,             45
 
 .equ SeqConfig_ProTracker_Tempo,        143         ; Default = 125.
 .equ SeqConfig_ProTracker_TicksPerRow,  4           ; House tune is actually 3 :)

@@ -40,12 +40,12 @@ app_init_debug:
     DEBUG_REGISTER_VAR music_pos
     DEBUG_REGISTER_VAR frame_counter
     .if _DEMO_PART==_PART_DONUT
-    DEBUG_REGISTER_VAR scene3d_stats_quads_plotted
+;    DEBUG_REGISTER_VAR scene3d_stats_quads_plotted
     .endif
 ;    DEBUG_REGISTER_VAR music_pos
     DEBUG_REGISTER_VAR_EX debug_free_ram, debug_plot_addr_as_dec4
     .if _DEMO_PART==_PART_SPACE
-    DEBUG_REGISTER_VAR_EX uv_table_code_size, debug_plot_addr_as_dec4
+;    DEBUG_REGISTER_VAR_EX uv_table_code_size, debug_plot_addr_as_dec4
     .endif
 
     DEBUG_REGISTER_KEY          RMKey_Space,      debug_toggle_main_loop_pause,  0
