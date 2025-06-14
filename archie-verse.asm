@@ -15,7 +15,7 @@
 .endif
 
 .ifndef _DEMO_PART
-.equ _DEMO_PART,                _PART_SPACE       ; 0=donut, 1=tables, 2=test
+.equ _DEMO_PART,                _PART_DONUT       ; 0=donut, 1=tables, 2=test
 .endif
 
 .ifndef _DEBUG
@@ -359,9 +359,10 @@ main_loop_skip_tick:
     .endif
 
 exit:
-	; Disable music
-	mov r0, #0
-	QTMSWI QTM_Clear
+    .if _DEMO_PART==_PART_DONUT
+    mov r0, #0
+    str r0, app_ready
+    .endif
 
     .if !AppConfig_UseRasterMan
 	; Remove our IRQ handler
@@ -390,6 +391,10 @@ exit:
 	swi RasterMan_Wait
 	swi RasterMan_Wait
     .endif
+
+	; Disable music
+	mov r0, #0
+	QTMSWI QTM_Clear
 
     .if _DEBUG
 	; Release our error handler

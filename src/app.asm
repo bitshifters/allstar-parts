@@ -563,7 +563,7 @@ app_vsync_code:
     bl tipsy_scroller_tick
     ; Write scroller to static buffer.
     ldr r12, app_scroller_logical
-    bl tipsy_scroller_draw_fast  ; TODO: Optimise.
+    bl tipsy_scroller_draw_fast
     ldmfd sp!, {r0-r12,lr}
 
 	TEQP PC,#IRQ_Disable | FIQ_Disable | ProcMode_IRQ
