@@ -3,146 +3,8 @@ Verse-chorus-verse. Aka Into the Archie-Verse.
 An Archimedes demo framework.
 Contains all accumulated libraries and code from previous prods.
 
-Framework TODOs as of 15/5/24:
-~~~
-=> Add logo on screen and submit as blank framework. - DONE
-- Separate tick/draw order from being tied together. <=== THIS
-    - Strict draw order in layers.
-    - Are there any dependencies between tick?
-      => Could be if moving objects in a scene then doing collisions, say.
-    - Tick just means 'call this function every frame without fail'
-      Could be implemented using script_fork!!
-- Improve build using Tom's Python scripts and makefile-foo.
-- Does ErrorV actually do anything? => Handles OS_GenerateError calls.
-- Move png2arc to Python 3. ==> Use Gemini!
-- MOD file analyser to configure code / script.
-- Move scripting to use seconds throughout?
-- Create text-pool module from code in fx/bits.asm. - DONE
-  => (but could still maybe do with some refactoring)
-- Automatic clearing of BSS by loader?
 
-And as of 6/6/24:
-~~~
-- Remove OS_Byte VDU calls - just manage screen buffer data internally.
-  No point in keeping these if poking VIDC directly for palette as not compatible.
-  Keep a list of screen buffer addresses and set MEMC on vsync etc.
-- Dynamically generate CLS code include clear line code.
-    => Shrinkler does a better job of compressing this unrolled code than generating it...!!!
-- How have I got this far without memcpy and memclr?!
-  => Write optimised versions of these for lib. - DONE SIMPLE VERSION
-- Standardise code generation at init. - DONE
-    - Have R12=start of free RAM and expect to return top in R12 for next fn.
-- Sort out palette nonsense - some things are in expanded 0x00BbGgRr format,
-    some are in 0x0RGB format, what about VIDC command format?
-
-
-ArchieKlang Announcetro
-~~~
-=> Like the oscilloscope view more when all channels are combined together.
-    Kinda want this to fade?
-
-Try?
-- Lines not dots (expensive?) - DONE
-- Previous buffers plotted above/below in darker colour to fade out? - DONE
-- Use a Y buffer so they don't overlap? - DONE
-- Add palette fade as lines move up.
-- Custom faster line algo. - DONE
-- More lines but with smaller amplitude - DONE
-- Add 'zero' signal left and right of the wave lines - DONE
-- Add header text - DONE
-- Fade in header messages at the top (separate colour)
-- Add iterator to header?
-    - Looks meh. :\
-- Simple scroller at the bottom? - DONE
-    - Use RISCOS font? Corpus is fixed width (but might look meh?)
-    - Still need to figure out how to draw at the same Y pos for all glyphs. - DONE
-    - (Write a word with ascenders and descenders then grab the max height)
-    - Still need to work out which Y to plot at though! - DONE
-    ==> This is not going to work even with fixed width font due to kerning.
-    ==> Either use a traditional font or plot one word at a time from the scrolltext... - DONE
-    ==> Make a rough calculation of how much RAM this would be... - A LOT :)
-- Move scroll text to own code module and separate from text_pool API - DONE
-- Sort out outline_font vs text_pool APIs - LATER
-    - Separate paint to screen from copy from screen to sprite.
-    - Something like:
-        outline_font_paint_to_screen
-        sprite_utils_make_from_screen (copying in row or column order)
-        remove use of text_pool by outline_scroller.
-    => AM I MAKING THIS MORE COMPLICATED? JUST ADD THEM AFTER AND STORE THE ENTRY NUMBER SOMEHOW?
-       NEXT TIME: Sort out text pool vs sprite pool etc.
-
-- Have sequence start by fading in 'BITSHIFTERS' 'ALCATRAZ' 'present' etc. - DONE
-    - Then start scroll text in the same slot.
-- Possible to slow the scroller down? - DONE
-    - Scroll rows one byte at a time in sw and just plot right hand columns?
-    - What about double/triple buffers? - JUST DOUBLE
-- Add ArchieKlang sample gen at some point! - DONE
-- Plot samples as they're generated? Use same effect?
-    - Plot and move after each one? Hmmm!
-
-TO FINISH
-~~~
-- Add fade to static header text. - DONE
-- Add dynamic speed control to the scroller, otherwise it's a bit monotonous. - DONE
-- Add some nice colour palette fades across the track. - IN PROGRESS
-- BONUS: More colour palettes to cycle through?
-- Get the final tune?!?!?! (Probably last minute... ;) => Rhino!
-- Final scrolltext => get a few words from Virgill & Rhino. - DONE
-- What to do about audio filter mod? => Steve?!
-- BUG: Check first frame glitches ==> loader to zero BSS? No, already zero'd. Hmm.
-- BUG: Wave peak leaks into fixed scroller area and gets dragged... - HACK IT! :)
-- BUG: Base line drawn in colour 14 at offset 0 => flickers with certain palettes - DONE
-- BUG: First frame sometimes displayed before palette is set - race condition?
-- Add control code for additional spaces in scroller? - DONE
-- Fade out at the end rather than loop for compo? => wait final tune.
-- BUG! Scroller is at 25Hz not 50Hz!! WHAT?! - DONE
-- BUG: Turn off flashing cursor in loader. - DONE
-- Rename !folder to !ArchieKlang and add icon. - DONE
-- Write a !Help file to explain where to find AmigaKlang etc.
-- Tidy up the new build of AmigaKlangGUI and send to Virgill.
-
-
-BONUS
-~~~
-- Generate any repeated code at runtime, e.g. cls, scroller shifts.
-- Multiply scale of each line by a dynamic value. - STARTED
-    - sin(camera a) so can 'look down' on the scope waves / contours.
-        => dynamically changing the scale looks nice and emphasizes the y buffer effect.
-        => doesn't have the effect of tilting the view 'towards' the camera.
-           Need to run through the perspective equation.
-           Can't really do a divide per Y value. Well....
-    - sin(ypos - centre) so looks like it rotates around a cylinder.
-    - Could do different scale per line. <== BONUS!
-- Remove divide call from arcmusic - it's always 32767/const - DONE
-- Use a proper modulo fn. for scope scroll, not a loop. - DONE
-- Try having the live waveform NOT moving with the others? - DONE
-- Does it look better without the flat lines on the left/right? => small border looks best.
-- Dynamically cut down version for ARM2 machines? Party version can be 12MHz. - DONE AS COMPILE OPTION FOR NOW
-    - Fewer samples => doesn't have much effect on overall perf => linedraw bound.
-    - Fewer lines => biggest impact.
-    - Need to change scopes to 8/14 :(
-    - Probably also shrink text size
-    - Actually switching to 32 samples for the waveform but keeping the dx=4
-      makes the waveform part smaller and looks cool enough!
-      Can reduce scopes to 11/11 or higher!
-- Dynamically set sample speed for ARM2/ARM250+ machines for highest quality.
-    - DONE AS COMPILE OPTION FOR NOW
-
-Line segment drawing.
-dx is fixed == 4 (or whatever)
-dy limited: -128 <= dy <= 127
-Line segments are connected.
-
-Use MODE 12.
-Unroll all 256 possible code paths.
-Just do Bresenham, steep and shallow paths with
-x+=1:y+=0 => strb r4, [r11], #1
-x+=1:y+=1 => strb r4, [r11], #-ScreenStride+1
-x+=1:y-=1 => strb r4, [r11], #ScreenStride+1
-x+=0:y+=1 => strb r4, [r11], #-ScreenStride
-x+=0:y-=1 => strb r4, [r11], #ScreenStride
-
-Fantasy Cracktro Compo
+Fantasy Cracktro Compo (became AllStar Megademo Donut...)
 ~~~
 Target 16th March ~five weeks!
 Use RasterMan => music bug? (See Steve's email)
@@ -245,10 +107,6 @@ i (y0*z1) - (z0*y1)
 k (x0*y1) - (y0*x1)
 
 Then have to get the length of this and normalise. Urgh.
-
-A = [-2.34 0.0 5.65 ]
-B = [ -40.0 40.0 0.0 ]
-A^B = [ -226.25 -226.25 -93.75 ]
 
 Ring starts rhs X+ve Y=0 goes down
 Circle starts outer edge Z=0 X+ve Y+ve goes inside
@@ -415,45 +273,14 @@ Quad face indices => store as words.
 Megademo TODO
 ~~~
 PREP
-- One makefile produces two exes
-- Each exe has a different set of assets and music.
-- Each exe has a separate sequence script.
-- All other code is shared.
+- One makefile produces two exes - DONE
+- Each exe has a different set of assets and music. - DONE
+- Each exe has a separate sequence script. - DONE
+- All other code is shared. - DONE
     - In theory only need to swap the app.asm file!!
-=> Hedge against Megademo not happening, pending other folks actually committing.
-=> Keep as a single exe for now, probably only a couple of hours work to separate exes.
-=> Takes more effort to maintain two.
-
-UV PART
-- Move from proto-arc repo into archie-verse. - DONE
-- Add 8 initial tables.
-    => Paul to the rescue!
-- Add 8 initial textures.
-- Add 8 initial colour palettes.
-- Make a simple sequence that just cycles through them. - DONE
-- Make a sequence with energy and sync:
-    - Something a bit more acid like?
-    - Fast switch to the beat.
-        => Note that unrolled code is large and generating tables is slow.
-    - Change direction quickly to the beat.
-    - Animated texture to the beat.
-- Add music.
-- Move to new features
-    - Skip pixels - DONE
-    - Animated textures?
-    - Colour cycling?
-    - Scroller?
-    - Additional FX e.g. plasma? <= No time!
-    - Transitions
-        - Smoothly appear one/two lines at a time.
-        - Palette fade.
-        - Wipe the texture instead of the screen.
-        ==> Create jump table with call points per line plotted.
-    - Generate tables at runtime?
-        (Requires sqrt, atan2, sin, cos functions)
-- Polish!
 
 DONUT PART
+~~~
 - Add logo. - BODGED
 - Add scroller. - DONE
     - Scroller at 50Hz how?
@@ -476,8 +303,8 @@ Set Vinit instead of calling OSByte_WriteDisplayBank. - DONE
           Now need to define a math_vec_func !? - DONE
           Could also have a 'move to target' tick? - STARTED
           Bounce up and down in Y?
-    - Morph
-    - Animate
+    - Morph - OOT
+    - Animate - OOT
         => Need to be careful with sorting order
            (Or implement face sorting.)
            E.g. twisting the verts will invalidate the static draw order.
@@ -492,10 +319,10 @@ Set Vinit instead of calling OSByte_WriteDisplayBank. - DONE
     - Triangle wibble by offseting X start by Y index into table.. - DONE
         - Sine wave and random.
         - Think this needs a bit more exploration and would be better as part of a larger 3D demo.
-    - Looks nicer without flat inner face but need 2x face draw order lists.
+    - Looks nicer without flat inner face but need 2x face draw order lists. - DONE
         Standard: R8=0,7,1,6,2,5,3,4
         Flipped presumably: 7,0,6,1,5,2,4,3
-- Colours
+- Colours - OOT
     - Some nicer palettes.
     - Some palette blends.
     - What about dithering?
@@ -540,17 +367,43 @@ Also, while the little background gradient for the scroller is an idea I am 100%
 You could always go for safe and just use greys for that gradient behind the scroller, matching with the greys from the logo.
 Oh btw, for point 3), I meant changes the oranges in the logo to purples, but leave the greys grey. That sort of anchors it, makes it at least a little bit more subtle 🙂
 
-=> Perhaps just mix it up, so have the effectors layered at different rates.
+=> Perhaps just mix it up, so have the effectors layered at different rates. - OOT
    - Move sequence happens every M patterns
    - Animate sequence happens every A patterns
    - Palette changes happen every P patterns
    - Wibble happens every W patterns etc.
    - 20 patterns total.
 
-Pre-Revision thought
----
-I wanna make another acid demo!!
----
+
+UV PART
+~~~
+- Move from proto-arc repo into archie-verse. - DONE
+- Add 8 initial tables.
+- Add 8 initial textures.
+- Add 8 initial colour palettes.
+    => Paul to the rescue!
+- Make a simple sequence that just cycles through them. - DONE
+- Make a sequence with energy and sync:
+    - Something a bit more acid like?
+    - Fast switch to the beat.
+        => Note that unrolled code is large and generating tables is slow.
+    - Change direction quickly to the beat.
+    - Animated texture to the beat.
+- Add music. - DONE
+- Move to new features
+    - Skip pixels - DONE
+    - Animated textures?
+    - Colour cycling?
+    - Scroller? - DONE
+    - Additional FX e.g. plasma? <= No time!
+    - Transitions
+        - Smoothly appear one/two lines at a time.
+        - Palette fade. - DONE
+        - Wipe the texture instead of the screen.
+        ==> Create jump table with call points per line plotted.
+    - Generate tables at runtime?
+        (Requires sqrt, atan2, sin, cos functions)
+- Polish!
 
 Riffing with Paul on LUTs.
 ~~~
@@ -632,6 +485,7 @@ TODO:
      (otherwise the decompress and codegen gets complicated)
 
 - Palette pulse for Reactor panic. - DONE
+
 int Offset = some anim (sawtooth or sine wave ) ranged 0-8 or -4 to 8 or something.
 for(PaletteIndex = 0; PaletteIndex < 16; PaletteIndex++)
 {
@@ -640,6 +494,7 @@ for(PaletteIndex = 0; PaletteIndex < 16; PaletteIndex++)
 }
 
 Paul's TODOs:
+~~~
 - Fixed point scroll for UVs
     Ship over planet sequence could get subtly faster as it plays. The reactors probably look better faster generally but reactor panic could also speed up as it plays.
     Monolith could slowly change the speed as a sine wave between two similar values to suggest gusts of wind.
@@ -649,27 +504,19 @@ Paul's TODOs:
 - Double height LUT table.. => NEXT TIME?
     => Check max code size.
     => Put gen code at end of bss.
-- Long textures
+- Long textures - DONE
     Code size for Apollo = 149K
     Code size for Relax = 183K
-- Palette revert glitch for one frame on boot only
+- Palette revert glitch for one frame on boot only - DONE
     => Setting palette to black shows a one frame of black
     => Presumably as not going through OS palette calls?
     => Some weird RISCOS delay after MODE change thing?
     => Issue a wait before we start the demo? FFS!
 - Palette jump after long setup => reset vsync_delta before math_var tick.
 
-RAM:
-- Code = 15680 bytes
-- LUTs (LZ4) and textures (raw) = 294728 bytes
-- Script & sequence data = 5100 bytes
-- MOD = 50068 bytes
-- LUT buffers = 94208 bytes
-- Unrolled LUT code = 335876 bytes
-- Sine table = 65536 bytes :)
-- Free = 534772 bytes
 
 For Megademo:
+~~~
 - Load and run at 0x10000 - DONE
     - Change .org
     - Update link_script.txt
@@ -729,17 +576,3 @@ Sun,
 New : End somehow?,
 
 New: Somewhere in the above - greets / credits scrolling / flying past ship? Perpahs cut in the middle of Space Travel II (or the trippy section but that feels a bit early)
-
-
-NOTE TO SELF:
-MODE 13 default palette: (RGB222+tint)
- [0]=0000 [1]=0111 [2]=0222 [3]=0333 [4]=0004 [5]=0115 [6]=0226 [7]=0337
- [8]=0400 [9]=0511 [a]=0622 [b]=0733 [c]=0404 [d]=0515 [e]=0626 [f]=0737
-
-RTW RGB233 palette:
- [0]=0000 [1]=0200 [2]=0020 [3]=0220 [4]=0006 [5]=0206 [6]=0026 [7]=0226
- [8]=0400 [9]=0600 [a]=0420 [b]=0620 [c]=0406 [d]=0606 [e]=0426 [f]=0626
-
-RTW RGB332 palette:
- [0]=0000 [1]=0002 [2]=0020 [3]=0022 [4]=0004 [5]=0006 [6]=0024 [7]=0026
- [8]=0600 [9]=0602 [a]=0620 [b]=0622 [c]=0604 [d]=0606 [e]=0624 [f]=0626
