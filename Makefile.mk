@@ -65,8 +65,8 @@ build:
 # ASSET LIST
 ##########################################################################
 
-./build/assets.txt: build ./build/music.mod ./build/razor-font.bin ./build/tunnel_uv.lz4 \
-	./build/phong128.bin ./build/itm128.bin ./build/temp-logo.bin ./build/fine-font.bin \
+./build/assets.txt: build ./build/razor-font.bin ./build/tunnel_uv.lz4 ./build/music.mod \
+	./build/phong128.bin ./build/itm128.bin ./build/temp-logo.bin \
 	./build/paul1_uv.lz4 ./build/paul2_uv.lz4 ./build/paul3_uv.lz4  ./build/paul4_uv.lz4 \
 	./build/paul5_uv.lz4 ./build/Fire2.bin ./build/ShipIndex.lz4 ./build/bgtest4.bin \
 	./build/paul6_uv.lz4 ./build/paul7_uv.lz4 ./build/FlameIndex.lz4 ./build/CloudIndex.lz4 \
@@ -307,7 +307,7 @@ clean:
 ./build/music.mod.trk: ./build/music.mod
 	$(SPLITMOD) $(subst /,\\,$+)
 
-./build/music.mod: ./data/music/django/maze-funky-delicious.mod
+./build/music.mod: ./data/music/ne7-hammer_on.mod
 	$(COPY) $(subst /,\\,$+) $(subst /,\\,$@)
 
 ##########################################################################
