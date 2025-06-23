@@ -15,7 +15,7 @@
 .equ AppConfig_UseQtmEmbedded,          0
 .equ AppConfig_UseArchieKlang,          (_SMALL_EXE && 0)
 .equ AppConfig_UseRasterMan,            _DEMO_PART!=_PART_SPACE     ; removes event / IRQ handler.
-.equ AppConfig_ReturnMainToCaller,      (!_DEBUG && 1)       ; desktop by default
+.equ AppConfig_ReturnMainToCaller,      (!_DEBUG && 1)       ; desktop by default TOOD: Should be an exe config?
 .equ AppConfig_UseMemcBanks,            1       ; not currently compatible with IrqHandler.
 
 ; ============================================================================

@@ -52,3 +52,16 @@
     palette_copy seq_palette_lerped, seq_palette_copy
     palette_lerp_over_secs seq_palette_copy, \palette_B, \secs
 .endm
+
+; Converts 8 values in 0x0RGB format (e.g. from Gradient Blaster) to 
+; VIDC format = index << 26 | 0xBGR
+.macro grad_to_vidc col0, col1, col2, col3, col4, col5, col6, col7
+    .long 0<<26 | (\col0&0x00f)<<8 | (\col0&0x0f0) | (\col0&0xf00)>>8
+    .long 1<<26 | (\col1&0x00f)<<8 | (\col1&0x0f0) | (\col1&0xf00)>>8
+    .long 2<<26 | (\col2&0x00f)<<8 | (\col2&0x0f0) | (\col2&0xf00)>>8
+    .long 3<<26 | (\col3&0x00f)<<8 | (\col3&0x0f0) | (\col3&0xf00)>>8
+    .long 4<<26 | (\col4&0x00f)<<8 | (\col4&0x0f0) | (\col4&0xf00)>>8
+    .long 5<<26 | (\col5&0x00f)<<8 | (\col5&0x0f0) | (\col5&0xf00)>>8
+    .long 6<<26 | (\col6&0x00f)<<8 | (\col6&0x0f0) | (\col6&0xf00)>>8
+    .long 7<<26 | (\col7&0x00f)<<8 | (\col7&0x0f0) | (\col7&0xf00)>>8
+.endm

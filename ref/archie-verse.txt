@@ -524,36 +524,6 @@ For Megademo:
 - Minimal binary for each part. - IN PROGRESS
 - Compress binaries. => Sarah to choose method.
 
----
-Fix frames / vsyncs / seconds once and for all:
----
-- vsyncs (every 50Hz)
-- frames (once around the main loop - frames displayed to user)
-- seconds = vsyncs / 50
-
-vsync_count used for:
-- test for frame drops (when 50Hz) - DEBUG
-- calculating frame rate - DEBUG
-- LuaPod and RocketPod time communication with host
-
-vsync_delta used for:
-- script wait vsyncs - so that transitions match music
-- passed in as R1 to FX tick fns (but not used?)
-
-frame_counter used for:
-- overall length of the demo 'max_frames'
-- sync tracks (LuaPod) - UNUSED
-- passed in as R0 to FX tick fns (but not used?)
-- fast forward to frame when skipping music patterns - DEBUG
-
-desirata:
-- sequence scripting specified in seconds (which matches the MOD / wall clock)
-- math_vars should be updated per vsync
-- scripts are ticked once per frame
-
-==> SHORTEST PATH: Update math_vars by delta_vsyncs... - DONE
-
-
 Scene Order
 ~~~
 Apollo (Planet rise, Demo name +Logos [ Bitshifters?, Nova? ],
@@ -576,3 +546,48 @@ Sun,
 New : End somehow?,
 
 New: Somewhere in the above - greets / credits scrolling / flying past ship? Perpahs cut in the middle of Space Travel II (or the trippy section but that feels a bit early)
+
+
+Tech retrospective of archie-verse framework.
+~~~
+
+- Wasn't too bad hosting two demo parts from the same codebase (i.e. got shipped).
+  But.. ended up with 17 instances of .if _DEMO_PART == <PART> conditionals outside of bss/data/sequence.
+  The code in app.asm got particularly tangled, should have been two app_part.asm files with a better API.
+
+- Moving to MEMC control for screen banks is quite powerful but requires care and
+  ended up hardcoding the screen bank RAM allocation and page size, which is not great!
+
+- Math func variables continued to be quite powerful for single values, and can be usefully
+  bodged for structures (RGB, palettes) but a poor fit for 2D and 3D curves.
+
+- Scripting by poking RAM values and calling functions is quite flexible to get started, but
+  this resulted in around 9 lines of boilerplate script per scene, which could easily have
+  become a table. Although it did allow very fast last minute script tweaking.
+
+- Lack of scoping for variables in the scripting system is a PITA, having to manually destroy objects.
+
+- No hot reload of the sequence script...
+
+- Kinda just want the script to be arbitary C code... do we want the outer loop to be C,
+  with the inner (hot path) functions in asm, or keep the existing asm framework and use C
+  for the scripting only?
+  (Ideally want to be able to fully prototype in C but is that a separate thing?)
+
+- Now have three different ways of specifying a palette and have to convert between them!
+        OS_Word           : 0x00BbGgRr
+        VIDC reg          : index << 26 | 0xBGR
+        Gradient Blaster  : 0x0RGB
+  Ended up going GB -> OS_Word format. LERP in OS_Word space. At vsync convert OS_Word -> VIDC.
+  Which format is preferable? 
+
+- Screen clear code is hard tied to polygon clipping code, which is super ick!
+
+- Doing vertical rupture with RasterMan wasn't very difficult. Lots of potential here!
+
+- Debug vars worked well, although could do with some more helpers.
+
+- The continued difficulty of setting up background tasks meant many frames were Lots
+  when decompressing assets and generating code...
+
+- Scripting system still has a mix of frames and vsyncs. Again, should this be standardised on seconds?
